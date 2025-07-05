@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Calcolo Spese Mensili</title>
+</head>
+<body>
+<h1>Carica file Excel e seleziona mese</h1>
+
+<form id="uploadForm">
+    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required />
+
+    <label for="monthSelect">Mese:</label>
+    <select id="monthSelect" required>
+        <option value="">-- Seleziona --</option>
+        <option value="1">Gennaio</option>
+        <option value="2">Febbraio</option>
+        <option value="3">Marzo</option>
+        <option value="4">Aprile</option>
+        <option value="5">Maggio</option>
+        <option value="6">Giugno</option>
+        <option value="7">Luglio</option>
+        <option value="8">Agosto</option>
+        <option value="9">Settembre</option>
+        <option value="10">Ottobre</option>
+        <option value="11">Novembre</option>
+        <option value="12">Dicembre</option>
+    </select>
+
+    <button type="submit">Invia</button>
+</form>
+
+<h2>Risultati:</h2>
+<div id="response"></div>
+
+<button id="mergeRowsBtn" style="display: none; margin-top: 15px;">Unisci righe selezionate</button>
+
+<table id="resultsTable" border="1" style="display: none; margin-top: 20px;">
+    <thead>
+    <tr>
+        <th>Includi</th>
+        <th>Categoria / Presso</th>
+        <th>Importo (€)</th>
+    </tr>
+    </thead>
+    <tbody id="resultsBody">
+    </tbody>
+</table>
+
+
+<script src="upload.js"></script>
+</body>
+</html>

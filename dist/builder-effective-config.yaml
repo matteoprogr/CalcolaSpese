@@ -1,0 +1,17 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.example.calcolaspesedesktop
+productName: Calcola Spese Desktop
+copyright: Copyright © 2025
+win:
+  target: nsis
+  icon: euro_7051135.png
+mac:
+  target: dmg
+  icon: euro_7051135.png
+linux:
+  target: AppImage
+  icon: euro_7051135.png
+files: []
+electronVersion: 26.6.10
