@@ -18,15 +18,15 @@
     "copyright": "Copyright © 2025",
     "win": {
       "target": "nsis",
-      "icon": "euro_7051135.png"
+      "icon": "src/main/java/CalcolaSpese/ing/icons/euro_7051135.ico"
     },
     "mac": {
       "target": "dmg",
-      "icon": "euro_7051135.png"
+      "icon": "src/main/java/CalcolaSpese/ing/icons/ap6n9-2tzs9.icns"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "euro_7051135.png"
+      "icon": "src/main/java/CalcolaSpese/ing/icons/euro_7051135.png"
     }
   },
   "publish": {
