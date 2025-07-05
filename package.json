@@ -17,7 +17,7 @@
     "productName": "Calcola Spese Desktop",
     "copyright": "Copyright © 2025",
     "win": {
-      "target": "nsis",
+      "target": "appx",
       "icon": "build/icons/euro_7051135.ico"
     },
     "mac": {
@@ -33,6 +33,13 @@
     "provider": "github",
     "owner": "matteoprogr",
     "repo": "CalcolaSpese"
+  },
+  "appx": {
+    "applicationId": "PatteoIndustries.CalcolaSpese",
+    "identityName": "PatteoIndustries.CalcolaSpese",
+    "publisher": "CN=8719F0A7-C63A-4EEA-93F9-1B81A20AB1ED",
+    "publisherDisplayName": "PatteoIndustries"
   }
+
 
 }
