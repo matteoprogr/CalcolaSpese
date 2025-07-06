@@ -17,7 +17,7 @@
     "productName": "Calcola Spese Desktop",
     "copyright": "Copyright © 2025",
     "win": {
-      "target": "appx",
+      "target": "nsis",
       "icon": "build/icons/euro_7051135.ico"
     },
     "mac": {
