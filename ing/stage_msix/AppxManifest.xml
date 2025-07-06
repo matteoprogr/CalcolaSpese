@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+         xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10"
+         ignorableNamespaces="uap uap2 iot">
+
+    <!-- Identità del pacchetto -->
+    <Identity Name="PatteoIndustries.CalcolaSpese"
+              Publisher="CN=8719F0A7-C63A-4EEA-93F9-1B81A20AB1ED"
+              Version="1.0.0.0"
+              ProcessorArchitecture="x64" />
+
+    <!-- Proprietà del pacchetto -->
+    <Properties>
+        <DisplayName>CalcolaSpese</DisplayName>
+        <PublisherDisplayName>PatteoIndustries</PublisherDisplayName>
+        <Description>Applicazione per la gestione delle spese personali</Description>
+        <Logo>build/icons/euro_7051135.ico</Logo>
+    </Properties>
+
+    <!-- Requisiti di sistema -->
+    <Prerequisites>
+        <OSMinVersion>10.0.17763.0</OSMinVersion>
+        <OSMaxVersionTested>10.0.22621.0</OSMaxVersionTested>
+    </Prerequisites>
+
+    <!-- Risorse linguistiche -->
+    <Resources>
+        <Resource Language="x-generate" />
+    </Resources>
+
+    <!-- Dipendenze -->
+    <Dependencies>
+        <PackageDependency Name="Microsoft.VCLibs.140.00" MinVersion="14.0.0.0" />
+    </Dependencies>
+
+    <!-- Capacità richieste -->
+    <Capabilities>
+        <rescap:Capability Name="runFullTrust" />
+    </Capabilities>
+
+    <!-- Applicazioni incluse nel pacchetto -->
+    <Applications>
+        <Application Id="CalcolaSpeseApp"
+                     Executable="Calcola Spese desktop.exe"
+                     EntryPoint="Windows.FullTrustApplication">
+            <uap:VisualElements DisplayName="CalcolaSpese"
+                                Description="Gestione delle spese personali"
+                                Square150x150Logo="build/icons/euro_7051135.png"
+                                Square44x44Logo="build/icons/euro_7051135.png"
+                                BackgroundColor="#FFFFFF">
+                <uap:DefaultTile Wide310x150Logo="build/icons/euro_7051135.png" />
+                <uap:SplashScreen Image="build/icons/euro_7051135.png" BackgroundColor="#FFFFFF" />
+            </uap:VisualElements>
+        </Application>
+    </Applications>
+
+    <!-- Installer MSI -->
+    <Installer>
+        <MsiPackage File="installer\CalcolaSpese-1.0.0.msi" />
+    </Installer>
+
+</Package>
