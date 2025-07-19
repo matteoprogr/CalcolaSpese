@@ -1,0 +1,5 @@
+owner: matteoprogr
+repo: CalcolaSpese
+provider: github
+vPrefixedTagName: true
+updaterCacheDirName: calcolaspese-updater

@@ -1,39 +1,62 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
+const AutoLaunch = require('auto-launch');
 
-// Inizializza il logger per autoUpdater
+// Configura il logger per autoUpdater
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
-autoUpdater.autoDownload = false; // se vuoi notificare senza scaricare automaticamente
+autoUpdater.autoDownload = false;
 
+let mainWindow;
+
+// Creazione della finestra principale
 function createWindow() {
-  const win = new BrowserWindow({
-    width: 1000, height: 800,
+  mainWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
     webPreferences: { nodeIntegration: true, contextIsolation: true }
   });
-  win.loadURL('http://localhost:8080/index.html');
+  mainWindow.loadURL('http://localhost:8080/index.html');
 
-  // Comunica eventi aggiornamento al renderer
-  autoUpdater.on("update-available", () => win.webContents.send("update_available"));
-  autoUpdater.on("update-not-available", () => win.webContents.send("update_not_available"));
-  autoUpdater.on("download-progress", progress => win.webContents.send("update_progress", progress));
-  autoUpdater.on("update-downloaded", () => win.webContents.send("update_downloaded"));
+  // Eventi per comunicazione con il renderer
+  autoUpdater.on("update-available", () => mainWindow.webContents.send("update_available"));
+  autoUpdater.on("update-not-available", () => mainWindow.webContents.send("update_not_available"));
+  autoUpdater.on("download-progress", progress => mainWindow.webContents.send("update_progress", progress));
+  autoUpdater.on("update-downloaded", () => mainWindow.webContents.send("update_downloaded"));
 }
 
-app.on("ready", () => {
+// Imposta l’avvio automatico dell’app
+function setupAutoLaunch() {
+  const appLauncher = new AutoLaunch({
+    name: app.getName(),
+    path: app.getPath('exe'),
+    isHidden: false // cambiare in true se vuoi far partire l'app in background
+  });
+
+  appLauncher.isEnabled()
+    .then(isEnabled => {
+      if (!isEnabled) {
+        appLauncher.enable().catch(err => console.error('Errore abilitazione AutoLaunch:', err));
+      }
+    })
+    .catch(err => console.error('Errore controllo AutoLaunch:', err));
+}
+
+app.whenReady().then(() => {
   createWindow();
+  setupAutoLaunch();
 
   autoUpdater.checkForUpdatesAndNotify();
-
-  // Puoi schedulare nuovi controlli periodici
   setInterval(() => autoUpdater.checkForUpdates(), 10 * 60 * 1000);
 });
 
+// Gestione comando da renderer per l’installazione dell’update
 ipcMain.on('install_update', () => {
   autoUpdater.quitAndInstall();
 });
 
+// Chiude l’app al termine delle finestre
 app.on("window-all-closed", () => {
   app.quit();
 });
