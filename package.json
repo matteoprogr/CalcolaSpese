@@ -1,45 +1,55 @@
 {
-  "name": "calcola-spese-desktop",
+  "name": "calcolaspese",
+  "productName": "CalcolaSpese",
   "version": "1.0.0",
+  "description": "App per calcolare le spese – PatteoIndustries",
+  "author": "PatteoIndustries",
   "main": "main.js",
-  "description": "App desktop per calcolare le spese quotidiane",
-  "author": "matteoprogr",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
-  },
-  "devDependencies": {
-    "electron": "^26.0.0",
-    "electron-builder": "^24.0.0"
+    "dist": "electron-builder -mwl",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
   },
   "build": {
-    "appId": "com.example.calcolaspesedesktop",
-    "productName": "Calcola Spese Desktop",
-    "copyright": "Copyright © 2025",
-    "win": {
-      "target": "nsis",
-      "icon": "build/icons/euro_7051135.ico"
-    },
+    "appId": "PatteoIndustries.CalcolaSpese",
+    "productName": "CalcolaSpese",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "matteoprogr",
+        "repo": "CalcolaSpese",
+        "vPrefixedTagName": true
+      }
+    ],
+    "files": [
+      "frontend/**/*",
+      "main.js",
+      "backend/ing-0.0.1-SNAPSHOT.jar",
+      "node_modules/**/*"
+    ],
     "mac": {
-      "target": "dmg",
-      "icon": "build/icons/ap6n9-2tzs9.icns"
+      "target": ["dmg", "zip"],
+      "icon": "build/icons/icon.icns"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64", "ia32"] }
+      ],
+      "icon": "build/icons/icon.ico"
     },
     "linux": {
-      "target": "AppImage",
-      "icon": "build/icons/euro_7051135.png"
-    }
+      "target": ["AppImage", "deb"],
+      "arch": ["x64", "arm64", "armv7l"],
+      "icon": "build/icons"
+    },
+    "directories": { "buildResources": "build" }
   },
-  "publish": {
-    "provider": "github",
-    "owner": "matteoprogr",
-    "repo": "CalcolaSpese"
-  },
-  "appx": {
-    "applicationId": "PatteoIndustries.CalcolaSpese",
-    "identityName": "PatteoIndustries.CalcolaSpese",
-    "publisher": "CN=8719F0A7-C63A-4EEA-93F9-1B81A20AB1ED",
-    "publisherDisplayName": "PatteoIndustries"
+  "devDependencies": {
+    "electron": "^25.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-updater": "^5.3.0",
+    "electron-log": "^5.0.0"
   }
-
-
 }
