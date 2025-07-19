@@ -1,17 +1,34 @@
 directories:
   output: dist
   buildResources: build
-appId: com.example.calcolaspesedesktop
-productName: Calcola Spese Desktop
-copyright: Copyright © 2025
-win:
-  target: nsis
-  icon: euro_7051135.png
+appId: PatteoIndustries.CalcolaSpese
+productName: CalcolaSpese
+publish:
+  - provider: github
+    owner: matteoprogr
+    repo: CalcolaSpese
+    vPrefixedTagName: true
+files:
+  - filter:
+      - frontend/**/*
+      - main.js
+      - backend/ing-0.0.1-SNAPSHOT.jar
+      - node_modules/**/*
 mac:
-  target: dmg
-  icon: euro_7051135.png
+  target:
+    - dmg
+    - zip
+  icon: build/icons/icon.icns
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+  icon: build/icons/icon.ico
 linux:
-  target: AppImage
-  icon: euro_7051135.png
-files: []
-electronVersion: 26.6.10
+  target:
+    - AppImage
+    - deb
+  icon: build/icons
+electronVersion: 25.9.8
