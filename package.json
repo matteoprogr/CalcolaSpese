@@ -41,7 +41,6 @@
     },
     "linux": {
       "target": ["AppImage", "deb"],
-      "arch": ["x64", "arm64", "armv7l"],
       "icon": "build/icons"
     },
     "directories": { "buildResources": "build" }

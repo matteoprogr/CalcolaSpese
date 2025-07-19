@@ -35,4 +35,4 @@ jobs:
         with:
           files: dist/*.dmg
         env:
-          GITHUB_TOKEN: ${{ secrets.tokencalcolaspese }}
+          GITHUB_TOKEN: ${{ secrets.TOKENCALCOLASPESE }}
