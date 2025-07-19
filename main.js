@@ -1,69 +1,39 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-const childProcess = require('child_process');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
 
-// Override di spawn per logging (opzionale, tienilo solo se ti serve)
-const originalSpawn = childProcess.spawn;
-childProcess.spawn = function() {
-  console.log('Spawn args:', arguments);
-  return originalSpawn.apply(this, arguments);
-};
-
-let backendProcess;
-
-function createBackendProcess(javaPath, jarPath) {
-  return childProcess.spawn(javaPath, ['-jar', jarPath], {
-    cwd: path.dirname(jarPath),
-    shell: true,
-    env: process.env
-  });
-}
+// Inizializza il logger per autoUpdater
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = "info";
+autoUpdater.autoDownload = false; // se vuoi notificare senza scaricare automaticamente
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1000,
-    height: 800,
-    webPreferences: {
-      nodeIntegration: false,  // sicurezza
-      contextIsolation: true   // sicurezza
-    }
+    width: 1000, height: 800,
+    webPreferences: { nodeIntegration: true, contextIsolation: true }
   });
   win.loadURL('http://localhost:8080/index.html');
+
+  // Comunica eventi aggiornamento al renderer
+  autoUpdater.on("update-available", () => win.webContents.send("update_available"));
+  autoUpdater.on("update-not-available", () => win.webContents.send("update_not_available"));
+  autoUpdater.on("download-progress", progress => win.webContents.send("update_progress", progress));
+  autoUpdater.on("update-downloaded", () => win.webContents.send("update_downloaded"));
 }
 
-app.whenReady().then(() => {
-  // Definisco i percorsi qui dentro, quando l'app è pronta
-  const jarPath = path.join(__dirname, 'ing', 'ing-0.0.1-SNAPSHOT.jar');
-  const javaPath = process.env.JAVA_HOME
-    ? path.join(process.env.JAVA_HOME, 'bin', 'java')
-    : 'java';
-
-  backendProcess = createBackendProcess(javaPath, jarPath);
-
-  // Eventuale logging di errori o uscita del processo backend
-  backendProcess.on('error', (err) => {
-    console.error('Backend process error:', err);
-  });
-  backendProcess.on('exit', (code, signal) => {
-    console.log(`Backend process exited with code ${code}, signal ${signal}`);
-  });
-
+app.on("ready", () => {
   createWindow();
 
-  app.on('activate', () => {
-    // Su macOS riapri la finestra se tutte le finestre sono chiuse
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+  autoUpdater.checkForUpdatesAndNotify();
+
+  // Puoi schedulare nuovi controlli periodici
+  setInterval(() => autoUpdater.checkForUpdates(), 10 * 60 * 1000);
 });
 
-// Assicurati di terminare il processo backend quando chiudi tutte le finestre
-app.on('window-all-closed', () => {
-  if (backendProcess) {
-    backendProcess.kill();
-    backendProcess = null;
-  }
-  // Su macOS l'app resta aperta finché non si fa cmd+Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+ipcMain.on('install_update', () => {
+  autoUpdater.quitAndInstall();
+});
+
+app.on("window-all-closed", () => {
+  app.quit();
 });
