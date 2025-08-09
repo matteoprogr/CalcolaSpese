@@ -203,6 +203,14 @@ function rimuoviRigheSelezionate() {
              valoreTotale = parseFloat(valoreCell.textContent);
        }
     });
+
+     // Se meno di due righe selezionate, non si unisce
+        if (righeRimuovere.length < 1) {
+            alert("Seleziona almeno una riga da rimuovere.");
+            return;
+        }
+
+
      rows.forEach(row => {
             const valoreCell = row.querySelector(".valore-spesa");
             const etichettaCell = row.children[1];
