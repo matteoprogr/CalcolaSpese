@@ -1,3 +1,4 @@
+/* Stile base */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #e3f2fd, #f4f7fb);
@@ -14,6 +15,7 @@ h1, h2 {
 }
 
 form {
+    width: 90%;
     max-width: 500px;
     margin: 20px auto;
     background: #ffffff;
@@ -68,8 +70,11 @@ button:hover {
     background: linear-gradient(90deg, #2980b9, #3498db);
     transform: scale(1.03);
 }
+
+/* Contenitore tabella */
 .table-container {
-    width: 80%;
+    width: 90%;
+    max-width: 1200px;
     margin: 20px auto;
 }
 
@@ -79,7 +84,8 @@ button:hover {
     margin-bottom: 8px;
 }
 
-#mergeRowsBtn {
+/* Bottoni speciali */
+#mergeRowsBtn, #uploadResultBtn {
     padding: 8px 14px;
     background: linear-gradient(90deg, #3498db, #5dade2);
     color: #fff;
@@ -88,33 +94,18 @@ button:hover {
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
+    display: none;
+    margin: 15px auto;
 }
 
-#mergeRowsBtn:hover {
+#mergeRowsBtn:hover, #uploadResultBtn:hover {
     background: linear-gradient(90deg, #2980b9, #3498db);
     transform: scale(1.03);
 }
 
-#uploadResultBtn {
-    padding: 8px 14px;
-    background: linear-gradient(90deg, #3498db, #5dade2);
-    color: #fff;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-
-#uploadResultBtn:hover {
-    background: linear-gradient(90deg, #2980b9, #3498db);
-    transform: scale(1.03);
-}
-
-
+/* Tabella */
 table {
-    width: 80%;
-    margin: 20px auto;
+    width: 100%;
     border-collapse: collapse;
     background: #ffffff;
     border-radius: 8px;
@@ -145,20 +136,64 @@ tr:hover {
     background: #ecf6ff;
 }
 
-#mergeRowsBtn {
-    display: none;
-    margin: 15px auto;
-    display: block;
-}
-
-#uploadResultBtn {
-    display: none;
-    margin: 15px auto;
-    display: block;
-}
-
 /* Animazioni */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------
+   RESPONSIVE DESIGN
+---------------------------------*/
+
+/* Tablet e smartphone */
+@media (max-width: 768px) {
+    form {
+        padding: 20px;
+    }
+
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #mergeRowsBtn, #uploadResultBtn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    th, td {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
+
+/* Smartphone piccoli */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 20px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    th, td {
+        font-size: 12px;
+    }
 }
