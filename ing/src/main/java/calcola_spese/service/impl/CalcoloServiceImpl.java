@@ -6,15 +6,15 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 
 @Service
@@ -83,96 +83,91 @@ public class CalcoloServiceImpl implements CalcoloService {
         }
     }
     @Override
-    public Map<String, Double> calcola(MultipartFile file, int mese) {
+    public Map<String, Double> calcola(MultipartFile file, String dataInizio, String dataFine) {
 
-       return estraiSpese(file, mese);
+       return estraiSpese(file, dataInizio, dataFine);
 
     }
 
     @Override
-    public Map<String, Double> estraiSpese(MultipartFile file, int mese) {
+    public Map<String, Double> estraiSpese(MultipartFile file, String dataInizio, String dataFine) {
 
-        Map<String, Double> data = new HashMap<>();
+        Map<String, Double> data;
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
-            Sheet sheet = workbook.getSheetAt(0);  // prima tabella
-
-            for (Row row : sheet) {
-                // Indici colonne (base 0):
-                // Colonna 2 = indice 2 -> data valuta (stringa)
-                // Colonna 4 = indice 4 -> presso (stringa)
-                // Colonna 5 = indice 5 -> valore (double)
-
-                Cell cellDataValuta = row.getCell(2);
-                Cell cellPresso = row.getCell(4);
-                Cell cellValore = row.getCell(5);
-
-                if (cellDataValuta == null || cellPresso == null || cellValore == null)
-                    continue;
-
-                String dataValuta;
-                if (cellDataValuta.getCellType() == CellType.STRING) {
-                    dataValuta = cellDataValuta.getStringCellValue();
-                } else if (cellDataValuta.getCellType() == CellType.NUMERIC) {
-                    if (DateUtil.isCellDateFormatted(cellDataValuta)) {
-                        Date date = cellDataValuta.getDateCellValue();
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy"); // oppure "yyyy-MM-dd"
-                        dataValuta = sdf.format(date);
-                    } else {
-                        dataValuta = String.valueOf(cellDataValuta.getNumericCellValue());
-                    }
-                } else {
-                    dataValuta = "";
-                }
-                String presso = cellPresso.getStringCellValue();
-
-                if (dataValuta == null || dataValuta.isEmpty() || presso == null || presso.isEmpty())
-                    continue;
-
-                // Controllo mese nel formato dd/MM/yyyy o simile
-                String[] splitDataValuta = dataValuta.split("-");
-
-                if (splitDataValuta.length > 1) {
-                    String meseStr = splitDataValuta[1];
-                    int meseRiga;
-                    try {
-                        meseRiga = Integer.parseInt(meseStr);
-                    } catch (NumberFormatException e) {
-                        continue;
-                    }
-
-                    if (meseRiga == mese) {
-                        double valore;
-
-                        // Proviamo a leggere il valore come numero o stringa numerica
-                        if (cellValore.getCellType() == CellType.NUMERIC) {
-                            valore = cellValore.getNumericCellValue();
-                        } else {
-                            try {
-                                valore = Double.parseDouble(cellValore.getStringCellValue());
-                            } catch (NumberFormatException ex) {
-                                continue;
-                            }
-                        }
-
-                        if (valore < 0) {
-                            data.put(presso, valore);
-                        }
-                    }
-                }
-            }
+            Sheet sheet = workbook.getSheetAt(0);
+            data = elaborazioneExcelIngdirect(sheet, dataFine, dataInizio);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        return sommaSpese(data);
+        return sommaSpeseIngdirect(data);
 
     }
 
-    @Override
-    public Map<String, Double> sommaSpese(Map<String, Double> data) {
+    public Map<String, Double> elaborazioneExcelIngdirect(Sheet sheet, String dataBefore, String dataAfter) {
+        String[][]  matrice = estraiExcel(sheet);
+        int righe = matrice.length;
+        int indexDataValuta = 2;
+        int indexDescrizione = 4;
+        int indexValore = 5;
+        String before = convertIsoToCustomFormat(dataBefore);
+        String after = convertIsoToCustomFormat(dataAfter);
+        Map<String, Double> data = new HashMap<>();
+
+        for (int riga = 13; riga < righe; riga++) {
+            String descrizione = matrice[riga][indexDataValuta];
+            String valore =  matrice[riga][indexValore];
+            if(isBeforeAndAfter(after,before,matrice[riga][indexDataValuta]) && descrizione != null && valore != null) {
+                double parseDouble = Double.parseDouble(valore);
+                if(data.get(descrizione) != null && parseDouble < 0) {
+                    double val = data.get(descrizione);
+                    val += Double.parseDouble(valore);
+                    data.put(matrice[riga][indexDescrizione],val);
+                }else if(parseDouble < 0){
+                    data.put(matrice[riga][indexDescrizione], Double.parseDouble(matrice[riga][indexValore]));
+                }
+            }
+
+        }
+        return data;
+
+    }
+
+    public String convertIsoToCustomFormat(String isoDate) {
+        LocalDate localDate = LocalDate.parse(isoDate);
+        ZonedDateTime zonedDateTime = localDate.atStartOfDay(ZoneId.systemDefault());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+        return zonedDateTime.format(formatter);
+    }
+
+    public static boolean isBeforeAndAfter(String after, String before, String dataValuta) {
+        String pattern = "EEE MMM dd HH:mm:ss zzz yyyy";
+        SimpleDateFormat formatter = new SimpleDateFormat(pattern, Locale.ENGLISH);
+        boolean isBefore;
+        boolean isAfter;
+
+        try {
+            Date dateAfter = formatter.parse(after);
+            Date dateBefore = formatter.parse(before);
+            Date dataValutaDate = formatter.parse(dataValuta);
+
+            if (dateAfter == null || dateBefore == null) {
+                return false;
+            }
+
+            isBefore = dataValutaDate.before(dateBefore);
+            isAfter = dataValutaDate.after(dateAfter);
+        } catch (ParseException e) {
+            return false;
+        }
+        return isBefore && isAfter;
+    }
+
+
+    public Map<String, Double> sommaSpeseIngdirect(Map<String, Double> data) {
         Map<String, Double> pulisciChiave = new LinkedHashMap<>();
 
         for (Map.Entry<String, Double> entry : data.entrySet()) {
@@ -190,4 +185,74 @@ public class CalcoloServiceImpl implements CalcoloService {
 
         return pulisciChiave;
     }
+
+    public String[][] estraiExcel(Sheet sheet) {
+        int lastRowNum = sheet.getLastRowNum();
+        // Numero colonne preso dalla prima riga
+
+        Row firstRow = null;
+        Row row1 = null;
+        boolean fineTabella = false;
+        int contataore = 0;
+        int i = 0;
+        while (!fineTabella) {
+            row1 = sheet.getRow(i);
+            if(row1 == null){
+                contataore++;
+            }else{
+                firstRow = row1;
+                contataore = 0;
+            }
+            if(contataore == 10){
+                fineTabella = true;
+            }
+            i++;
+        }
+        int numCols = (firstRow != null) ? firstRow.getLastCellNum() : 0;
+
+        // Crea la matrice di stringhe
+        String[][] matrix = new String[lastRowNum + 1][numCols];
+
+        for (int r = 0; r <= lastRowNum; r++) {
+            Row row = sheet.getRow(r);
+            if (row == null) {
+                // Riga vuota: riempi con stringhe vuote
+                for (int c = 0; c < numCols; c++) {
+                    matrix[r][c] = "";
+                }
+                continue;
+            }
+
+            for (int c = 0; c < numCols; c++) {
+                Cell cell = row.getCell(c, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                matrix[r][c] = getCellValueAsString(cell);
+            }
+        }
+
+        return matrix;
+    }
+
+    // Metodo di utilità per estrarre il valore di una cella come stringa
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                } else {
+                    return Double.toString(cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return Boolean.toString(cell.getBooleanCellValue());
+            case BLANK:
+                return "";
+            default:
+                return "";
+        }
+    }
+
 }

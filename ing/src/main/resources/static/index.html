@@ -5,29 +5,23 @@
     <title>Calcolo Spese Mensili</title>
     <link rel="stylesheet" href="css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Stile base per i contenitori dei datepicker */
+        .datepicker-container {
+            display: inline-block;
+            margin-right: 20px;
+        }
+    </style>
 </head>
 <body>
 <h1>Carica file Excel e seleziona mese</h1>
 
 <form id="uploadForm">
-    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required />
+    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
 
-    <label for="monthSelect">Mese:</label>
-    <select id="monthSelect" required>
-        <option value="">-- Seleziona --</option>
-        <option value="1">Gennaio</option>
-        <option value="2">Febbraio</option>
-        <option value="3">Marzo</option>
-        <option value="4">Aprile</option>
-        <option value="5">Maggio</option>
-        <option value="6">Giugno</option>
-        <option value="7">Luglio</option>
-        <option value="8">Agosto</option>
-        <option value="9">Settembre</option>
-        <option value="10">Ottobre</option>
-        <option value="11">Novembre</option>
-        <option value="12">Dicembre</option>
-    </select>
+    <input type="date" id="startDate">
+    <input type="date" id="endDate">
 
     <button type="submit">Invia</button>
 </form>
@@ -56,5 +50,7 @@
 
 
 <script src="upload.js"></script>
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>

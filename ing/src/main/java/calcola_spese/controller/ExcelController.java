@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
 import java.util.Map;
 
 @RestController
@@ -20,13 +21,14 @@ public class ExcelController {
     @PostMapping("/upload")
     public  ResponseEntity<Map<String, Double>> handleUpload(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("mese") int mese) {
+            @RequestParam("dataInizio") String dataInizio,
+            @RequestParam("dataFine") String dataFine) {
 
-        if (file.isEmpty() || mese < 1 || mese > 12) {
+        if (file.isEmpty() || dataInizio == null || dataFine == null) {
             throw new IllegalArgumentException("File vuoto o mese non valido.");
         }
 
-        Map<String, Double> calcoloSpese = calcoloService.calcola(file, mese);
+        Map<String, Double> calcoloSpese = calcoloService.calcola(file, dataInizio, dataFine);
 
         return ResponseEntity.ok(calcoloSpese);
     }

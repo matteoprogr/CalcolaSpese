@@ -2,19 +2,22 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
     const fileInput = document.getElementById("fileInput");
-    const monthSelect = document.getElementById("monthSelect");
+    const startDate = document.getElementById("startDate");
+    const endDate = document.getElementById("endDate");
     const file = fileInput.files[0];
-    const selectedMonthNumber = monthSelect.value;
+    const dataInizio = startDate.value;
+    const datafine = endDate.value;
 
 
-    if (!file || !selectedMonthNumber) {
-        alert("Inserisci un file Excel e seleziona un mese.");
-        return;
-    }
+     if (!file || (!startDate && !endDate)) {
+           alert("Inserisci un file Excel e seleziona un mese o un intervallo di date.");
+           return;
+       }
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("mese", selectedMonthNumber);
+    formData.append("dataInizio", dataInizio);
+    formData.append("dataFine", datafine);
 
     fetch("/api/excel/upload", {
         method: "POST",

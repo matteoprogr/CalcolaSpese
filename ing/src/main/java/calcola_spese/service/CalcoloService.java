@@ -6,11 +6,11 @@ import java.util.Map;
 
 public interface CalcoloService {
 
-    Map<String, Double> calcola(MultipartFile file, int mese);
+    Map<String, Double> calcola(MultipartFile file, String dataInizio, String dataFine);
 
-    Map<String, Double> estraiSpese(MultipartFile file, int mese);
+    Map<String, Double> estraiSpese(MultipartFile file, String dataInizio, String dataFine);
 
-    Map<String, Double> sommaSpese(Map<String, Double> data);
+    Map<String, Double> sommaSpeseIngdirect(Map<String, Double> data);
 
     byte[] download(Map<String, Double> data);
 }
