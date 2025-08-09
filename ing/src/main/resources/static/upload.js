@@ -6,6 +6,7 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     const file = fileInput.files[0];
     const selectedMonthNumber = monthSelect.value;
 
+
     if (!file || !selectedMonthNumber) {
         alert("Inserisci un file Excel e seleziona un mese.");
         return;
@@ -32,6 +33,50 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
         document.getElementById("response").innerText = "Errore durante l'upload: " + error;
     });
 });
+
+
+document.getElementById("uploadResultBtn").addEventListener("click", function () {
+    const tabella = document.getElementById("resultsBody");
+    const rows = tabella.getElementsByTagName("tr");
+
+    const dati = {};
+
+    for (let row of rows) {
+        const celle = row.getElementsByTagName("td");
+        if (celle.length === 3) {
+        console.log(celle);
+            const chiave = celle[1].innerText.trim();
+            console.log(chiave);
+            const valore = parseFloat(celle[2].innerText.trim());
+            console.log(valore);
+            if (!isNaN(valore) && chiave !== "Totale selezionato") {
+                dati[chiave] = valore;
+            }
+        }
+    }
+
+    // Invio al backend
+    fetch("/api/excel/download", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dati)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Errore durante l'invio");
+        return response.blob();
+    })
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "risultati.xlsx";
+        link.click();
+    })
+    .catch(err => console.error(err));
+});
+
 
 function mostraTabella(data) {
     const resultsTable = document.getElementById("resultsTable");
@@ -101,7 +146,6 @@ function mostraTabella(data) {
 
     spostaRigheTotaliInFondo();
 
-
 }
 
 function aggiornaTotaleLive() {
@@ -130,7 +174,6 @@ function aggiornaTotaleLive() {
         totaleCell.textContent = somma.toFixed(2);
     }
 }
-
 
 document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
 

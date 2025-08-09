@@ -2,21 +2,18 @@ package calcola_spese.controller;
 
 import calcola_spese.service.CalcoloService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/excel")
-public class ExcelUploadController {
+public class ExcelController {
 
    private final CalcoloService calcoloService;
 
-    public ExcelUploadController(CalcoloService calcoloService) {
+    public ExcelController(CalcoloService calcoloService) {
         this.calcoloService = calcoloService;
     }
 
@@ -32,5 +29,12 @@ public class ExcelUploadController {
         Map<String, Double> calcoloSpese = calcoloService.calcola(file, mese);
 
         return ResponseEntity.ok(calcoloSpese);
+    }
+
+    @PostMapping("/download")
+    public ResponseEntity<byte[]> handleDownload(@RequestBody Map<String, Double> body) {
+
+        byte[] file = calcoloService.download(body);
+        return ResponseEntity.ok(file);
     }
 }

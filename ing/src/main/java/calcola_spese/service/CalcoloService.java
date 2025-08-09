@@ -11,4 +11,6 @@ public interface CalcoloService {
     Map<String, Double> estraiSpese(MultipartFile file, int mese);
 
     Map<String, Double> sommaSpese(Map<String, Double> data);
+
+    byte[] download(Map<String, Double> data);
 }
