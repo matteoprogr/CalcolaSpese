@@ -1,4 +1,4 @@
-package calcolaSpese.service;
+package calcola_spese.service;
 
 import org.springframework.web.multipart.MultipartFile;
 

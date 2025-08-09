@@ -1,6 +1,6 @@
-package calcolaSpese.controller;
+package calcola_spese.controller;
 
-import calcolaSpese.service.CalcoloService;
+import calcola_spese.service.CalcoloService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
