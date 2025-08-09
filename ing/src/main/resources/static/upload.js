@@ -38,6 +38,7 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
 document.getElementById("uploadResultBtn").addEventListener("click", function () {
     const tabella = document.getElementById("resultsBody");
     const rows = tabella.getElementsByTagName("tr");
+    console.log(tabella);
 
     const dati = {};
 
@@ -46,9 +47,7 @@ document.getElementById("uploadResultBtn").addEventListener("click", function ()
         if (celle.length === 3) {
         console.log(celle);
             const chiave = celle[1].innerText.trim();
-            console.log(chiave);
             const valore = parseFloat(celle[2].innerText.trim());
-            console.log(valore);
             if (!isNaN(valore) && chiave !== "Totale selezionato") {
                 dati[chiave] = valore;
             }
@@ -71,7 +70,7 @@ document.getElementById("uploadResultBtn").addEventListener("click", function ()
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = "risultati.xlsx";
+        link.download = "elaborazione.xlsx";
         link.click();
     })
     .catch(err => console.error(err));
@@ -143,6 +142,7 @@ function mostraTabella(data) {
     resultsTable.style.display = "table";
     document.getElementById("mergeRowsBtn").style.display = "inline-block";
     document.getElementById("uploadResultBtn").style.display = "inline-block";
+    document.getElementById("removeRowsBtn").style.display = "inline-block";
 
     spostaRigheTotaliInFondo();
 
@@ -176,6 +176,49 @@ function aggiornaTotaleLive() {
 }
 
 document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
+document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheSelezionate);
+
+function rimuoviRigheSelezionate() {
+    const rows = document.querySelectorAll("#resultsBody tr");
+    const righeRimuovere = [];
+    let sommadaRimuovere = 0;
+    let valoreTotale = 0;
+
+    // raccoglie le righe con checkbox selezionata, escludendo totale
+    rows.forEach(row => {
+
+        const checkbox = row.querySelector("input[type='checkbox']");
+        const valoreCell = row.querySelector(".valore-spesa");
+        const etichettaCell = row.children[1];
+        const etichetta = etichettaCell?.textContent?.toLowerCase();
+
+        if (checkbox && checkbox.checked && !checkbox.disabled && valoreCell) {
+            const valore = parseFloat(valoreCell.textContent);
+            const etichetta = etichettaCell.textContent;
+            righeRimuovere.push({ etichetta, valore, row });
+            sommadaRimuovere += valore;
+        }
+
+        if(valoreCell && etichetta === "totale"){
+             valoreTotale = parseFloat(valoreCell.textContent);
+       }
+    });
+     rows.forEach(row => {
+            const valoreCell = row.querySelector(".valore-spesa");
+            const etichettaCell = row.children[1];
+            const etichetta = etichettaCell?.textContent?.toLowerCase();
+
+            if(etichetta === "totale"){
+                 valoreTotale -= sommadaRimuovere;
+                 valoreCell.textContent = valoreTotale.toFixed(2);
+           }
+        });
+
+    righeRimuovere.forEach(r => r.row.remove());
+    aggiornaTotaleLive();
+
+
+}
 
 function unisciRigheSelezionate() {
     const rows = document.querySelectorAll("#resultsBody tr");
@@ -234,7 +277,7 @@ function unisciRigheSelezionate() {
     resultsBody.insertBefore(nuovaRiga, rigaTotale);
 
     aggiornaTotaleLive();
-    spostaRigheTotaliInFondo(); // 👈 AGGIUNTO
+    spostaRigheTotaliInFondo();
 
 }
 function spostaRigheTotaliInFondo() {

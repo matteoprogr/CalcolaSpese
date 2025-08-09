@@ -82,10 +82,14 @@ button:hover {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 8px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, #e3f2fd, #f4f7fb);
+    z-index: 10;
 }
 
 /* Bottoni speciali */
-#mergeRowsBtn, #uploadResultBtn {
+#mergeRowsBtn, #uploadResultBtn, #removeRowsBtn {
     padding: 8px 14px;
     background: linear-gradient(90deg, #3498db, #5dade2);
     color: #fff;
@@ -98,7 +102,7 @@ button:hover {
     margin: 15px auto;
 }
 
-#mergeRowsBtn:hover, #uploadResultBtn:hover {
+#mergeRowsBtn:hover, #uploadResultBtn, #removeRowsBtn:hover {
     background: linear-gradient(90deg, #2980b9, #3498db);
     transform: scale(1.03);
 }
