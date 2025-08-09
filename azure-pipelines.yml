@@ -15,7 +15,7 @@ variables:
   webAppName: 'Calcola Spese'
 
   # Environment name
-  environmentName: 'prod'
+  environmentName: 'master'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
