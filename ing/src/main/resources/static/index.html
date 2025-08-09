@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Calcolo Spese Mensili</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <h1>Carica file Excel e seleziona mese</h1>
@@ -31,21 +32,25 @@
 </form>
 
 <h2>Risultati:</h2>
-<div id="response"></div>
 
-<button id="mergeRowsBtn" style="display: none; margin-top: 15px;">Unisci righe selezionate</button>
+<div class="table-container">
+    <div class="table-header">
+        <button id="mergeRowsBtn" style="display: none;">Unisci righe selezionate</button>
+        <button id="uploadResultBtn" style="display: none;">Scarica risultati</button>
+    </div>
 
-<table id="resultsTable" border="1" style="display: none; margin-top: 20px;">
-    <thead>
-    <tr>
-        <th>Includi</th>
-        <th>Categoria / Presso</th>
-        <th>Importo (€)</th>
-    </tr>
-    </thead>
-    <tbody id="resultsBody">
-    </tbody>
-</table>
+    <table id="resultsTable" style="display: none;">
+        <thead>
+        <tr>
+            <th>Includi</th>
+            <th>Categoria / Presso</th>
+            <th>Importo (€)</th>
+        </tr>
+        </thead>
+        <tbody id="resultsBody">
+        </tbody>
+    </table>
+</div>
 
 
 <script src="upload.js"></script>

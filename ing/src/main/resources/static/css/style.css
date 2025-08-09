@@ -1,0 +1,164 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e3f2fd, #f4f7fb);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #2c3e50;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    margin-top: 20px;
+}
+
+form {
+    max-width: 500px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+form:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+    color: #34495e;
+}
+
+input[type="file"], select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="file"]:focus, select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    outline: none;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px 15px;
+    background: linear-gradient(90deg, #3498db, #5dade2);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background: linear-gradient(90deg, #2980b9, #3498db);
+    transform: scale(1.03);
+}
+.table-container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+.table-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+#mergeRowsBtn {
+    padding: 8px 14px;
+    background: linear-gradient(90deg, #3498db, #5dade2);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#mergeRowsBtn:hover {
+    background: linear-gradient(90deg, #2980b9, #3498db);
+    transform: scale(1.03);
+}
+
+#uploadResultBtn {
+    padding: 8px 14px;
+    background: linear-gradient(90deg, #3498db, #5dade2);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#uploadResultBtn:hover {
+    background: linear-gradient(90deg, #2980b9, #3498db);
+    transform: scale(1.03);
+}
+
+
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+th {
+    background: linear-gradient(90deg, #3498db, #5dade2);
+    color: #fff;
+    padding: 12px;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+tr:hover {
+    background: #ecf6ff;
+}
+
+#mergeRowsBtn {
+    display: none;
+    margin: 15px auto;
+    display: block;
+}
+
+#uploadResultBtn {
+    display: none;
+    margin: 15px auto;
+    display: block;
+}
+
+/* Animazioni */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

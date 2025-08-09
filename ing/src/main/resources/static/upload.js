@@ -97,6 +97,7 @@ function mostraTabella(data) {
     aggiornaTotaleLive(); // calcolo iniziale
     resultsTable.style.display = "table";
     document.getElementById("mergeRowsBtn").style.display = "inline-block";
+    document.getElementById("uploadResultBtn").style.display = "inline-block";
 
     spostaRigheTotaliInFondo();
 
