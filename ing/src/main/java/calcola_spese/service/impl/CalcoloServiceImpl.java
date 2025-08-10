@@ -97,7 +97,7 @@ public class CalcoloServiceImpl implements CalcoloService {
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            data = elaborazioneExcelIngdirect(sheet, dataFine, dataInizio);
+            data = elaborazioneExcelIngdirect(sheet, dataInizio, dataFine);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -107,14 +107,15 @@ public class CalcoloServiceImpl implements CalcoloService {
 
     }
 
-    public Map<String, Double> elaborazioneExcelIngdirect(Sheet sheet, String dataBefore, String dataAfter) {
+    public Map<String, Double> elaborazioneExcelIngdirect(Sheet sheet, String dataInizio, String dataFine) {
         String[][]  matrice = estraiExcel(sheet);
         int righe = matrice.length;
         int indexDataValuta = 2;
         int indexDescrizione = 4;
         int indexValore = 5;
-        String before = convertIsoToCustomFormat(dataBefore);
-        String after = convertIsoToCustomFormat(dataAfter);
+
+        String after = !dataInizio.isEmpty() ? convertIsoToCustomFormat(dataInizio) : null;
+        String before = !dataFine.isEmpty() ? convertIsoToCustomFormat(dataFine) : null;
         Map<String, Double> data = new HashMap<>();
 
         for (int riga = 13; riga < righe; riga++) {
@@ -143,27 +144,32 @@ public class CalcoloServiceImpl implements CalcoloService {
         return zonedDateTime.format(formatter);
     }
 
-    public static boolean isBeforeAndAfter(String after, String before, String dataValuta) {
+    public static boolean isBeforeAndAfter(String inizio, String fine, String dataValuta) {
         String pattern = "EEE MMM dd HH:mm:ss zzz yyyy";
         SimpleDateFormat formatter = new SimpleDateFormat(pattern, Locale.ENGLISH);
         boolean isBefore;
         boolean isAfter;
 
         try {
-            Date dateAfter = formatter.parse(after);
-            Date dateBefore = formatter.parse(before);
+            Date dateAfter = inizio != null ? formatter.parse(inizio) : null;
+            Date dateBefore = fine != null ? formatter.parse(fine) : null;
             Date dataValutaDate = formatter.parse(dataValuta);
 
-            if (dateAfter == null || dateBefore == null) {
-                return false;
-            }
+            isBefore = dateBefore != null && dataValutaDate.before(dateBefore);
+            isAfter =  dateAfter != null && dataValutaDate.after(dateAfter);
 
-            isBefore = dataValutaDate.before(dateBefore);
-            isAfter = dataValutaDate.after(dateAfter);
+            if(inizio != null && fine != null && isBefore && isAfter) return true;
+
+            if(inizio == null && fine != null && isBefore) return true;
+
+            if(inizio != null && fine == null && isAfter) return true;
+
+            if(inizio == null && fine == null) return true;
+
         } catch (ParseException e) {
             return false;
         }
-        return isBefore && isAfter;
+        return false;
     }
 
 

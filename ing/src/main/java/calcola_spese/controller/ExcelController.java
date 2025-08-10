@@ -24,7 +24,7 @@ public class ExcelController {
             @RequestParam("dataInizio") String dataInizio,
             @RequestParam("dataFine") String dataFine) {
 
-        if (file.isEmpty() || dataInizio == null || dataFine == null) {
+        if (file.isEmpty()) {
             throw new IllegalArgumentException("File vuoto o mese non valido.");
         }
 
