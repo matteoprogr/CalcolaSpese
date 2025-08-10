@@ -131,7 +131,6 @@ public class CalcoloServiceImpl implements CalcoloService {
                     data.put(matrice[riga][indexDescrizione], Double.parseDouble(matrice[riga][indexValore]));
                 }
             }
-
         }
         return data;
 
