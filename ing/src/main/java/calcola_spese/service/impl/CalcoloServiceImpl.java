@@ -1,6 +1,7 @@
 package calcola_spese.service.impl;
 
 import calcola_spese.service.CalcoloService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.*;
 
 
 @Service
+@Slf4j
 public class CalcoloServiceImpl implements CalcoloService {
 
     @Override
@@ -197,6 +199,7 @@ public class CalcoloServiceImpl implements CalcoloService {
 
         Row firstRow = null;
         Row row1 = null;
+        int numCols = 0;
         boolean fineTabella = false;
         int contataore = 0;
         int i = 0;
@@ -207,13 +210,16 @@ public class CalcoloServiceImpl implements CalcoloService {
             }else{
                 firstRow = row1;
                 contataore = 0;
+                int numColInRow1 = firstRow.getLastCellNum();
+                if(numColInRow1 > numCols){
+                    numCols = numColInRow1;
+                }
             }
             if(contataore == 10){
                 fineTabella = true;
             }
             i++;
         }
-        int numCols = (firstRow != null) ? firstRow.getLastCellNum() : 0;
 
         // Crea la matrice di stringhe
         String[][] matrix = new String[lastRowNum + 1][numCols];

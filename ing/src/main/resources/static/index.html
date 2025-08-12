@@ -26,14 +26,14 @@
     <button type="submit">Invia</button>
 </form>
 
-<h2>Risultati:</h2>
-
 <div class="table-container">
     <div class="table-header">
         <button id="mergeRowsBtn" style="display: none;">Unisci righe selezionate</button>
-        <button id="uploadResultBtn" style="display: none;">Scarica Elaborazione</button>
         <button id="removeRowsBtn" style="display: none;">Rimuovi righe selezionate</button>
+        <button id="uploadResultBtn" style="display: none;">Scarica Elaborazione</button>
     </div>
+
+    <div id="rowContainer"></div>
 
     <table id="resultsTable" style="display: none;">
         <thead>
@@ -46,6 +46,14 @@
         <tbody id="resultsBody">
         </tbody>
     </table>
+    <div class="table-header-tot">
+        <table id="resultsTableTot" style="display: none;">
+            <thead>
+            </thead>
+            <tbody id="resultsBodyTot">
+            </tbody>
+        </table>
+    </div>
 </div>
 
 
