@@ -1,0 +1,18 @@
+name: Deploy via Azure DevOps
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  trigger-azure-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Azure DevOps Pipeline
+        run: |
+          curl -u :${{ secrets.AZURE_DEVOPS_PAT }} \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -d '{}' \
+          "https://dev.azure.com/patteo/Calcola%20Spese/_apis/build/builds?definitionId=8&api-version=6.0"
