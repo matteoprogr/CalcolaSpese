@@ -12,7 +12,7 @@ variables:
   azureSubscription: 'f3565085-d311-4b35-8289-20cea2840ef4'
 
   # Web app name
-  webAppName: 'Calcola Spese'
+  webAppName: 'CalcolaSpese'
 
   # Environment name
   environmentName: 'Prod'
