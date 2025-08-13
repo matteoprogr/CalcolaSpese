@@ -15,13 +15,21 @@
     </style>
 </head>
 <body>
-<h1>Carica file Excel e seleziona mese</h1>
+<h1>Importa il tuo file Excel e visualizza le tue spese di un determinato periodo.</h1>
 
 <form id="uploadForm">
     <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
+    <select id="nomeBanca" required>
+        <option value="" disabled selected>-- Seleziona --</option>
+        <option value="ingDirect">IngDirect</option>
+    </select>
 
-    <input type="date" id="startDate">
-    <input type="date" id="endDate">
+    <label class="monthLabel" for="startDate">Da:</label>
+    <input type="date" id="startDate" name="startDate">
+
+    <label class="monthLabel" for="endDate"> A:</label>
+    <input type="date" id="endDate" name="endDate">
+
 
     <button type="submit">Invia</button>
 </form>
@@ -32,8 +40,6 @@
         <button id="removeRowsBtn" style="display: none;">Rimuovi righe selezionate</button>
         <button id="uploadResultBtn" style="display: none;">Scarica Elaborazione</button>
     </div>
-
-    <div id="rowContainer"></div>
 
     <table id="resultsTable" style="display: none;">
         <thead>

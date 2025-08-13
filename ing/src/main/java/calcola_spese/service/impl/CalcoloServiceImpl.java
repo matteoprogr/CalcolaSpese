@@ -84,33 +84,37 @@ public class CalcoloServiceImpl implements CalcoloService {
             throw new RuntimeException("Errore durante la creazione del file Excel", e);
         }
     }
-    @Override
-    public Map<String, Double> calcola(MultipartFile file, String dataInizio, String dataFine) {
-
-       return estraiSpese(file, dataInizio, dataFine);
-
-    }
 
     @Override
-    public Map<String, Double> estraiSpese(MultipartFile file, String dataInizio, String dataFine) {
+    public Map<String, Double> estraiSpese(MultipartFile file, String nomeBanca,String dataInizio, String dataFine) {
 
-        Map<String, Double> data;
+        Map<String, Double> data = Map.of();
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            data = elaborazioneExcelIngdirect(sheet, dataInizio, dataFine);
+            String[][]  matrice = estraiExcel(sheet);
+            if(nomeBanca != null && nomeBanca.equals("IngDirect")) {
+                data = elaborazioneExcelIngdirect(matrice, dataInizio, dataFine);
+            }
+            else if(nomeBanca != null && nomeBanca.equals("unicredit")) {
+
+            }else {
+                throw new RuntimeException();
+            }
+
+
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        return sommaSpeseIngdirect(data);
+        return data;
 
     }
 
-    public Map<String, Double> elaborazioneExcelIngdirect(Sheet sheet, String dataInizio, String dataFine) {
-        String[][]  matrice = estraiExcel(sheet);
+    public Map<String, Double> elaborazioneExcelIngdirect( String[][] matrice, String dataInizio, String dataFine) {
+
         int righe = matrice.length;
         int indexDataValuta = 2;
         int indexDescrizione = 4;
@@ -134,7 +138,7 @@ public class CalcoloServiceImpl implements CalcoloService {
                 }
             }
         }
-        return data;
+        return sommaSpeseIngdirect(data);
 
     }
 

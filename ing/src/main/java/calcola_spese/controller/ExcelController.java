@@ -21,14 +21,15 @@ public class ExcelController {
     @PostMapping("/upload")
     public  ResponseEntity<Map<String, Double>> handleUpload(
             @RequestParam("file") MultipartFile file,
+            @RequestParam("nomeBanca") String nomeBanca,
             @RequestParam("dataInizio") String dataInizio,
             @RequestParam("dataFine") String dataFine) {
 
-        if (file.isEmpty()) {
+        if (file.isEmpty() && nomeBanca.isEmpty()) {
             throw new IllegalArgumentException("File vuoto o mese non valido.");
         }
 
-        Map<String, Double> calcoloSpese = calcoloService.calcola(file, dataInizio, dataFine);
+        Map<String, Double> calcoloSpese = calcoloService.estraiSpese(file,nomeBanca, dataInizio, dataFine);
 
         return ResponseEntity.ok(calcoloSpese);
     }

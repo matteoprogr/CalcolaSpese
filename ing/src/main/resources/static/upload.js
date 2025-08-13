@@ -2,6 +2,8 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
     const fileInput = document.getElementById("fileInput");
+    const selectNomeBanca = document.getElementById("nomeBanca");
+    const nomeBanca = selectNomeBanca.options[selectNomeBanca.selectedIndex].text;
     const startDate = document.getElementById("startDate");
     const endDate = document.getElementById("endDate");
     const file = fileInput.files[0];
@@ -16,6 +18,7 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("nomeBanca", nomeBanca);
     formData.append("dataInizio", dataInizio);
     formData.append("dataFine", datafine);
 
@@ -40,22 +43,26 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
 
 document.getElementById("uploadResultBtn").addEventListener("click", function () {
     const tabella = document.getElementById("resultsBody");
+    const rowTot = document.getElementById("rigaTotaleBackend");
     const rows = tabella.getElementsByTagName("tr");
-    console.log(tabella);
-
     const dati = {};
 
     for (let row of rows) {
         const celle = row.getElementsByTagName("td");
         if (celle.length === 3) {
-        console.log(celle);
             const chiave = celle[1].innerText.trim();
             const valore = parseFloat(celle[2].innerText.trim());
-            if (!isNaN(valore) && chiave !== "Totale selezionato") {
+            if(chiave !== "" && valore !== null && valore !== undefined && valore !== NaN){
                 dati[chiave] = valore;
             }
+
         }
     }
+    const celle = rowTot.getElementsByTagName("td");
+    const chiave = celle[1].innerText.trim();
+    const valore = parseFloat(celle[2].innerText.trim());
+    dati[chiave] = valore;
+
 
     // Invio al backend
     fetch("/api/excel/download", {
@@ -297,12 +304,6 @@ function rimuoviRigheSelezionate() {
             alert("Seleziona almeno una riga da rimuovere.");
             return;
         }
-
-//        const elementTot = rowsTot[0];
-//        let valueTot = elementTot.children[2].textContent;
-//        valueTot = (parseFloat(valueTot) - sommadaRimuovere).toFixed(2);
-//        elementTot.children[2].textContent = valueTot;
-
 
     righeRimuovere.forEach(r => r.row.remove());
     aggiornaTotaleLive();

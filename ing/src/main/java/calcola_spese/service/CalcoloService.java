@@ -6,9 +6,7 @@ import java.util.Map;
 
 public interface CalcoloService {
 
-    Map<String, Double> calcola(MultipartFile file, String dataInizio, String dataFine);
-
-    Map<String, Double> estraiSpese(MultipartFile file, String dataInizio, String dataFine);
+    Map<String, Double> estraiSpese(MultipartFile file,String nomeBanca, String dataInizio, String dataFine);
 
     Map<String, Double> sommaSpeseIngdirect(Map<String, Double> data);
 
