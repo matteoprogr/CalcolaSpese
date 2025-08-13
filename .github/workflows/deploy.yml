@@ -1,0 +1,18 @@
+name: Deploy via Azure DevOps
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  trigger-azure-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Azure DevOps Pipeline
+        run: |
+          curl -u :${{ secrets.AZURE_DEVOPS_PAT }} \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -d '{"resources":{}}' \
+          https://dev.azure.com/{patteo}/{Calcola Spese}/_apis/pipelines/{8}/runs?api-version=6.0-preview.1
