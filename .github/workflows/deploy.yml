@@ -14,5 +14,5 @@ jobs:
           curl -u :${{ secrets.AZURE_DEVOPS_PAT }} \
           -X POST \
           -H "Content-Type: application/json" \
-          -d '{"resources":{}}' \
-          https://dev.azure.com/{patteo}/{Calcola Spese}/_apis/pipelines/{8}/runs?api-version=6.0-preview.1
+          -d '{}' \
+          "https://dev.azure.com/patteo/Calcola%20Spese/_apis/build/builds?definitionId=8&api-version=6.0"
