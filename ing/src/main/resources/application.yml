@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: "ing"
+  data:
+    mongodb:
+      uri: "mongodb+srv://matteo93parisi:clustepass93qterywu@clusterapp.iavl0vj.mongodb.net/TrackExpense?retryWrites=true&w=majority&appName=ClusterApp"
+
+server:
+  port: 8080

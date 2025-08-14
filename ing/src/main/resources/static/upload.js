@@ -40,6 +40,74 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     });
 });
 
+const manualForm = document.getElementById('manualForm');
+const resultsBody = document.getElementById('resultsBody');
+
+document.getElementById("manualForm").addEventListener("submit", async function (e) {
+    e.preventDefault(); // Evita ricaricamento pagina
+
+    // Recupero valori dal form
+    const categoria = document.getElementById("categoria").value;
+    const importo = parseFloat(document.getElementById("importo").value);
+    const dataSpesa = document.getElementById("dataSpesa").value;
+    const startDateExpense = document.getElementById("startDateExpense").value;
+    const endDateExpense = document.getElementById("endDateExpense").value;
+    const recurrence = document.getElementById("recurrence").value;
+    const descrizione = document.getElementById("descrizione").value;
+    const includi = document.getElementById("includi").checked;
+
+    // Creazione oggetto compatibile con UserExpenseDto
+    const expenseData = {
+        username: "utente.demo",
+        idExpense: null,
+        expenses: [],
+        totalExpense: importo,
+
+        description: descrizione,
+        amount: importo,
+        category: categoria,
+        expenseDate: dataSpesa,
+        startDate: startDateExpense,
+        endDate: endDateExpense,
+        recurrence: recurrence
+    };
+
+    try {
+        const response = await fetch("api/expense/saveExpense", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+                // Se hai token JWT:
+                // "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(expenseData)
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            console.error("Errore API:", err);
+            alert("Errore durante il salvataggio");
+            //return;
+        }
+
+        const result = await response.json();
+
+        // Se il checkbox è spuntato → aggiungi anche alla tabella locale
+        if (includi) {
+            addNuovaRiga(categoria, importo, dataSpesa);
+            aggiornaTotale();
+        }
+
+        // Svuota form
+       e.target.reset();
+    } catch (error) {
+        console.error("Errore di rete:", error);
+        alert("Impossibile contattare il server");
+    }
+});
+
+
+
 
 document.getElementById("uploadResultBtn").addEventListener("click", function () {
     const tabella = document.getElementById("resultsBody");
@@ -55,7 +123,6 @@ document.getElementById("uploadResultBtn").addEventListener("click", function ()
             if(chiave !== "" && valore !== null && valore !== undefined && valore !== NaN){
                 dati[chiave] = valore;
             }
-
         }
     }
     const celle = rowTot.getElementsByTagName("td");
@@ -136,7 +203,12 @@ function mostraTabella(data) {
     addRowBtn.textContent = "+";
     addRowBtn.id = "addRowBtn";
     addRowBtn.title = "Aggiungi riga";
-    addRowBtn.addEventListener("click", addNuovaRiga);
+    addRowBtn.addEventListener("click", function(event) {
+    const inputTesto = document.getElementById("inputTesto");
+    const inputDouble = document.getElementById("inputDouble");
+    addNuovaRiga(inputTesto, inputDouble);
+    });
+
     buttonCell.appendChild(addRowBtn);
     buttonRow.appendChild(buttonCell);
 
@@ -172,13 +244,11 @@ function mostraTabella(data) {
 
 }
 
-function addNuovaRiga() {
+function addNuovaRiga(inputTesto, inputDouble) {
     const resultsBody = document.getElementById("resultsBody");
 
-    const inputTesto = document.getElementById("inputTesto");
-    const inputDouble = document.getElementById("inputDouble");
-
     const testo = inputTesto.value.trim();
+    // valore inserito con il meno " - "
     const numero = parseFloat(-inputDouble.value);
 
     if (!testo) {

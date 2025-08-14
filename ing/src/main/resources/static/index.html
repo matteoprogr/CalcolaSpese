@@ -6,39 +6,83 @@
     <link rel="stylesheet" href="css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <style>
-        /* Stile base per i contenitori dei datepicker */
-        .datepicker-container {
-            display: inline-block;
-            margin-right: 20px;
-        }
-    </style>
 </head>
 <body>
-<h1>Importa il tuo file Excel e visualizza le tue spese di un determinato periodo.</h1>
 
-<form id="uploadForm">
-    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
-    <select id="nomeBanca" required>
-        <option value="" disabled selected>-- Seleziona --</option>
-        <option value="ingDirect">IngDirect</option>
-    </select>
+<!-- Titolo principale della pagina -->
+<h1 class="page-title">Gestione Spese</h1>
 
-    <label class="monthLabel" for="startDate">Da:</label>
-    <input type="date" id="startDate" name="startDate">
+<div class="forms-container">
+    <!-- Wrapper per titolo + primo form -->
+    <div class="form-block">
+        <h2>Importa il tuo file Excel</h2>
 
-    <label class="monthLabel" for="endDate"> A:</label>
-    <input type="date" id="endDate" name="endDate">
+        <form id="uploadForm">
+            <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
+            <label class="indexlabel">Inserisci il nome della tua banca</label>
+            <select id="nomeBanca" required>
+                <option value="" disabled selected>-- Seleziona --</option>
+                <option value="ingDirect">IngDirect</option>
+            </select>
 
+            <label class="indexlabel" for="startDate">Da:</label>
+            <input type="date" id="startDate" name="startDate">
 
-    <button type="submit">Invia</button>
-</form>
+            <label class="indexlabel" for="endDate">A:</label>
+            <input type="date" id="endDate" name="endDate">
+
+            <button type="submit">Invia</button>
+        </form>
+    </div>
+
+    <!-- Secondo form -->
+    <div class="form-block">
+        <h2>Aggiungi spesa manualmente</h2>
+
+        <form id="manualForm">
+            <label class="indexlabel" for="categoria">Categoria / Presso</label>
+            <input type="text" id="categoria" name="categoria" required>
+
+            <label class="indexlabel" for="importo">Importo (€)</label>
+            <input type="number" step="0.01" id="importo" name="importo" required>
+
+            <label class="indexlabel" for="descrizione">Descrizione</label>
+            <input type="text" id="descrizione" name="descrizione" required>
+
+            <label class="indexlabel" for="dataSpesa">Data</label>
+            <input type="date" id="dataSpesa" name="dataSpesa">
+
+            <label class="indexlabel" for="startDateExpense">Data inizio spesa</label>
+            <input type="date" id="startDateExpense" name="startDateExpense">
+
+            <label class="indexlabel" for="endDateExpense">Data fine spesa</label>
+            <input type="date" id="endDateExpense" name="endDateExpense">
+
+            <label class="indexlabel" for="recurrence">Ricorrenza</label>
+            <select id="recurrence" name="recurrence">
+                <option value="">-- Seleziona --</option>
+                <option value="daily">Giornaliera</option>
+                <option value="weekly">Settimanale</option>
+                <option value="monthly">Mensile</option>
+                <option value="yearly">Annuale</option>
+            </select>
+
+            <label class="indexlabel" for="includi">
+                <input type="checkbox" id="includi" name="includi">
+                Includi nella tabella
+            </label>
+
+            <button type="submit">Aggiungi spesa</button>
+        </form>
+    </div>
+</div>
+
 
 <div class="table-container">
     <div class="table-header">
         <button id="mergeRowsBtn" style="display: none;">Unisci righe selezionate</button>
         <button id="removeRowsBtn" style="display: none;">Rimuovi righe selezionate</button>
-        <button id="uploadResultBtn" style="display: none;">Scarica Elaborazione</button>
+        <button id="uploadResultBtn" style="display: none;">Download Excel</button>
     </div>
 
     <table id="resultsTable" style="display: none;">
