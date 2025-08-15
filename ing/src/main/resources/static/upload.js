@@ -1,3 +1,8 @@
+import { saveSpesa } from './query.js';
+import { querySpese } from './query.js';
+import { deleteSpese } from './query.js';
+
+
 document.getElementById("uploadForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
@@ -44,6 +49,7 @@ const manualForm = document.getElementById('manualForm');
 const resultsBody = document.getElementById('resultsBody');
 
 document.getElementById("manualForm").addEventListener("submit", async function (e) {
+
     e.preventDefault(); // Evita ricaricamento pagina
 
     // Recupero valori dal form
@@ -59,10 +65,7 @@ document.getElementById("manualForm").addEventListener("submit", async function 
     // Creazione oggetto compatibile con UserExpenseDto
     const expenseData = {
         username: "utente.demo",
-        idExpense: null,
-        expenses: [],
         totalExpense: importo,
-
         description: descrizione,
         amount: importo,
         category: categoria,
@@ -71,39 +74,50 @@ document.getElementById("manualForm").addEventListener("submit", async function 
         endDate: endDateExpense,
         recurrence: recurrence
     };
-
-    try {
-        const response = await fetch("api/expense/saveExpense", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-                // Se hai token JWT:
-                // "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(expenseData)
-        });
-
-        if (!response.ok) {
-            const err = await response.json();
-            console.error("Errore API:", err);
-            alert("Errore durante il salvataggio");
-            //return;
-        }
-
-        const result = await response.json();
-
-        // Se il checkbox è spuntato → aggiungi anche alla tabella locale
-        if (includi) {
-            addNuovaRiga(categoria, importo, dataSpesa);
-            aggiornaTotale();
-        }
-
-        // Svuota form
-       e.target.reset();
-    } catch (error) {
-        console.error("Errore di rete:", error);
-        alert("Impossibile contattare il server");
+    if (includi) {
+        addNuovaRiga(categoria, importo, dataSpesa);
+        aggiornaTotale();
     }
+
+    await saveSpesa(expenseData);
+    const spese = await querySpese();
+    await deleteSpese();
+
+       // Svuota form
+      e.target.reset();
+
+//    try {
+//        const response = await fetch("api/expense/saveExpense", {
+//            method: "POST",
+//            headers: {
+//                "Content-Type": "application/json"
+//                // Se hai token JWT:
+//                // "Authorization": "Bearer " + token
+//            },
+//            body: JSON.stringify(expenseData)
+//        });
+//
+//        if (!response.ok) {
+//            const err = await response.json();
+//            console.error("Errore API:", err);
+//            alert("Errore durante il salvataggio");
+//            //return;
+//        }
+//
+//        const result = await response.json();
+//
+//        // Se il checkbox è spuntato → aggiungi anche alla tabella locale
+//        if (includi) {
+//            addNuovaRiga(categoria, importo, dataSpesa);
+//            aggiornaTotale();
+//        }
+//
+//        // Svuota form
+//       e.target.reset();
+//    } catch (error) {
+//        console.error("Errore di rete:", error);
+//        alert("Impossibile contattare il server");
+//    }
 });
 
 
@@ -170,8 +184,6 @@ function mostraTabella(data) {
         }else{
          aggiungiRiga(chiave,valore,"resultsBody");
          }
-
-
     }
 
     // Aggiungi riga "Totale selezionato"
@@ -304,7 +316,6 @@ function aggiornaTotale() {
         const valore = parseFloat(valoreCell.textContent);
            somma += valore;
         }
-
    });
 
    const elementTot = rowsTot[0];
@@ -312,8 +323,6 @@ function aggiornaTotale() {
    elementTot.children[2].textContent = valueTot;
 
 }
-
-
 
 function aggiornaTotaleLive() {
     let somma = 0;
