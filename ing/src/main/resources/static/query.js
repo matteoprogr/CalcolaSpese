@@ -1,3 +1,5 @@
+
+
  // Verifica se IndexedDB è supportato dal browser
   if (!window.indexedDB) {
     alert("IndexedDB non è supportato dal tuo browser.");
@@ -80,13 +82,11 @@
       range = undefined;
     }
 
-    const request = index.getAll(range);
-    request.onsuccess = function () {
-      console.log("Spese trovate:", request.result);
-    };
-    request.onerror = function () {
-      console.error("Errore nella ricerca delle spese:", request.error);
-    };
+    return new Promise((resolve, reject) => {
+           const request = index.getAll(range);
+           request.onsuccess = () => resolve(request.result);
+           request.onerror = () => reject(request.error);
+       });
   }
 
     async function deleteSpese(criteri) {

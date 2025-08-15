@@ -6,110 +6,170 @@
     <link rel="stylesheet" href="css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Stile per nascondere sezioni non attive */
+        .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
+        }
+        nav {
+            background: #333;
+            padding: 10px;
+        }
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        nav a.active {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 
-<!-- Titolo principale della pagina -->
+<!-- Navbar -->
+<nav>
+    <a data-target="traccia-spesa" class="active">Traccia Spese</a>
+    <a data-target="Elabora Excel">Elabora Excel</a>
+</nav>
+
 <h1 class="page-title">Gestione Spese</h1>
 
-<div class="forms-container">
-    <!-- Wrapper per titolo + primo form -->
-    <div class="form-block">
-        <h2>Importa il tuo file Excel</h2>
+<!-- Pagina Elabora Excel -->
+<section id="Elabora Excel" class="page-section">
+    <div class="excel-container">
 
-        <form id="uploadForm">
-            <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
-            <label class="indexlabel">Inserisci il nome della tua banca</label>
-            <select id="nomeBanca" required>
-                <option value="" disabled selected>-- Seleziona --</option>
-                <option value="ingDirect">IngDirect</option>
-            </select>
+        <div class="excel-form">
+            <h2>Importa il tuo file Excel</h2>
+            <form id="uploadForm">
+                <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
+                <label class="indexlabel">Inserisci il nome della tua banca</label>
+                <select id="nomeBanca" required>
+                    <option value="" disabled selected>-- Seleziona --</option>
+                    <option value="ingDirect">IngDirect</option>
+                </select>
 
-            <label class="indexlabel" for="startDate">Da:</label>
-            <input type="date" id="startDate" name="startDate">
+                <label class="indexlabel" for="startDate">Da:</label>
+                <input type="date" id="startDate" name="startDate">
 
-            <label class="indexlabel" for="endDate">A:</label>
-            <input type="date" id="endDate" name="endDate">
+                <label class="indexlabel" for="endDate">A:</label>
+                <input type="date" id="endDate" name="endDate">
 
-            <button type="submit">Invia</button>
-        </form>
+                <button type="submit">Invia</button>
+            </form>
+        </div>
+
+        <div class="excel-table">
+
+            <div class="table-header">
+                <button id="mergeRowsBtn" style="display: none;">Unisci righe selezionate</button>
+                <button id="removeRowsBtn" style="display: none;">Rimuovi righe selezionate</button>
+                <button id="uploadResultBtn" style="display: none;">Download Excel</button>
+            </div>
+
+            <div class="table-scroll">
+                <table id="resultsTable" style="display: none;">
+                    <thead>
+                    <tr>
+                        <th>Includi</th>
+                        <th>Categoria / Presso</th>
+                        <th>Importo (€)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="table-header-tot">
+                <table id="resultsTableTot" style="display: none;">
+                    <tbody id="resultsBodyTot"></tbody>
+                </table>
+            </div>
+
+        </div>
+
     </div>
 
-    <!-- Secondo form -->
-    <div class="form-block">
-        <h2>Aggiungi spesa manualmente</h2>
+</section>
 
-        <form id="manualForm">
-            <label class="indexlabel" for="categoria">Categoria / Presso</label>
-            <input type="text" id="categoria" name="categoria" required>
+<section id="traccia-spesa" class="page-section active">
+    <div class="excel-container">
+        <div class="excel-form">
+        <h2>Traccia spese</h2>
+            <form id="manualForm">
+                <label class="indexlabel" for="categoria">Categoria</label>
+                <input type="text" id="categoria" name="categoria" required>
 
-            <label class="indexlabel" for="importo">Importo (€)</label>
-            <input type="number" step="0.01" id="importo" name="importo" required>
+                <label class="indexlabel" for="importo">Importo (€)</label>
+                <input type="number" step="0.01" id="importo" name="importo" required>
 
-            <label class="indexlabel" for="descrizione">Descrizione</label>
-            <input type="text" id="descrizione" name="descrizione" required>
+                <label class="indexlabel" for="descrizione">Descrizione</label>
+                <input type="text" id="descrizione" name="descrizione" required>
 
-            <label class="indexlabel" for="dataSpesa">Data</label>
-            <input type="date" id="dataSpesa" name="dataSpesa">
+                <label class="indexlabel" for="dataSpesa">Data</label>
+                <input type="date" id="dataSpesa" name="dataSpesa">
 
-            <label class="indexlabel" for="startDateExpense">Data inizio ricorrenza</label>
-            <input type="date" id="startDateExpense" name="startDateExpense">
+<!--                <label class="indexlabel" for="startDateExpense">Data inizio ricorrenza</label>-->
+<!--                <input type="date" id="startDateExpense" name="startDateExpense">-->
 
-            <label class="indexlabel" for="endDateExpense">Data fine ricorrenza</label>
-            <input type="date" id="endDateExpense" name="endDateExpense">
+<!--                <label class="indexlabel" for="endDateExpense">Data fine ricorrenza</label>-->
+<!--                <input type="date" id="endDateExpense" name="endDateExpense">-->
 
-            <label class="indexlabel" for="recurrence">Ricorrenza</label>
-            <select id="recurrence" name="recurrence">
-                <option value="">-- Seleziona --</option>
-                <option value="daily">Giornaliera</option>
-                <option value="weekly">Settimanale</option>
-                <option value="monthly">Mensile</option>
-                <option value="yearly">Annuale</option>
-            </select>
+<!--                <label class="indexlabel" for="recurrence">Ricorrenza</label>-->
+<!--                <select id="recurrence" name="recurrence">-->
+<!--                    <option value="">&#45;&#45; Seleziona &#45;&#45;</option>-->
+<!--                    <option value="daily">Giornaliera</option>-->
+<!--                    <option value="weekly">Settimanale</option>-->
+<!--                    <option value="monthly">Mensile</option>-->
+<!--                    <option value="yearly">Annuale</option>-->
+<!--                </select>-->
 
-            <label class="indexlabel" for="includi">
-                <input type="checkbox" id="includi" name="includi">
-                Includi nella tabella
-            </label>
+<!--                <label class="indexlabel" for="includi">-->
+<!--                    <input type="checkbox" id="includi" name="includi">-->
+<!--                    Includi nella tabella-->
+<!--                </label>-->
 
-            <button type="submit">Aggiungi spesa</button>
-        </form>
+                <button type="submit">Aggiungi spesa</button>
+                <button type="submit">Ricerca spesa</button>
+                <button type="submit">Elimina spesa</button>
+            </form>
+        </div>
+
+        <div class="excel-table">
+
+            <div class="table-scroll">
+                <table id="resultsTableManual" style="display: none;">
+                    <thead>
+                    <tr>
+                        <th></th> <!--colonna del check box non serve nome -->
+                        <th>Data Spesa</th>
+                        <th>Categoria</th>
+                        <th>descrizione</th>
+                        <th>Importo (€)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultsBodyManual"></tbody>
+                </table>
+            </div>
+
+            <div class="table-header-tot">
+                <table id="resultsTableTotManual" style="display: none;">
+                    <tbody id="resultsBodyTotManual"></tbody>
+                </table>
+            </div>
+
+        </div>
+
     </div>
-</div>
 
-
-<div class="table-container">
-    <div class="table-header">
-        <button id="mergeRowsBtn" style="display: none;">Unisci righe selezionate</button>
-        <button id="removeRowsBtn" style="display: none;">Rimuovi righe selezionate</button>
-        <button id="uploadResultBtn" style="display: none;">Download Excel</button>
-    </div>
-
-    <table id="resultsTable" style="display: none;">
-        <thead>
-        <tr>
-            <th>Includi</th>
-            <th>Categoria / Presso</th>
-            <th>Importo (€)</th>
-        </tr>
-        </thead>
-        <tbody id="resultsBody">
-        </tbody>
-    </table>
-    <div class="table-header-tot">
-        <table id="resultsTableTot" style="display: none;">
-            <thead>
-            </thead>
-            <tbody id="resultsBodyTot">
-            </tbody>
-        </table>
-    </div>
-</div>
-
+</section>
 
 <script type="module" src="upload.js"></script>
-
-<!-- Flatpickr JS -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 </body>
 </html>
