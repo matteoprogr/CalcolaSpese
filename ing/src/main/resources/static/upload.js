@@ -1,8 +1,24 @@
-import { saveSpesa } from './query.js';
-import { querySpese } from './query.js';
-import { deleteSpese } from './query.js';
+import { saveSpesa } from './queryDexie.js';
+import { querySpese } from './queryDexie.js';
+import { deleteSpese } from './queryDexie.js';
 
+async function initDate() {
+    const oggi = new Date();
+    const meseFa = new Date();
+    meseFa.setMonth(oggi.getMonth() - 1);
 
+    const formattaData = (data) => {
+      const anno = data.getFullYear();
+      const mese = String(data.getMonth() + 1).padStart(2, '0');
+      const giorno = String(data.getDate()).padStart(2, '0');
+      return `${anno}-${mese}-${giorno}`;
+    };
+
+    document.getElementById('startDateExpense').value = formattaData(meseFa);
+    document.getElementById('endDateExpense').value = formattaData(oggi);
+  };
+
+const manualForm = document.getElementById('manualForm');
 
 document.querySelectorAll('nav a').forEach(link => {
  const targetId = link.getAttribute('data-target');
@@ -18,13 +34,14 @@ document.querySelectorAll('nav a').forEach(link => {
     });
 
         if (targetId === 'traccia-spesa') {
-            tracciaSpeseClick();
+           initDate();
+           getSpese();
         }
 });
 
-async function tracciaSpeseClick() {
+async function tracciaSpeseClick(criteri) {
     try {
-        const spese = await querySpese();
+        const spese = await querySpese(criteri);
         await creaTabellaManuale(spese);
     } catch (err) {
         console.error("Errore nel recupero spese:", err);
@@ -54,27 +71,32 @@ async function creaTabellaManuale(spese) {
          const tdCheck = document.createElement("td");
          const checkbox = document.createElement("input");
          checkbox.type = "checkbox";
+         checkbox.value = spesa.dataInserimento;
          tdCheck.appendChild(checkbox);
          tr.appendChild(tdCheck);
 
          // Colonna Data Spesa
          const tdData = document.createElement("td");
          tdData.textContent = spesa.dataSpesa || "";
+         tdData.style.textAlign = "center";
          tr.appendChild(tdData);
 
          // Colonna Categoria
          const tdCategoria = document.createElement("td");
          tdCategoria.textContent = spesa.categoria || "";
+         tdCategoria.style.textAlign = "center";
          tr.appendChild(tdCategoria);
 
          // Colonna Descrizione
          const tdDescr = document.createElement("td");
          tdDescr.textContent = spesa.descrizione || "";
+         tdDescr.style.textAlign = "center";
          tr.appendChild(tdDescr);
 
          // Colonna Importo
          const tdImporto = document.createElement("td");
          tdImporto.textContent = spesa.importo ? spesa.importo.toFixed(2) : "0.00";
+         tdImporto.style.textAlign = "center";
          tr.appendChild(tdImporto);
 
          tbody.appendChild(tr);
@@ -87,6 +109,7 @@ async function creaTabellaManuale(spese) {
      const tdTot = document.createElement("td");
      tdTot.colSpan = 4;
      tdTot.style.textAlign = "right";
+     tdTot.style.fontWeight = "bold";
      tdTot.textContent = "Totale:";
      trTot.appendChild(tdTot);
 
@@ -100,6 +123,10 @@ async function creaTabellaManuale(spese) {
      document.getElementById("resultsTableManual").style.display = "table";
      document.getElementById("resultsTableTotManual").style.display = "table";
 
+}
+
+function isValid(value) {
+    return value != null && !Number.isNaN(value) && value !== "";
 }
 
 
@@ -145,44 +172,77 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     });
 });
 
-const manualForm = document.getElementById('manualForm');
-const resultsBody = document.getElementById('resultsBody');
+document.getElementById("addSpesaBtn").addEventListener("click", addSpesa);
+document.getElementById("getSpesaBtn").addEventListener("click", getSpese);
+document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
 
-document.getElementById("manualForm").addEventListener("submit", async function (e) {
+async function addSpesa() {
+ const expenseData = {
+         account: "Mat",
+         descrizione: manualForm.descrizione.value,
+         importo:     parseFloat(manualForm.importo.value),
+         categoria:   manualForm.categoria.value,
+         dataSpesa:   manualForm.dataSpesa.value,
+     };
 
-    e.preventDefault(); // Evita ricaricamento pagina
+     await saveSpesa(expenseData);
+     await resetForm();
+     await getSpese()
+}
 
-    // Recupero valori dal form
-    const categoria = document.getElementById("categoria").value;
-    const importo = parseFloat(document.getElementById("importo").value);
-    const dataSpesa = document.getElementById("dataSpesa").value;
-//    const startDateExpense = document.getElementById("startDateExpense").value;
-//    const endDateExpense = document.getElementById("endDateExpense").value;
-//    const recurrence = document.getElementById("recurrence").value;
-    const descrizione = document.getElementById("descrizione").value;
-//    const includi = document.getElementById("includi").checked;
+async function getSpese() {
+    const dataInizio = new Date(manualForm.startDateExpense.value).toISOString().split('T')[0];
+    const dataFine = new Date(manualForm.endDateExpense.value).toISOString().split('T')[0];
 
-    // Creazione oggetto compatibile con UserExpenseDto
-    const expenseData = {
-        username: "utente.demo",
-        descrizione: descrizione,
-        importo: importo,
-        categoria: categoria,
-        dataSpesa: dataSpesa,
-//        startDate: startDateExpense,
-//        endDate: endDateExpense,
-//        recurrence: recurrence
-    };
-//    if (includi) {
-//        addNuovaRiga(categoria, importo, dataSpesa);
-//        aggiornaTotale();
-//    }
+    const criteri = {};
+    if (isValid(manualForm.categoria.value)) {
+        criteri.categoria = manualForm.categoria.value;
+    }
 
-    await saveSpesa(expenseData);
-       // Svuota form
-      e.target.reset();
+    const importo = parseFloat(manualForm.importo.value);
+    if (isValid(importo)) {
+        criteri.importoMin = importo;
+        criteri.importoMax = importo;
+    }
 
-});
+    if(isValid(manualForm.startDateExpense.value)){
+       criteri.dataInizio = dataInizio
+    }
+    if(isValid(manualForm.endDateExpense.value)){
+       criteri.dataFine = dataFine
+    }
+
+     await tracciaSpeseClick(criteri);;
+}
+
+async function deleteSpesaBtn() {
+    const rows = document.querySelectorAll("#resultsBodyManual tr");
+    const criteri = {};
+    rows.forEach(row => {
+        const checkbox = row.querySelector("input[type='checkbox']");
+        if (checkbox && checkbox.checked) {
+          if (!Array.isArray(criteri.dataInserimento)) {
+            criteri.dataInserimento = [];
+          }
+          criteri.dataInserimento.push(checkbox.value);
+        }
+      });
+     if (criteri.dataInserimento && criteri.dataInserimento.length > 0) {
+        await deleteSpese(criteri);
+        getSpese();
+      }
+}
+
+document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
+
+async function resetForm(){
+    const startDate = manualForm.startDateExpense.value;
+    const endDate = manualForm.endDateExpense.value;
+
+    manualForm.reset();
+    manualForm.startDateExpense.value = startDate;
+    manualForm.endDateExpense.value = endDate;
+}
 
 document.getElementById("uploadResultBtn").addEventListener("click", function () {
     const tabella = document.getElementById("resultsBody");

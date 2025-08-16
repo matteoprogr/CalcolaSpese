@@ -29,12 +29,23 @@ h2 {
     z-index: 20;
 }
 
-#resultsTableManual, #resultsTableManual th, #resultsTableManual td {
-    width: 95%;
+#resultsTableManual {
     table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
 }
+
+#resultsTableManual th,
+#resultsTableManual td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 #resultsTableTotManual, #resultsTableTotManual th, #resultsTableTotManual td {
-    width: 95%;
+    width: 100%;
     table-layout: fixed;
 }
 
@@ -247,6 +258,8 @@ table {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
     animation: fadeIn 0.5s ease-in-out;
 }
+
+
 
 th {
     background: linear-gradient(90deg, #3498db, #5dade2);
