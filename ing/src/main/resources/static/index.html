@@ -44,53 +44,57 @@
     <div class="excel-container">
 
         <div class="excel-form">
+
             <h2>Importa il tuo file Excel</h2>
             <form id="uploadForm">
-                <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
-                <label class="indexlabel">Inserisci il nome della tua banca</label>
-                <select id="nomeBanca" required>
-                    <option value="" disabled selected>-- Seleziona --</option>
-                    <option value="ingDirect">IngDirect</option>
-                </select>
+                <div class="form-row">
+                    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
+                    <label>Nome della tua banca</label>
+                    <select id="nomeBanca" required>
+                        <option value="" disabled selected>-- Seleziona --</option>
+                        <option value="ingDirect">IngDirect</option>
+                    </select>
 
-                <label class="indexlabel" for="startDate">Da:</label>
-                <input type="date" id="startDate" name="startDate">
+                    <label for="startDate">Da:</label>
+                    <input type="date" id="startDate" name="startDate">
 
-                <label class="indexlabel" for="endDate">A:</label>
-                <input type="date" id="endDate" name="endDate">
+                    <label for="endDate">A:</label>
+                    <input type="date" id="endDate" name="endDate">
+                </div>
 
-                <button type="submit">Invia</button>
+
+                <div class="form-row">
+                    <button type="submit">Invia</button>
+                </div>
+
             </form>
         </div>
 
-        <div class="excel-table">
-
+      <div class="table-container">
             <div class="table-header">
-                <button id="mergeRowsBtn" style="display: none;">Unisci righe selezionate</button>
-                <button id="removeRowsBtn" style="display: none;">Rimuovi righe selezionate</button>
-                <button id="uploadResultBtn" style="display: none;">Download Excel</button>
+                <button id="mergeRowsBtn" style="display: none;" title="Unisci righe selezionate">Unisci righe</button>
+                <button id="removeRowsBtn" style="display: none;" title="Rimuovi righe selezionate">Rimuovi righe</button>
+                <button id="uploadResultBtn" style="display: none;"title="Scarica in formato excel">Download Excel</button>
             </div>
 
-            <div class="table-scroll">
-                <table id="resultsTable" style="display: none;">
-                    <thead>
-                    <tr>
-                        <th>Includi</th>
-                        <th>Categoria / Presso</th>
-                        <th>Importo (€)</th>
-                    </tr>
-                    </thead>
-                    <tbody id="resultsBody"></tbody>
-                </table>
-            </div>
+            <table id="resultsTable" style="display: none;">
+                <thead>
+                <tr>
+                    <th>Includi</th>
+                    <th>Categoria / Presso</th>
+                    <th>Importo (€)</th>
+                </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+
 
             <div class="table-header-tot">
                 <table id="resultsTableTot" style="display: none;">
                     <tbody id="resultsBodyTot"></tbody>
                 </table>
             </div>
-
-        </div>
+          </div>
 
     </div>
 
@@ -101,49 +105,49 @@
         <div class="excel-form">
         <h2>Traccia spese</h2>
             <form id="manualForm">
-                <label class="indexlabel" for="categoria">Categoria</label>
-                <select id="categoria" name="categoria">
-                </select>
+                <div class="form-row">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" name="categoria"></select>
 
-                <label class="indexlabel" for="importo">Importo (€)</label>
-                <input type="number" step="0.01" id="importo" name="importo" >
+                    <label for="importo">Importo (€)</label>
+                    <input type="number" step="0.01" id="importo" name="importo">
 
-                <label class="indexlabel" for="startDateExpense">Data inizio</label>
-                <input type="date" id="startDateExpense" name="startDateExpense">
+                    <label for="startDateExpense">Data inizio</label>
+                    <input type="date" id="startDateExpense" name="startDateExpense">
 
-                <label class="indexlabel" for="endDateExpense">Data fine</label>
-                <input type="date" id="endDateExpense" name="endDateExpense">
+                    <label for="endDateExpense">Data fine</label>
+                    <input type="date" id="endDateExpense" name="endDateExpense">
+                </div>
 
-
-                <button id="getSpesaBtn">Ricerca spesa</button>
-                <button id="deleteSpesaBtn" title="Elimina la spesa selezionata">Elimina spesa</button>
-                <button id="addSpesaBtn" title="Aggiungi una spesa"> + </button>
+                <div class="form-row">
+                    <button id="getSpesaBtn">Ricerca spesa</button>
+                    <button id="deleteSpesaBtn" title="Elimina la spesa selezionata">Elimina spesa</button>
+                    <button id="addSpesaBtn" title="Aggiungi una spesa"> + </button>
+                </div>
             </form>
         </div>
 
-        <div class="excel-table">
+        <div class="table-container">
 
-            <div class="table-scroll">
-                <table id="resultsTableManual" style="display: none;">
-                    <colgroup>
-                        <col style="width: 5%">
-                        <col style="width: 20%">
-                        <col style="width: 20%">
-                        <col style="width: 35%">
-                        <col style="width: 20%">
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th></th> <!--colonna del check box non serve nome -->
-                        <th>Data Spesa</th>
-                        <th>Categoria</th>
-                        <th>Descrizione</th>
-                        <th>Importo (€)</th>
-                    </tr>
-                    </thead>
-                    <tbody id="resultsBodyManual"></tbody>
-                </table>
-            </div>
+            <table id="resultsTableManual" style="display: none;">
+                <colgroup>
+                    <col style="width: 5%">
+                    <col style="width: 20%">
+                    <col style="width: 20%">
+                    <col style="width: 35%">
+                    <col style="width: 20%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th></th> <!--colonna del check box non serve nome -->
+                    <th>Data Spesa</th>
+                    <th>Categoria</th>
+                    <th>Descrizione</th>
+                    <th>Importo (€)</th>
+                </tr>
+                </thead>
+                <tbody id="resultsBodyManual"></tbody>
+            </table>
 
             <div class="table-header-tot">
                 <table id="resultsTableTotManual" style="display: none;">
