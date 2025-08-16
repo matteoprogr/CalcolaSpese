@@ -37,7 +37,7 @@
     <a data-target="Elabora Excel">Elabora Excel</a>
 </nav>
 
-<h1 class="page-title">Gestione Spese</h1>
+<h1 class="page-title">TieniIlConto</h1>
 
 <!-- Pagina Elabora Excel -->
 <section id="Elabora Excel" class="page-section">
@@ -102,32 +102,18 @@
         <h2>Traccia spese</h2>
             <form id="manualForm">
                 <label class="indexlabel" for="categoria">Categoria</label>
-                <input type="text" id="categoria" name="categoria">
+                <select id="categoria" name="categoria">
+                </select>
+
 
                 <label class="indexlabel" for="importo">Importo (€)</label>
                 <input type="number" step="0.01" id="importo" name="importo" >
-
-                <label class="indexlabel" for="descrizione">Descrizione</label>
-                <input type="text" id="descrizione" name="descrizione" >
-
-                <label class="indexlabel" for="dataSpesa">Data</label>
-                <input type="date" id="dataSpesa" name="dataSpesa">
 
                 <label class="indexlabel" for="startDateExpense">Data inizio</label>
                 <input type="date" id="startDateExpense" name="startDateExpense">
 
                 <label class="indexlabel" for="endDateExpense">Data fine</label>
                 <input type="date" id="endDateExpense" name="endDateExpense">
-
-<!--                <label class="indexlabel" for="recurrence">Ricorrenza</label>-->
-<!--                <select id="recurrence" name="recurrence">-->
-<!--                    <option value="">&#45;&#45; Seleziona &#45;&#45;</option>-->
-<!--                    <option value="daily">Giornaliera</option>-->
-<!--                    <option value="weekly">Settimanale</option>-->
-<!--                    <option value="monthly">Mensile</option>-->
-<!--                    <option value="yearly">Annuale</option>-->
-<!--                </select>-->
-
 
                 <button id="addSpesaBtn">Aggiungi spesa</button>
                 <button id="getSpesaBtn">Ricerca spesa</button>
@@ -151,7 +137,7 @@
                         <th></th> <!--colonna del check box non serve nome -->
                         <th>Data Spesa</th>
                         <th>Categoria</th>
-                        <th>descrizione</th>
+                        <th>Descrizione</th>
                         <th>Importo (€)</th>
                     </tr>
                     </thead>

@@ -79,7 +79,7 @@ form:hover {
     font-weight: bold;
     color: #2c3e50;
     margin: 30px 0;
-    font-family: 'Arial', sans-serif;
+    font-family: Verdana, sans-serif;
     text-shadow: 1px 1px 2px #ccc;
 }
 
@@ -343,4 +343,33 @@ tr:hover {
     th, td {
         font-size: 12px;
     }
+  }
+.modal-overlay {
+ position: fixed;
+ top: 0; left: 0;
+ width: 100%; height: 100%;
+ background: rgba(0, 0, 0, 0.5);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ z-index: 1000;
 }
+.modal-box {
+ background: white;
+ padding: 20px;
+ border-radius: 8px;
+ width: 90%;
+ max-width: 400px;
+ position: relative;
+}
+.modal-close {
+ position: absolute;
+ top: 10px; right: 10px;
+ cursor: pointer;
+ font-size: 1.5rem;
+}
+.modal-box label {
+ display: block;
+ margin-bottom: 10px;
+}
+

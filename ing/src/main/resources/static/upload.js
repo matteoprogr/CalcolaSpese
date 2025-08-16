@@ -1,6 +1,7 @@
 import { saveSpesa } from './queryDexie.js';
 import { querySpese } from './queryDexie.js';
 import { deleteSpese } from './queryDexie.js';
+import { popolaCategoria } from './queryDexie.js';
 
 async function initDate() {
     const oggi = new Date();
@@ -172,23 +173,9 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     });
 });
 
-document.getElementById("addSpesaBtn").addEventListener("click", addSpesa);
 document.getElementById("getSpesaBtn").addEventListener("click", getSpese);
 document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
 
-async function addSpesa() {
- const expenseData = {
-         account: "Mat",
-         descrizione: manualForm.descrizione.value,
-         importo:     parseFloat(manualForm.importo.value),
-         categoria:   manualForm.categoria.value,
-         dataSpesa:   manualForm.dataSpesa.value,
-     };
-
-     await saveSpesa(expenseData);
-     await resetForm();
-     await getSpese()
-}
 
 async function getSpese() {
     const dataInizio = new Date(manualForm.startDateExpense.value).toISOString().split('T')[0];
@@ -590,3 +577,63 @@ function aggiungiRiga(nuovaEtichetta,nuovoValore,results) {
     const buttonwRow = document.getElementById("buttonRow");
     tabella.insertBefore(nuovaRiga, buttonwRow);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  popolaCategoria();
+  document.getElementById("addSpesaBtn").addEventListener("click", () => {
+    // Crea overlay
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+
+    // Crea box della modale
+    const box = document.createElement("div");
+    box.className = "modal-box";
+
+    // Contenuto della modale (HTML)
+    box.innerHTML = `
+      <span class="modal-close">&times;</span>
+      <h2>Inserisci Spesa</h2>
+      <form id="modalForm">
+        <label>Categoria:<br><input type="text" name="categoria" required></label>
+        <label>Data:<br><input type="date" name="dataSpesa" required></label>
+        <label>Importo (€):<br><input type="number" name="importo" step="0.01" required></label>
+        <label>Descrizione:<br><input type="text" name="descrizione"></label>
+        <div style="margin-top: 15px; text-align: right;">
+          <button type="submit">Salva</button>
+          <button type="button" id="modalCancel">Annulla</button>
+        </div>
+      </form>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    // Funzioni di chiusura
+    const closeModal = () => {
+      document.body.removeChild(overlay);
+    };
+
+    // Eventi per chiusura
+    overlay.querySelector(".modal-close").onclick = closeModal;
+    overlay.querySelector("#modalCancel").onclick = closeModal;
+    overlay.onclick = (e) => {
+      if (e.target === overlay) closeModal();
+    };
+
+    overlay.querySelector("#modalForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const spesa = {
+        categoria: formData.get("categoria"),
+        dataSpesa: formData.get("dataSpesa"),
+        importo: parseFloat(formData.get("importo")),
+        descrizione: formData.get("descrizione")
+      };
+      await saveSpesa(spesa);  // la tua funzione salva
+      closeModal();
+      await getSpese();        // la tua funzione aggiorna la tabella
+    });
+  });
+});
+
+

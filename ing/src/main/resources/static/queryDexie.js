@@ -3,20 +3,37 @@
 // Inizializzazione del database con schema e indice composto
 const db = new Dexie('CalcolaSpeseDB');
 db.version(1).stores({
-  spese: '++id, categoria, importo, dataSpesa ,[categoria+dataSpesa], [categoria+importo], [importo+dataSpesa] ,[categoria+importo+dataSpesa]'
+  spese: '++id, categoria, importo, dataSpesa ,[categoria+dataSpesa], [categoria+importo], [importo+dataSpesa] ,[categoria+importo+dataSpesa]',
+  categorie: '&categoria'
 });
 
 // Salvataggio di una spesa
 export async function saveSpesa(spesa) {
- const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
+  const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
 
   const data = {
     ...spesa,
     dataInserimento: new Date().toISOString(),
     dataSpesa: fomattedISO
   };
-  const id = await db.spese.add(data);
-  console.log('Spesa salvata con ID', id, data);
+
+  await saveCategoria(spesa.categoria);
+
+  await db.spese.add(data);
+
+  await popolaCategoria();
+}
+
+async function saveCategoria(categoria) {
+  const categoriaLower = categoria.toLowerCase();
+  try {
+    await db.categorie.add({ categoria: categoriaLower });
+    console.log(`Categoria "${categoriaLower}" aggiunta.`);
+  } catch (error) {
+    if (error.name !== 'ConstraintError') {
+      console.error('Errore durante l\'aggiunta della categoria:', error);
+    }
+  }
 }
 
 // Ricerca spese con più criteri combinati
@@ -76,16 +93,37 @@ export async function querySpese(criteri = {}) {
   return collezione.toArray();
 }
 
-
-
 // Eliminazione spese in base a criteri
 export async function deleteSpese(criteri = {}) {
 
 if (Array.isArray(criteri.dataInserimento) && criteri.dataInserimento.length > 0) {
-  await db.spese
-    .toCollection()
-    .filter(spesa => criteri.dataInserimento.includes(spesa.dataInserimento))
-    .delete();
-  return;
+      await db.spese
+        .toCollection()
+        .filter(spesa => criteri.dataInserimento.includes(spesa.dataInserimento))
+        .delete();
+      return;
+    }
 }
+export async function popolaCategoria(){
+  const selectCategoria = document.getElementById("categoria");
+
+  // Recupera tutte le categorie dalla tabella 'categorie'
+  const categorie = await db.categorie.toArray();
+
+    if(document.getElementById('iDoption') === null){
+      // Aggiungi un'opzione vuota come placeholder
+      const optionDefault = document.createElement("option");
+      optionDefault.value = "";
+      optionDefault.id = "iDoption";
+      optionDefault.textContent = "Seleziona";
+      selectCategoria.appendChild(optionDefault);
+    }
+
+  // Aggiungi le categorie al campo select
+  categorie.forEach(categoria => {
+    const option = document.createElement("option");
+    option.value = categoria.categoria;
+    option.textContent = categoria.categoria;
+    selectCategoria.appendChild(option);
+  });
 }
