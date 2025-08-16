@@ -106,6 +106,7 @@ if (Array.isArray(criteri.dataInserimento) && criteri.dataInserimento.length > 0
 }
 export async function popolaCategoria(){
   const selectCategoria = document.getElementById("categoria");
+  selectCategoria.innerHTML = "";
 
   // Recupera tutte le categorie dalla tabella 'categorie'
   const categorie = await db.categorie.toArray();
