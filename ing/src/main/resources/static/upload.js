@@ -612,20 +612,13 @@ function checkOrientation() {
   if (activeSection && activeSection.id === 'inserisci-spesa') {
     if (isLandscape) {
       screen.orientation.lock('portrait-primary').catch(err => console.error(err));
-    } else {
-      rotateOverlay.style.display = 'none';
     }
   }
   // Sezioni "Elabora Excel" e "Traccia Spesa" richiedono orientamento orizzontale
   else if (activeSection && (activeSection.id === 'elabora-excel' || activeSection.id === 'traccia-spesa')) {
     if (isPortrait) {
-      rotateOverlay.style.display = 'flex';
       screen.orientation.lock('landscape-primary').catch(err => console.error(err));
-    } else {
-      rotateOverlay.style.display = 'none';
     }
-  } else {
-    rotateOverlay.style.display = 'none';
   }
 }
 
