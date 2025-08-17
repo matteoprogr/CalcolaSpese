@@ -611,14 +611,22 @@ function checkOrientation() {
   // Sezione "Inserisci Spesa" richiede orientamento verticale
   if (activeSection && activeSection.id === 'inserisci-spesa') {
     if (isLandscape) {
+      rotateOverlay.style.display = 'flex';
       screen.orientation.lock('portrait-primary').catch(err => console.error(err));
+    } else {
+      rotateOverlay.style.display = 'none';
     }
   }
   // Sezioni "Elabora Excel" e "Traccia Spesa" richiedono orientamento orizzontale
   else if (activeSection && (activeSection.id === 'elabora-excel' || activeSection.id === 'traccia-spesa')) {
     if (isPortrait) {
+      rotateOverlay.style.display = 'flex';
       screen.orientation.lock('landscape-primary').catch(err => console.error(err));
+    } else {
+      rotateOverlay.style.display = 'none';
     }
+  } else {
+    rotateOverlay.style.display = 'none';
   }
 }
 
@@ -669,4 +677,3 @@ document.addEventListener("fullscreenchange", () => {
     fullscreenBtn.style.display = "block"; // fuori fullscreen → torna visibile
   }
 });
-
