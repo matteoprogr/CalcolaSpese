@@ -604,13 +604,28 @@ function getSezioneAttiva() {
 }
 
 function checkOrientation() {
-  const activeSection = document.querySelector(".page-section.active");
-  if (activeSection && !activeSection.id.includes("inserisci-spesa")) {
-    if (window.matchMedia("(orientation: portrait)").matches) {
-      rotateOverlay.style.display = "flex";
+  const activeSection = getSezioneAttiva();
+  const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+  const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+
+  // Sezione "Inserisci Spesa" richiede orientamento verticale
+  if (activeSection && activeSection.id === 'inserisci-spesa') {
+    if (isLandscape) {
+      screen.orientation.lock('portrait-primary').catch(err => console.error(err));
     } else {
-      rotateOverlay.style.display = "none";
+      rotateOverlay.style.display = 'none';
     }
+  }
+  // Sezioni "Elabora Excel" e "Traccia Spesa" richiedono orientamento orizzontale
+  else if (activeSection && (activeSection.id === 'elabora-excel' || activeSection.id === 'traccia-spesa')) {
+    if (isPortrait) {
+      rotateOverlay.style.display = 'flex';
+      screen.orientation.lock('landscape-primary').catch(err => console.error(err));
+    } else {
+      rotateOverlay.style.display = 'none';
+    }
+  } else {
+    rotateOverlay.style.display = 'none';
   }
 }
 
@@ -620,6 +635,7 @@ function setActiveSection(targetId) {
   });
   checkOrientation();
 }
+
 navLinks.forEach(link => {
   link.addEventListener("click", (event) => {
     event.preventDefault();
@@ -628,9 +644,7 @@ navLinks.forEach(link => {
   });
 });
 
-window.addEventListener("orientationchange", () => {
- checkOrientation()
- });
+window.addEventListener("orientationchange", checkOrientation);
 
 function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -642,8 +656,7 @@ if (isMobile()) {
   checkOrientation();
 }
 
-
-// gestione click fullscreen
+// Gestione click fullscreen
 fullscreenBtn.addEventListener("click", async () => {
   try {
     await document.documentElement.requestFullscreen();
@@ -655,7 +668,7 @@ fullscreenBtn.addEventListener("click", async () => {
   }
 });
 
-// evento cambio fullscreen (entra/esce)
+// Evento cambio fullscreen (entra/esce)
 document.addEventListener("fullscreenchange", () => {
   if (document.fullscreenElement) {
     fullscreenBtn.style.display = "none"; // in fullscreen → nascondi bottone
@@ -663,3 +676,4 @@ document.addEventListener("fullscreenchange", () => {
     fullscreenBtn.style.display = "block"; // fuori fullscreen → torna visibile
   }
 });
+
