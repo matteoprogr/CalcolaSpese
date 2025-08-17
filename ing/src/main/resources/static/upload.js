@@ -622,6 +622,7 @@ document.getElementById("fullscreenBtn").addEventListener("click", async () => {
      await document.exitFullscreen();
     }
     await document.documentElement.requestFullscreen();
+    await screenRequest();
   } catch (err) {
     console.warn("Fullscreen non riuscito:", err);
   }

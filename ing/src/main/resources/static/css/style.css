@@ -362,8 +362,6 @@ tr:hover {
       flex-wrap: wrap;
       gap: 8px;
   }
-
-
     table {
         display: block;
         overflow-x: auto;
@@ -374,31 +372,6 @@ tr:hover {
         padding: 8px;
         font-size: 13px;
     }
-
- #fullscreenBtn {
-     position: fixed;
-     bottom: 16px;
-     left: 16px;
-     width: 48px;
-     height: 48px;
-     background-color: #007BFF;
-     color: white;
-     border: none;
-     border-radius: 50%;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-     cursor: pointer;
-     z-index: 10000;
-     transition: opacity 0.3s ease;
-     opacity: 0.8;
-     font-size: 0.4rem;
-   }
-
-   #fullscreenBtn:hover {
-     opacity: 1;
-   }
 }
 
 /* Nascondo completamente su desktop */
@@ -416,56 +389,22 @@ tr:hover {
       width: 100vw;
       height: 100vh;
     }
+  .table-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+  }
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 
-  table, thead, tbody, th, td, tr {
-    display: block;
-  }
-  tr {
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background: #fff;
-  }
-  td {
-    text-align: right;
-    position: relative;
-    padding-left: 50%;
-  }
-  td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 0;
-    width: 50%;
-    padding-left: 0.5rem;
-    font-weight: bold;
-    text-align: left;
-  }
+    th, td {
+        padding: 8px;
+        font-size: 13px;
+    }
 
-   #fullscreenBtn {
-       position: fixed;
-       bottom: 16px;
-       left: 16px;
-       width: 48px;
-       height: 48px;
-       background-color: #007BFF;
-       color: white;
-       border: none;
-       border-radius: 50%;
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-       cursor: pointer;
-       z-index: 10000;
-       transition: opacity 0.3s ease;
-       opacity: 0.8;
-       font-size: 0.4rem;
-     }
-
-     #fullscreenBtn:hover {
-       opacity: 1;
-     }
 }
 
 .rotateOverlay {
