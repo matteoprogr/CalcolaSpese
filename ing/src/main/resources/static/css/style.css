@@ -11,7 +11,7 @@ h2 {
     text-align: center;
     color: #2c3e50;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-    margin-top: 20px;
+    margin: 1vw;
     font-size: 16px;
 }
 .excel-container {
@@ -27,13 +27,12 @@ h2 {
     }
 }
 
-
 .excel-form {
     display: grid;
-    gap: 20px; /* Spazio tra le colonne */
+    gap: 1vw; /* Spazio tra le colonne */
     max-width: 100%; /* Larghezza massima del form */
     margin: 0 auto; /* Centra il form orizzontalmente */
-    padding: 20px;
+    padding: 0.1vw;
     flex-direction: row; /* Dispone gli elementi in colonna */
     background: #fff;
     border-radius: 10px;
@@ -71,17 +70,17 @@ h2 {
     flex-direction: column;
 }
 
+
 form {
     width: 90%;
     max-width: 100%;
-    margin: 20px auto;
+    padding: 1vw;
+    margin: 10px auto;
     background: #ffffff;
-    padding: 25px;
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 form:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -98,25 +97,10 @@ form:hover {
     text-shadow: 1px 1px 2px #ccc;
 }
 
-/* Manteniamo i form affiancati */
-.forms-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.form-block {
-    flex: 1 1 300px;
-    border: 1px solid #ccc;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-}
-
 /* Centra solo i titoli interni dei form */
 .form-block h2 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 1vw;
 }
 
 label {
@@ -155,6 +139,7 @@ input[type="file"]:focus, select:focus {
     outline: none;
 }
 input[type="number"],
+input[type="text"],
 input[type="date"],
 select {
     width: 100%;
@@ -173,7 +158,7 @@ select {
 #uploadForm .form-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 1vw;
     align-items: center;
 }
 
@@ -328,9 +313,12 @@ tr:hover {
 
 /* Tablet e smartphone */
 @media (max-width: 768px) {
-   form {
-     padding: 1.25rem; /* ~20px */
-   }
+
+    .modal-box {
+        width: 90%;
+        padding: 1vw;
+    }
+
     #rotateOverlay {
       width: 100vw;
       height: 100vh;
@@ -356,7 +344,7 @@ tr:hover {
         padding: 8px;
         font-size: 13px;
     }
- #manualForm, #uploadForm {{
+ #manualForm, #uploadForm {
    display: grid;
    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
    gap: 10px;
@@ -367,31 +355,41 @@ tr:hover {
  }
 }
 
-/* Smartphone piccoli
+/* Smartphone piccoli */
 @media (max-width: 480px) {
-    h1 {
-        font-size: 20px;
-    }
 
-    h2 {
-        font-size: 18px;
-    }
+    .modal-box {
+      width: 95%;
+      padding: 0.5rem;
 
-    form {
-        padding: 15px;
     }
-
-    button {
-        font-size: 14px;
-        padding: 8px 12px;
-    }
-
-    th, td {
-        font-size: 12px;
-    }
+  table, thead, tbody, th, td, tr {
+    display: block;
   }
-  */
- #rotateOverlay {
+  tr {
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: #fff;
+  }
+  td {
+    text-align: right;
+    position: relative;
+    padding-left: 50%;
+  }
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 0.5rem;
+    font-weight: bold;
+    text-align: left;
+  }
+}
+
+#rotateOverlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
@@ -403,10 +401,13 @@ tr:hover {
     text-align: center;
     font-size: 1.5em;
     z-index: 9999;
-  }
-  @media screen and (orientation:portrait) {
+}
+@media screen and (orientation:portrait) {
     #rotateOverlay { display: flex; }
-  }
+    .modal-box {
+        width: 95%;
+      }
+}
 
  /* MODALE */
 .modal-overlay {
@@ -419,21 +420,32 @@ tr:hover {
      justify-content: center;
      z-index: 1000;
 }
+
+/* Box della modale */
 .modal-box {
+     display: flex;
      background: white;
-     padding: 20px;
+     padding: 3vw;
      border-radius: 8px;
-     width: 80%;
-     max-width: 400px;
+     max-width: 90%;
+     width: auto;
      position: relative;
+     max-height: 80vh;
+     overflow-y: auto;
+     overflow-x: hidden;
 }
+
+/* Pulsante di chiusura */
 .modal-close {
-     position: absolute;
-     top: 10px; right: 10px;
-     cursor: pointer;
-     font-size: 1.5rem;
-    }
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+/* Etichette dei campi */
 .modal-box label {
-     display: block;
-     margin-bottom: 10px;
+  display: block;
+  margin-bottom: 10px;
 }

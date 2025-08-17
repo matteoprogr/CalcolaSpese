@@ -592,8 +592,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Contenuto della modale (HTML)
     box.innerHTML = `
       <span class="modal-close">&times;</span>
-      <h2>Inserisci Spesa</h2>
-      <form id="modalForm">
+      <form id="modalForm" style="margin: 1vw; text-align: left;">
+       <h2>Inserisci Spesa</h2>
         <label>Categoria:<br><input type="text" name="categoria" required></label>
         <label>Data:<br><input type="date" name="dataSpesa" required></label>
         <label>Importo (€):<br><input type="number" name="importo" step="0.01" required></label>
