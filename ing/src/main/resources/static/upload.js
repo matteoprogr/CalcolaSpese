@@ -604,29 +604,31 @@ function getSezioneAttiva() {
 }
 
 function checkOrientation() {
-  const activeSection = getSezioneAttiva();
-  const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-  const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+if(isMobile()) {
+      const activeSection = getSezioneAttiva();
+      const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+      const isLandscape = window.matchMedia("(orientation: landscape)").matches;
 
-  // Sezione "Inserisci Spesa" richiede orientamento verticale
-  if (activeSection && activeSection.id === 'inserisci-spesa') {
-    if (isLandscape) {
-      rotateOverlay.style.display = 'flex';
-      screen.orientation.lock('portrait-primary').catch(err => console.error(err));
-    } else {
-      rotateOverlay.style.display = 'none';
-    }
-  }
-  // Sezioni "Elabora Excel" e "Traccia Spesa" richiedono orientamento orizzontale
-  else if (activeSection && (activeSection.id === 'elabora-excel' || activeSection.id === 'traccia-spesa')) {
-    if (isPortrait) {
-      rotateOverlay.style.display = 'flex';
-      screen.orientation.lock('landscape-primary').catch(err => console.error(err));
-    } else {
-      rotateOverlay.style.display = 'none';
-    }
-  } else {
-    rotateOverlay.style.display = 'none';
+      // Sezione "Inserisci Spesa" richiede orientamento verticale
+      if (activeSection && activeSection.id === 'inserisci-spesa') {
+        if (isLandscape) {
+          rotateOverlay.style.display = 'flex';
+          screen.orientation.lock('portrait-primary').catch(err => console.error(err));
+        } else {
+          rotateOverlay.style.display = 'none';
+        }
+      }
+      // Sezioni "Elabora Excel" e "Traccia Spesa" richiedono orientamento orizzontale
+      else if (activeSection && (activeSection.id === 'elabora-excel' || activeSection.id === 'traccia-spesa')) {
+        if (isPortrait) {
+          rotateOverlay.style.display = 'flex';
+          screen.orientation.lock('landscape-primary').catch(err => console.error(err));
+        } else {
+          rotateOverlay.style.display = 'none';
+        }
+      } else {
+        rotateOverlay.style.display = 'none';
+      }
   }
 }
 
@@ -651,8 +653,9 @@ if(isMobile) {
 window.addEventListener("orientationchange", checkOrientation);
 
 function isMobile() {
-  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return window.innerWidth <= 768;
 }
+
 
 // All'avvio
 if (isMobile()) {
