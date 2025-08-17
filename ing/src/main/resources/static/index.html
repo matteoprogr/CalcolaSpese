@@ -15,6 +15,28 @@
     <meta name="apple-mobile-web-app-orientation" content="landscape">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
+    <style>
+        /* Stile per nascondere sezioni non attive */
+        .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
+        }
+        nav {
+            background: #333;
+            padding: 10px;
+        }
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        nav a.active {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 
@@ -28,7 +50,7 @@
 <button id="fullscreenBtn" style="display:none;">📱 Apri a tutto schermo</button>
 
 <!-- Pagina Elabora Excel -->
-<section id="Elabora Excel" class="page-section">
+<section id="Elabora-Excel" class="page-section">
     <div class="excel-container">
 
         <div class="excel-form">
@@ -151,7 +173,7 @@
 
 <script type="module" src="upload.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<div id="rotateOverlay">
+<div id="rotateOverlay" style="display:none;">
     <p>Ruota il dispositivo per una migliore visualizzazione 🔄</p>
 </div>
 

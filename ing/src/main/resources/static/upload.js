@@ -636,15 +636,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+const rotateOverlay = document.getElementById("rotateOverlay");
+
 function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 if (isMobile()) {
-  document.getElementById("fullscreenBtn").style.display = "block";
+  fullscreenBtn.style.display = "block";
+  // mostra overlay solo se in portrait
+  if (window.matchMedia("(orientation: portrait)").matches) {
+    rotateOverlay.style.display = "flex";
+  }
 }
 
-document.getElementById("fullscreenBtn").addEventListener("click", async () => {
+// gestione click fullscreen
+fullscreenBtn.addEventListener("click", async () => {
   try {
     await document.documentElement.requestFullscreen();
     if (screen.orientation && screen.orientation.lock) {
@@ -652,5 +660,23 @@ document.getElementById("fullscreenBtn").addEventListener("click", async () => {
     }
   } catch (err) {
     console.warn("Fullscreen/orientamento non riuscito:", err);
+  }
+});
+
+// evento cambio fullscreen (entra/esce)
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) {
+    fullscreenBtn.style.display = "none"; // in fullscreen → nascondi bottone
+  } else if (isMobile()) {
+    fullscreenBtn.style.display = "block"; // fuori fullscreen → torna visibile
+  }
+});
+
+// evento cambio orientamento
+window.addEventListener("orientationchange", () => {
+  if (window.matchMedia("(orientation: portrait)").matches) {
+    rotateOverlay.style.display = "flex"; // in portrait → mostra overlay
+  } else {
+    rotateOverlay.style.display = "none"; // in landscape → nascondi overlay
   }
 });
