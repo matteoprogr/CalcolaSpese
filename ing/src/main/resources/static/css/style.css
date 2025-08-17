@@ -323,29 +323,31 @@ tr:hover {
 ---------------------------------*/
 @media (max-width: 968px) {
 #fullscreenBtn {
-     position: fixed;
-     bottom: 16px;
-     left: 16px;
-     width: 48px;
-     height: 48px;
-     background-color: #007BFF;
-     color: white;
-     border: none;
-     border-radius: 50%;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-     cursor: pointer;
-     z-index: 10000;
-     transition: opacity 0.3s ease;
-     opacity: 0.8;
-     font-size: 0.4rem;
-   }
+    position: fixed;
+    bottom: 1rem;        /* equivalente a 16px se 1rem = 16px */
+    left: 1rem;
+    width: 3rem;         /* equivalente a 48px */
+    height: 3rem;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.3); /* 4px 8px in rem */
+    cursor: pointer;
+    z-index: 10000;
+    transition: opacity 0.3s ease;
+    opacity: 0.8;
+    font-size: 0.25rem;   /* equivalente a ~4px, da regolare secondo leggibilità */
+}
+
 
    #fullscreenBtn:hover {
      opacity: 1;
-   }}
+   }
+ }
 
 /* Tablet e smartphone */
 @media (max-width: 768px) {
@@ -355,10 +357,12 @@ tr:hover {
       height: 100vh;
     }
 
-    .table-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+  .table-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+  }
+
 
     table {
         display: block;
