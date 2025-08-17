@@ -20,6 +20,18 @@ h2 {
     gap: 20px;
     align-items: flex-start;
 }
+.insert-container {
+  display: grid;
+  gap: 1vw; /* Spazio tra le colonne */
+  max-width: 40%; /* Larghezza massima del form */
+  margin: 0 auto; /* Centra il form orizzontalmente */
+  padding: 0.1vw;
+  flex-direction: row; /* Dispone gli elementi in colonna */
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
 
 @media (max-width: 768px) {
     .excel-container {
@@ -69,7 +81,6 @@ h2 {
     display: flex;
     flex-direction: column;
 }
-
 
 form {
     width: 90%;
@@ -353,6 +364,37 @@ tr:hover {
  button {
    width: 100%; /* occupano l’intera colonna in mobile */
  }
+ #fullscreenBtn {
+     position: fixed;
+     bottom: 16px;
+     left: 16px;
+     width: 48px;
+     height: 48px;
+     background-color: #007BFF;
+     color: white;
+     border: none;
+     border-radius: 50%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+     cursor: pointer;
+     z-index: 10000;
+     transition: opacity 0.3s ease;
+     opacity: 0.8;
+     font-size: 0.4rem;
+   }
+
+   #fullscreenBtn:hover {
+     opacity: 1;
+   }
+}
+
+/* Nascondo completamente su desktop */
+@media screen and (min-width: 768px) {
+  #fullscreenBtn {
+    display: none;
+  }
 }
 
 /* Smartphone piccoli */
@@ -404,48 +446,86 @@ tr:hover {
 }
 @media screen and (orientation:portrait) {
     #rotateOverlay { display: flex; }
-    .modal-box {
-        width: 95%;
-      }
 }
 
- /* MODALE */
-.modal-overlay {
-     position: fixed;
-     top: 0; left: 0;
-     width: 100%; height: 100%;
-     background: rgba(0, 0, 0, 0.5);
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     z-index: 1000;
-}
+     .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
+        }
+       .mobile-nav {
+      position: relative;
+    }
 
-/* Box della modale */
-.modal-box {
-     display: flex;
-     background: white;
-     padding: 3vw;
-     border-radius: 8px;
-     max-width: 90%;
-     width: auto;
-     position: relative;
-     max-height: 80vh;
-     overflow-y: auto;
-     overflow-x: hidden;
-}
+    .nav-toggle {
+      display: none;
+    }
 
-/* Pulsante di chiusura */
-.modal-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  font-size: 1.5rem;
-}
+    .nav-toggle-label {
+      display: block;
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      z-index: 10000;
+    }
 
-/* Etichette dei campi */
-.modal-box label {
-  display: block;
-  margin-bottom: 10px;
-}
+    .nav-toggle-label span,
+    .nav-toggle-label span::before,
+    .nav-toggle-label span::after {
+      display: block;
+      background: #333;
+      height: 3px;
+      width: 100%;
+      position: absolute;
+      transition: 0.3s ease;
+    }
+    .nav-toggle-label span::before {
+      content: "";
+      top: -8px;
+    }
+    .nav-toggle-label span::after {
+      content: "";
+      top: 8px;
+    }
+
+    .nav-links {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 200px;
+      background: white;
+      height: 100%;
+      padding-top: 60px;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    .nav-links a {
+      padding: 12px 20px;
+      border-bottom: 1px solid #ddd;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .nav-toggle:checked + .nav-toggle-label span {
+      background: transparent;
+    }
+    .nav-toggle:checked + .nav-toggle-label span::before {
+      transform: rotate(45deg);
+      top: 0;
+    }
+    .nav-toggle:checked + .nav-toggle-label span::after {
+      transform: rotate(-45deg);
+      top: 0;
+    }
+
+    .nav-toggle:checked ~ .nav-links {
+      right: 0;
+    }
+

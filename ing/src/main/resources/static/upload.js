@@ -32,6 +32,7 @@ document.querySelectorAll('nav a').forEach(link => {
 
         const targetSection = document.getElementById(targetId);
         targetSection.classList.add('active');
+
     });
 
         if (targetId === 'traccia-spesa') {
@@ -483,7 +484,6 @@ function rimuoviRigheSelezionate() {
             righeRimuovere.push({ etichetta, valore, row });
             sommadaRimuovere += valore;
         }
-
     });
 
      // Se meno di due righe selezionate, non si unisce
@@ -579,77 +579,69 @@ function aggiungiRiga(nuovaEtichetta,nuovoValore,results) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  popolaCategoria();
-  document.getElementById("addSpesaBtn").addEventListener("click", () => {
-    // Crea overlay
-    const overlay = document.createElement("div");
-    overlay.className = "modal-overlay";
-
-    // Crea box della modale
-    const box = document.createElement("div");
-    box.className = "modal-box";
-
-    // Contenuto della modale (HTML)
-    box.innerHTML = `
-      <span class="modal-close">&times;</span>
-      <form id="modalForm" style="margin: 1vw; text-align: left;">
-       <h2>Inserisci Spesa</h2>
-        <label>Categoria:<br><input type="text" name="categoria" required></label>
-        <label>Data:<br><input type="date" name="dataSpesa" required></label>
-        <label>Importo (€):<br><input type="number" name="importo" step="0.01" required></label>
-        <label>Descrizione:<br><input type="text" name="descrizione"></label>
-        <div style="margin-top: 15px; text-align: right;">
-          <button type="submit">Salva</button>
-          <button type="button" id="modalCancel">Annulla</button>
-        </div>
-      </form>
-    `;
-
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-
-    // Funzioni di chiusura
-    const closeModal = () => {
-      document.body.removeChild(overlay);
-    };
-
-    // Eventi per chiusura
-    overlay.querySelector(".modal-close").onclick = closeModal;
-    overlay.querySelector("#modalCancel").onclick = closeModal;
-    overlay.onclick = (e) => {
-      if (e.target === overlay) closeModal();
-    };
-
-    overlay.querySelector("#modalForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const spesa = {
+    popolaCategoria();
+    document.getElementById("modalForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const spesa = {
         categoria: formData.get("categoria"),
         dataSpesa: formData.get("dataSpesa"),
         importo: parseFloat(formData.get("importo")),
         descrizione: formData.get("descrizione")
-      };
-      await saveSpesa(spesa);  // la tua funzione salva
-      closeModal();
-      await getSpese();        // la tua funzione aggiorna la tabella
+        };
+        await saveSpesa(spesa);  // la tua funzione salva
+        await getSpese();        // la tua funzione aggiorna la tabella
+        e.target.reset();
     });
-  });
 });
 
 const fullscreenBtn = document.getElementById("fullscreenBtn");
 const rotateOverlay = document.getElementById("rotateOverlay");
+const navLinks = document.querySelectorAll(".nav-links a");
+
+function getSezioneAttiva() {
+  return document.querySelector('.page-section.active');
+}
+
+function checkOrientation() {
+  const activeSection = document.querySelector(".page-section.active");
+  if (activeSection && !activeSection.id.includes("inserisci-spesa")) {
+    if (window.matchMedia("(orientation: portrait)").matches) {
+      rotateOverlay.style.display = "flex";
+    } else {
+      rotateOverlay.style.display = "none";
+    }
+  }
+}
+
+function setActiveSection(targetId) {
+  document.querySelectorAll(".page-section").forEach(section => {
+    section.classList.toggle("active", section.id === targetId);
+  });
+  checkOrientation();
+}
+navLinks.forEach(link => {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    const targetId = event.target.getAttribute("data-target");
+    setActiveSection(targetId);
+  });
+});
+
+window.addEventListener("orientationchange", () => {
+ checkOrientation()
+ });
 
 function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+// All'avvio
 if (isMobile()) {
   fullscreenBtn.style.display = "block";
-  // mostra overlay solo se in portrait
-  if (window.matchMedia("(orientation: portrait)").matches) {
-    rotateOverlay.style.display = "flex";
-  }
+  checkOrientation();
 }
+
 
 // gestione click fullscreen
 fullscreenBtn.addEventListener("click", async () => {
@@ -669,14 +661,5 @@ document.addEventListener("fullscreenchange", () => {
     fullscreenBtn.style.display = "none"; // in fullscreen → nascondi bottone
   } else if (isMobile()) {
     fullscreenBtn.style.display = "block"; // fuori fullscreen → torna visibile
-  }
-});
-
-// evento cambio orientamento
-window.addEventListener("orientationchange", () => {
-  if (window.matchMedia("(orientation: portrait)").matches) {
-    rotateOverlay.style.display = "flex"; // in portrait → mostra overlay
-  } else {
-    rotateOverlay.style.display = "none"; // in landscape → nascondi overlay
   }
 });

@@ -15,46 +15,45 @@
     <meta name="apple-mobile-web-app-orientation" content="landscape">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-    <style>
-        /* Stile per nascondere sezioni non attive */
-        .page-section {
-            display: none;
-        }
-        .page-section.active {
-            display: block;
-        }
-        nav {
-            background: #333;
-            padding: 10px;
-        }
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        nav a.active {
-            text-decoration: underline;
-        }
-    </style>
 </head>
 <body>
 
 <!-- Navbar -->
-<nav>
-    <a data-target="traccia-spesa" class="active">Traccia Spese</a>
-    <a data-target="Elabora Excel">Elabora Excel</a>
+<nav class="mobile-nav">
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+    <label for="nav-toggle" class="nav-toggle-label">
+        <span></span>
+    </label>
+    <div class="nav-links">
+        <a href="#" data-target="inserisci-spesa">Aggiungi Spese</a>
+        <a href="#" data-target="traccia-spesa">Traccia Spese</a>
+        <a href="#" data-target="elabora-excel">Elabora Excel</a>
+    </div>
 </nav>
 
+
 <h1 class="page-title">TieniIlConto</h1>
-<button id="fullscreenBtn" style="display:none;">📱 Apri a tutto schermo</button>
+<button id="fullscreenBtn" style="display:none;">📱 Schermo Intero</button>
+
+<section id="inserisci-spesa" class="page-section active">
+    <div class="insert-container">
+            <form id="modalForm" style="margin: 1vw; text-align: left;">
+                <h2>Inserisci Spesa</h2>
+                <label>Categoria:<br><input type="text" name="categoria" required></label>
+                <label>Data:<br><input type="date" name="dataSpesa" required></label>
+                <label>Importo (€):<br><input type="number" name="importo" step="0.01" required></label>
+                <label>Descrizione:<br><input type="text" name="descrizione"></label>
+                <div style="margin-top: 15px; text-align: right;">
+                    <button type="submit">Salva</button>
+                </div>
+            </form>
+    </div>
+</section>
 
 <!-- Pagina Elabora Excel -->
-<section id="Elabora Excel" class="page-section">
+<section id="elabora-excel" class="page-section">
     <div class="excel-container">
-
         <div class="excel-form">
-
             <h2>Importa il tuo file Excel</h2>
             <form id="uploadForm">
                 <div class="form-row">
@@ -98,7 +97,6 @@
                 <tbody id="resultsBody"></tbody>
             </table>
 
-
             <div class="table-header-tot">
                 <table id="resultsTableTot" style="display: none;">
                     <tbody id="resultsBodyTot"></tbody>
@@ -110,7 +108,7 @@
 
 </section>
 
-<section id="traccia-spesa" class="page-section active">
+<section id="traccia-spesa" class="page-section">
     <div class="excel-container">
         <div class="excel-form">
         <h2>Traccia spese</h2>
@@ -132,7 +130,6 @@
                 <div class="form-row">
                     <button id="getSpesaBtn">Ricerca spesa</button>
                     <button id="deleteSpesaBtn" title="Elimina la spesa selezionata">Elimina spesa</button>
-                    <button id="addSpesaBtn" title="Aggiungi una spesa"> + </button>
                 </div>
             </form>
         </div>
