@@ -455,22 +455,6 @@ tr:hover {
     .rotateOverlay { display: flex; }
   }
 
-  .rotateOverlayIns {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 1.5em;
-      z-index: 9999;
-    }
-    @media screen and (orientation:landscape) {
-      .rotateOverlayIns { display: flex; }
-    }
 
     .page-section {
         display: none;

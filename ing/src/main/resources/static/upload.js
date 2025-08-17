@@ -596,62 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 //const fullscreenBtn = document.getElementById("fullscreenBtn");
-//const rotateOverlay = document.getElementById("rotateOverlay");
-//const navLinks = document.querySelectorAll(".nav-links a");
-//
-//function getSezioneAttiva() {
-//  return document.querySelector('.page-section.active');
-//}
-//
-//function checkOrientation() {
-//if(isMobile()) {
-//      const activeSection = getSezioneAttiva();
-//      const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-//      const isLandscape = window.matchMedia("(orientation: landscape)").matches;
-//
-//      // Sezione "Inserisci Spesa" richiede orientamento verticale
-//      if (activeSection && activeSection.id === 'inserisci-spesa') {
-//        if (isLandscape) {
-//          rotateOverlay.style.display = 'flex';
-//          //screen.orientation.lock('portrait-primary').catch(err => console.error(err));
-//        } else {
-//          rotateOverlay.style.display = 'none';
-//        }
-//      }
-//      // Sezioni "Elabora Excel" e "Traccia Spesa" richiedono orientamento orizzontale
-//      else if (activeSection && (activeSection.id === 'elabora-excel' || activeSection.id === 'traccia-spesa')) {
-//        if (isPortrait) {
-//          rotateOverlay.style.display = 'flex';
-//          //screen.orientation.lock('landscape-primary').catch(err => console.error(err));
-//        } else {
-//          rotateOverlay.style.display = 'none';
-//        }
-//      } else {
-//        rotateOverlay.style.display = 'none';
-//      }
-//  }
-//}
-//
-//function setActiveSection(targetId) {
-//  document.querySelectorAll(".page-section").forEach(section => {
-//    section.classList.toggle("active", section.id === targetId);
-//  });
-//  checkOrientation();
-//}
-//
-//navLinks.forEach(link => {
-//if(isMobile) {
-// link.addEventListener("click", (event) => {
-//    event.preventDefault();
-//    const targetId = event.target.getAttribute("data-target");
-//    setActiveSection(targetId);
-//  });
-//}
-//
-//});
-//
-//window.addEventListener("orientationchange", checkOrientation);
-//
+
 //function isMobile() {
 //  return window.innerWidth <= 768;
 //}
@@ -660,7 +605,6 @@ document.addEventListener("DOMContentLoaded", () => {
 //// All'avvio
 //if (isMobile()) {
 //  fullscreenBtn.style.display = "block";
-//  checkOrientation();
 //}
 //
 //// Gestione click fullscreen
