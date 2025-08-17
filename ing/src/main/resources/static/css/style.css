@@ -474,7 +474,7 @@ tr:hover {
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1em;
     z-index: 9999;
   }
   @media screen and (orientation:portrait) {

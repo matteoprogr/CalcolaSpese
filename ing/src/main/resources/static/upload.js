@@ -20,25 +20,36 @@ async function initDate() {
   };
 
 const manualForm = document.getElementById('manualForm');
-
+let targetId;
 document.querySelectorAll('nav a').forEach(link => {
- const targetId = link.getAttribute('data-target');
     link.addEventListener('click', () => {
+        targetId = link.getAttribute('data-target');
         // Rimuove classe active da tutti i link
         document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
         link.classList.add('active');
 
+        // verifico se visualizzazione è in full screen, e modifica il landscape se necessario
+        screenRequest()
+
+        // Nasconde tutte le sezioni
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
 
+        // Mostra la sezione target
         const targetSection = document.getElementById(targetId);
         targetSection.classList.add('active');
 
-    });
-
-        if (targetId === 'traccia-spesa') {
-           initDate();
-           getSpese();
+        // Chiude il menu a scomparsa se aperto
+        const navToggle = document.getElementById('nav-toggle');
+        if (navToggle) {
+            navToggle.checked = false;
         }
+        // Sezione specifica "traccia-spesa"
+        if (targetId === 'traccia-spesa') {
+            initDate();
+            getSpese();
+        }
+
+    });
 });
 
 async function tracciaSpeseClick(criteri) {
@@ -595,38 +606,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-//const fullscreenBtn = document.getElementById("fullscreenBtn");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
 
-//function isMobile() {
-//  return window.innerWidth <= 768;
-//}
-//
-//
-//// All'avvio
-//if (isMobile()) {
-//  fullscreenBtn.style.display = "block";
-//}
-//
-//// Gestione click fullscreen
-//fullscreenBtn.addEventListener("click", async () => {
-//  try {
-//    await document.documentElement.requestFullscreen();
-//    if (screen.orientation && screen.orientation.lock) {
-//      await screen.orientation.lock("landscape");
-//    }
-//  } catch (err) {
-//    console.warn("Fullscreen/orientamento non riuscito:", err);
-//  }
-//});
-//
-//// Evento cambio fullscreen (entra/esce)
-//document.addEventListener("fullscreenchange", () => {
-//  if (document.fullscreenElement) {
-//    fullscreenBtn.style.display = "none"; // in fullscreen → nascondi bottone
-//  } else if (isMobile()) {
-//    fullscreenBtn.style.display = "block"; // fuori fullscreen → torna visibile
-//  }
-//});
 function isMobile() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
@@ -637,11 +618,24 @@ if (isMobile()) {
 
 document.getElementById("fullscreenBtn").addEventListener("click", async () => {
   try {
-    await document.documentElement.requestFullscreen();
-    if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock("landscape");
+  if (document.fullscreenElement) {
+     await document.exitFullscreen();
     }
+    await document.documentElement.requestFullscreen();
   } catch (err) {
-    console.warn("Fullscreen/orientamento non riuscito:", err);
+    console.warn("Fullscreen non riuscito:", err);
   }
 });
+
+async function screenRequest(){
+     try {
+        await screen.orientation.unlock();
+        if (screen.orientation && screen.orientation.lock && (targetId === "inserisci-spesa" || targetId  === undefined)) {
+          await screen.orientation.lock("portrait");
+        }else if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock("landscape");
+        }
+      } catch (err) {
+        console.warn("Orientamento non riuscito:", err);
+      }
+}
