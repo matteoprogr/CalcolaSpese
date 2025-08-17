@@ -638,11 +638,14 @@ function setActiveSection(targetId) {
 }
 
 navLinks.forEach(link => {
-  link.addEventListener("click", (event) => {
+if(isMobile) {
+ link.addEventListener("click", (event) => {
     event.preventDefault();
     const targetId = event.target.getAttribute("data-target");
     setActiveSection(targetId);
   });
+}
+
 });
 
 window.addEventListener("orientationchange", checkOrientation);
