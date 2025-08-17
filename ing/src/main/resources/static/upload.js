@@ -636,4 +636,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function isMobile() {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
 
+if (isMobile()) {
+  document.getElementById("fullscreenBtn").style.display = "block";
+}
+
+document.getElementById("fullscreenBtn").addEventListener("click", async () => {
+  try {
+    await document.documentElement.requestFullscreen();
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock("landscape");
+    }
+  } catch (err) {
+    console.warn("Fullscreen/orientamento non riuscito:", err);
+  }
+});

@@ -124,16 +124,7 @@ label {
   margin-bottom: 5px;
   font-size: 12px;
 }
-/*
-.indexlabel {
-  font-size: 12px;
-  font-family: 'Arial', sans-serif;
-  color: #333;
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: inline-block;
-}
-*/
+
 .datepicker-container {
         display: inline-block;
         margin-right: 20px;
@@ -173,17 +164,7 @@ select {
     font-size: 14px;
     box-sizing: border-box;
 }
-/*
-#uploadForm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 55%;
-  margin: 0 auto;
-}
-*/
+
 .form-row {
     display: contents; /* Consente ai figli di comportarsi come se fossero direttamente nel grid */
 }
@@ -254,18 +235,16 @@ button:hover {
 }
 
 /* Bottoni speciali */
-#mergeRowsBtn, #uploadResultBtn, #removeRowsBtn {
-    padding: 8px 14px;
-    background: linear-gradient(90deg, #3498db, #5dade2);
-    color: #fff;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-    display: none;
-    margin: 15px auto;
+
+#mergeRowsBtn, #removeRowsBtn, #uploadResultBtn {
+    margin-right: 10px; /* spazio tra i bottoni */
 }
+
+#mergeRowsBtn:hover, #removeRowsBtn:hover, #uploadResultBtn:hover {
+    background: linear-gradient(90deg, #2980b9, #3498db);
+    transform: scale(1.03);
+}
+
 #addRowBtn {
     padding: 8px 8px;
     background: linear-gradient(90deg, #3498db, #5dade2);
@@ -302,12 +281,6 @@ button:hover {
 
 #inputDouble {
   color: #555;
-}
-
-
-#mergeRowsBtn:hover, #uploadResultBtn, #removeRowsBtn:hover {
-    background: linear-gradient(90deg, #2980b9, #3498db);
-    transform: scale(1.03);
 }
 
 /* Tabella */
@@ -355,8 +328,12 @@ tr:hover {
 
 /* Tablet e smartphone */
 @media (max-width: 768px) {
-    form {
-        padding: 20px;
+   form {
+     padding: 1.25rem; /* ~20px */
+   }
+    #rotateOverlay {
+      width: 100vw;
+      height: 100vh;
     }
 
     .table-header {
@@ -379,16 +356,18 @@ tr:hover {
         padding: 8px;
         font-size: 13px;
     }
-   #manualForm {
-      grid-template-columns: 1fr; /* Una colonna su schermi piccoli */
-    }
+ #manualForm, #uploadForm {{
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+   gap: 10px;
+ }
 
-    button {
-      grid-column: span 1; /* I bottoni occupano una colonna */
-    }
+ button {
+   width: 100%; /* occupano l’intera colonna in mobile */
+ }
 }
 
-/* Smartphone piccoli */
+/* Smartphone piccoli
 @media (max-width: 480px) {
     h1 {
         font-size: 20px;
@@ -411,7 +390,25 @@ tr:hover {
         font-size: 12px;
     }
   }
+  */
+ #rotateOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.5em;
+    z-index: 9999;
+  }
+  @media screen and (orientation:portrait) {
+    #rotateOverlay { display: flex; }
+  }
 
+ /* MODALE */
 .modal-overlay {
      position: fixed;
      top: 0; left: 0;
@@ -426,7 +423,7 @@ tr:hover {
      background: white;
      padding: 20px;
      border-radius: 8px;
-     width: 90%;
+     width: 80%;
      max-width: 400px;
      position: relative;
 }
@@ -440,4 +437,22 @@ tr:hover {
      display: block;
      margin-bottom: 10px;
 }
-
+ .page-section {
+    display: none;
+}
+.page-section.active {
+    display: block;
+}
+nav {
+    background: #333;
+    padding: 10px;
+}
+nav a {
+    color: white;
+    margin: 0 15px;
+    text-decoration: none;
+    cursor: pointer;
+}
+nav a.active {
+    text-decoration: underline;
+}
