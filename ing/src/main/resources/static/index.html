@@ -37,17 +37,19 @@
 <button id="fullscreenBtn" style="display:none;">📱 Schermo Intero</button>
 
 <section id="inserisci-spesa" class="page-section active">
-    <div class="insert-container">
-            <form id="modalForm" style="margin: 1vw; text-align: left;">
+    <div class="excel-container">
+        <div class="excel-form">
+            <form id="modalForm" >
                 <h2>Inserisci Spesa</h2>
                 <label>Categoria:<br><input type="text" name="categoria" required></label>
                 <label>Data:<br><input type="date" name="dataSpesa" required></label>
                 <label>Importo (€):<br><input type="number" name="importo" step="0.01" required></label>
                 <label>Descrizione:<br><input type="text" name="descrizione"></label>
-                <div style="margin-top: 15px; text-align: right;">
+                <div>
                     <button type="submit">Salva</button>
                 </div>
             </form>
+        </div>
     </div>
 </section>
 
@@ -57,7 +59,6 @@
         <div class="excel-form">
             <h2>Importa il tuo file Excel</h2>
             <form id="uploadForm">
-                <div class="form-row">
                     <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
                     <label>Nome della tua banca</label>
                     <select id="nomeBanca" required>
@@ -70,8 +71,6 @@
 
                     <label for="endDate">A:</label>
                     <input type="date" id="endDate" name="endDate">
-                </div>
-
 
                 <div class="form-row">
                     <button type="submit">Invia</button>
@@ -82,17 +81,22 @@
 
       <div class="table-container">
             <div class="table-header">
-                <button id="mergeRowsBtn" style="display: none;" title="Unisci righe selezionate">Unisci righe</button>
-                <button id="removeRowsBtn" style="display: none;" title="Rimuovi righe selezionate">Rimuovi righe</button>
-                <button id="uploadResultBtn" style="display: none;"title="Scarica in formato excel">Download Excel</button>
+                <button id="mergeRowsBtn" class="excel-button" style="display: none;" title="Unisci righe selezionate">Unisci righe</button>
+                <button id="removeRowsBtn" class="excel-button" style="display: none;" title="Rimuovi righe selezionate">Rimuovi righe</button>
+                <button id="uploadResultBtn" class="excel-button" style="display: none;"title="Scarica in formato excel">Download Excel</button>
             </div>
 
             <table id="resultsTable" style="display: none;">
+                <colgroup>
+                    <col style="width: 10%">
+                    <col style="width: 70%">
+                    <col style="width: 20%">
+                </colgroup>
                 <thead>
                 <tr>
-                    <th>Includi</th>
-                    <th>Categoria / Presso</th>
-                    <th>Importo (€)</th>
+                    <th></th>
+                    <th>Categoria</th>
+                    <th> (€)</th>
                 </tr>
                 </thead>
                 <tbody id="resultsBody"></tbody>
@@ -105,9 +109,6 @@
             </div>
           </div>
     </div>
-    <div class="rotateOverlay">
-        <p>Per una migliore la visualizzazione <br>imposta lo schermo intero premendo <br>l'icona in basso a sinistra e ruota il dispositivo 🔄</p>
-    </div>
 </section>
 
 <section id="traccia-spesa" class="page-section">
@@ -115,7 +116,6 @@
         <div class="excel-form">
         <h2>Traccia spese</h2>
             <form id="manualForm">
-                <div class="form-row">
                     <label for="categoria">Categoria</label>
                     <select id="categoria" name="categoria"></select>
 
@@ -127,7 +127,7 @@
 
                     <label for="endDateExpense">Data fine</label>
                     <input type="date" id="endDateExpense" name="endDateExpense">
-                </div>
+
 
                 <div class="form-row">
                     <button id="getSpesaBtn">Ricerca spesa</button>
@@ -140,19 +140,17 @@
 
             <table id="resultsTableManual" style="display: none;">
                 <colgroup>
-                    <col style="width: 5%">
                     <col style="width: 20%">
                     <col style="width: 20%">
-                    <col style="width: 35%">
+                    <col style="width: 40%">
                     <col style="width: 20%">
                 </colgroup>
                 <thead>
                 <tr>
-                    <th></th> <!--colonna del check box non serve nome -->
-                    <th>Data Spesa</th>
+                    <th>Data</th>
                     <th>Categoria</th>
                     <th>Descrizione</th>
-                    <th>Importo (€)</th>
+                    <th>(€)</th>
                 </tr>
                 </thead>
                 <tbody id="resultsBodyManual"></tbody>
@@ -164,11 +162,30 @@
                 </table>
             </div>
 
+            <table id="resultsTableManualMobile" style="display: none;">
+                <colgroup>
+                    <col style="width: 35%">
+                    <col style="width: 35%">
+                    <col style="width: 30%">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Categoria</th>
+                    <th>(€)</th>
+                </tr>
+                </thead>
+                <tbody id="resultsBodyManualMobile"></tbody>
+            </table>
+
+            <div class="table-header-tot">
+                <table id="resultsTableTotManualMobile" style="display: none;">
+                    <tbody id="resultsBodyTotManualMobile"></tbody>
+                </table>
+            </div>
+
         </div>
 
-    </div>
-    <div class="rotateOverlay">
-        <p>Per una migliore la visualizzazione <br>imposta lo schermo intero premendo <br>l'icona in basso a sinistra e ruota il dispositivo 🔄</p>
     </div>
 
 </section>
@@ -184,6 +201,7 @@
         <li><strong>Aggiungi Spese:</strong> registra le tue uscite in pochi secondi.</li>
         <li><strong>Traccia Spese:</strong> cerca tra i movimenti che hai registrato, organizza meglio le tue spese ed elimina quelle che non ti servono più.</li>
         <li><strong>Elabora Excel:</strong> importa il file delle spese bancarie in formato Excel e ottieni subito una lettura chiara dei dati.</li>
+        <li><strong>Gestione Dati:</strong> i dati restano disponibili solo finché la cronologia non viene cancellata. Una volta eliminata, tutte le informazioni andranno perse.</li>
     </ul>
 </section>
 

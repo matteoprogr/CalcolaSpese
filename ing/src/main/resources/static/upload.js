@@ -29,7 +29,7 @@ document.querySelectorAll('nav a').forEach(link => {
         link.classList.add('active');
 
         // verifico se visualizzazione è in full screen, e modifica il landscape se necessario
-        screenRequest()
+       // screenRequest()
 
         // Nasconde tutte le sezioni
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
@@ -55,7 +55,12 @@ document.querySelectorAll('nav a').forEach(link => {
 async function tracciaSpeseClick(criteri) {
     try {
         const spese = await querySpese(criteri);
-        await creaTabellaManuale(spese);
+        if(isMobile()){
+             await creaTabellaManualeMobile(spese);
+        }else{
+             await creaTabellaManuale(spese);
+        }
+
     } catch (err) {
         console.error("Errore nel recupero spese:", err);
     }
@@ -76,41 +81,53 @@ async function creaTabellaManuale(spese) {
      }
 
      let totale = 0;
+     let selectedRow = null;
 
      spese.forEach(spesa => {
          const tr = document.createElement("tr");
 
-         // Colonna checkbox
-         const tdCheck = document.createElement("td");
-         const checkbox = document.createElement("input");
-         checkbox.type = "checkbox";
-         checkbox.value = spesa.dataInserimento;
-         tdCheck.appendChild(checkbox);
-         tr.appendChild(tdCheck);
+         // Salva l'id della spesa direttamente sulla riga
+         tr.dataset.dataIns = spesa.dataInserimento;
 
          // Colonna Data Spesa
          const tdData = document.createElement("td");
-         tdData.textContent = spesa.dataSpesa || "";
+         const dateObj = new Date(spesa.dataSpesa);
+
+         // Recuperiamo giorno, mese e anno
+         const day = String(dateObj.getDate()).padStart(2, '0');       // aggiunge 0 iniziale se <10
+         const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // i mesi in JS partono da 0
+         const year = dateObj.getFullYear();
+         // Formattiamo la data come dd/mm/yyyy
+         tdData.textContent = `${day}/${month}/${year}`;
+         tdData.title = `Data Spesa: ${day}/${month}/${year}`;
          tdData.style.textAlign = "center";
          tr.appendChild(tdData);
 
          // Colonna Categoria
          const tdCategoria = document.createElement("td");
          tdCategoria.textContent = spesa.categoria || "";
+         tdCategoria.title = `Categoria: ${spesa.categoria}`;
          tdCategoria.style.textAlign = "center";
          tr.appendChild(tdCategoria);
 
          // Colonna Descrizione
          const tdDescr = document.createElement("td");
          tdDescr.textContent = spesa.descrizione || "";
+         tdDescr.title = `Descrizione: ${spesa.descrizione}`;
          tdDescr.style.textAlign = "center";
          tr.appendChild(tdDescr);
 
          // Colonna Importo
          const tdImporto = document.createElement("td");
          tdImporto.textContent = spesa.importo ? spesa.importo.toFixed(2) : "0.00";
+         tdImporto.title = `Importo: ${spesa.importo}`;
          tdImporto.style.textAlign = "center";
          tr.appendChild(tdImporto);
+
+         // Aggiungi listener per selezione
+          tr.addEventListener("click", () => {
+              tr.classList.toggle("selected-row");
+          });
 
          tbody.appendChild(tr);
 
@@ -137,6 +154,88 @@ async function creaTabellaManuale(spese) {
      document.getElementById("resultsTableTotManual").style.display = "table";
 
 }
+
+async function creaTabellaManualeMobile(spese) {
+     const tbody = document.getElementById("resultsBodyManualMobile");
+     const tbodyTot = document.getElementById("resultsBodyTotManualMobile");
+
+     tbody.innerHTML = "";
+     tbodyTot.innerHTML = "";
+
+     if (!spese || spese.length === 0) {
+         document.getElementById("resultsTableManualMobile").style.display = "none";
+         document.getElementById("resultsTableTotManualMobile").style.display = "none";
+         return;
+     }
+
+     let totale = 0;
+     let selectedRow = null;
+
+     spese.forEach(spesa => {
+         const tr = document.createElement("tr");
+
+         // Salva l'id della spesa direttamente sulla riga
+         tr.dataset.dataIns = spesa.dataInserimento;
+
+         // Colonna Data Spesa
+         const tdData = document.createElement("td");
+         const dateObj = new Date(spesa.dataSpesa);
+
+         // Recuperiamo giorno, mese e anno
+         const day = String(dateObj.getDate()).padStart(2, '0');       // aggiunge 0 iniziale se <10
+         const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // i mesi in JS partono da 0
+         const year = dateObj.getFullYear();
+         // Formattiamo la data come dd/mm/yyyy
+         tdData.textContent = `${day}/${month}/${year}`;
+         tdData.title = `Data Spesa: ${day}/${month}/${year}`;
+         tdData.style.textAlign = "center";
+         tr.appendChild(tdData);
+
+         // Colonna Categoria
+         const tdCategoria = document.createElement("td");
+         tdCategoria.textContent = spesa.categoria || "";
+         tdCategoria.title = `Categoria: ${spesa.categoria}`;
+         tdCategoria.style.textAlign = "center";
+         tr.appendChild(tdCategoria);
+
+         // Colonna Importo
+         const tdImporto = document.createElement("td");
+         tdImporto.textContent = spesa.importo ? spesa.importo.toFixed(2) : "0.00";
+         tdImporto.title = `Importo: ${spesa.importo}`;
+         tdImporto.style.textAlign = "center";
+         tr.appendChild(tdImporto);
+
+         // Aggiungi listener per selezione
+          tr.addEventListener("click", () => {
+              tr.classList.toggle("selected-row");
+          });
+
+         tbody.appendChild(tr);
+
+         totale += spesa.importo || 0;
+     });
+
+     // Totale
+     const trTot = document.createElement("tr");
+     const tdTot = document.createElement("td");
+     tdTot.colSpan = 4;
+     tdTot.style.textAlign = "right";
+     tdTot.style.fontWeight = "bold";
+     tdTot.textContent = "Totale:";
+     trTot.appendChild(tdTot);
+
+     const tdTotVal = document.createElement("td");
+     tdTotVal.textContent = totale.toFixed(2);
+     trTot.appendChild(tdTotVal);
+
+     tbodyTot.appendChild(trTot);
+
+     // Mostra le tabelle
+     document.getElementById("resultsTableManualMobile").style.display = "table";
+     document.getElementById("resultsTableTotManualMobile").style.display = "table";
+
+}
+
 
 function isValid(value) {
     return value != null && !Number.isNaN(value) && value !== "";
@@ -214,23 +313,54 @@ async function getSpese() {
      await tracciaSpeseClick(criteri);;
 }
 
+
 async function deleteSpesaBtn() {
-    const rows = document.querySelectorAll("#resultsBodyManual tr");
-    const criteri = {};
-    rows.forEach(row => {
-        const checkbox = row.querySelector("input[type='checkbox']");
-        if (checkbox && checkbox.checked) {
-          if (!Array.isArray(criteri.dataInserimento)) {
-            criteri.dataInserimento = [];
-          }
-          criteri.dataInserimento.push(checkbox.value);
+    // Trova tutte le righe selezionate
+    const selectedRows = document.querySelectorAll("#resultsBodyManual tr.selected-row");
+    const selectedRowsMobile = document.querySelectorAll("#resultsBodyManualMobile tr.selected-row");
+
+    if (selectedRows.length === 0 && selectedRowsMobile.length === 0) {
+        showErrorToast("Seleziona almeno una riga da eliminare.","error");
+        return;
+    }
+
+    // Recupera tutti gli id delle spese selezionate
+    const criteri = [];
+    if (selectedRows.length > 0) {
+         selectedRows.forEach(row => {
+        if (row.dataset.dataIns) {
+            criteri.push(row.dataset.dataIns);
         }
-      });
-     if (criteri.dataInserimento && criteri.dataInserimento.length > 0) {
-        await deleteSpese(criteri);
-        getSpese();
-      }
+    });
+    }
+    if (selectedRowsMobile.length > 0) {
+    selectedRowsMobile.forEach(row => {
+        if (row.dataset.dataIns) {
+            criteri.push(row.dataset.dataIns);
+        }
+    });
+    }
+
+    if (criteri.length === 0) {
+        showErrorToast("Errore durante l'eliminazione.","error");
+        return;
+    }
+
+    // Esegui la chiamata di eliminazione (array di ID)
+    await deleteSpese(criteri);
+
+    if(criteri.length === 1){
+        showToast("Spesa eliminata con successo", "success");
+    } else {
+        showToast("Spese eliminate con successo", "success");
+    }
+
+
+    // Aggiorna la tabella dopo l'eliminazione
+    getSpese();
 }
+
+
 
 document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
 
@@ -600,21 +730,25 @@ document.addEventListener("DOMContentLoaded", () => {
         importo: parseFloat(formData.get("importo")),
         descrizione: formData.get("descrizione")
         };
+        e.target.reset();
         const result = await saveSpesa(spesa);  // la tua funzione salva
           if (result.success) {
             showToast("Spesa salvata con successo ✅", "success");
           } else {
             showToast("Errore nel salvataggio ❌", "error");
           }
+
         await getSpese();        // la tua funzione aggiorna la tabella
-        e.target.reset();
+
     });
 });
 
 const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function isMobile() {
-  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isMobileUA = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isSmallScreen = window.innerWidth <= 968; // considera "mobile" se lo schermo è <= 768px
+  return isMobileUA && isSmallScreen;
 }
 
 if (isMobile()) {
@@ -661,3 +795,19 @@ function showToast(message, type = "success") {
     setTimeout(() => toast.remove(), 400);
   }, 3000);
 }
+
+function showErrorToast(message,type = "error") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 100); // fade in
+
+  // rimuovi dopo 3 secondi
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+}
+
