@@ -318,6 +318,91 @@ tr:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Sezione Info */
+.info-section {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 20px 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  animation: fadeIn 0.6s ease-in-out;
+  line-height: 1.6;
+}
+
+.info-section h2 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.info-section p {
+  font-size: 1rem;
+  margin-bottom: 15px;
+  color: #444;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-list li {
+  background: #f4f7fb;
+  margin: 10px 0;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-list li:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.info-list li::before {
+  content: "✔";
+  color: #3498db;
+  font-weight: bold;
+}
+
+/* Toast Responsive */
+.toast {
+  position: fixed;
+  bottom: 1.25rem;   /* ~20px */
+  right: 1.25rem;    /* ~20px */
+  background: #2ecc71;
+  color: #fff;
+  padding: 0.75rem 1.25rem; /* ~12px 20px */
+  border-radius: 0.5rem;    /* ~8px */
+  box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.2); /* ~4px 12px */
+  opacity: 0;
+  transform: translateY(1.25rem); /* ~20px */
+  transition: all 0.4s ease;
+  z-index: 9999;
+  font-size: 0.9rem; /* adattabile al device */
+  max-width: 90vw;   /* evita overflow su schermi piccoli */
+  word-break: break-word;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.error {
+  background: #e74c3c;
+}
+
+
+
 /* ------------------------------
    RESPONSIVE DESIGN
 ---------------------------------*/

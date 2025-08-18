@@ -9,19 +9,28 @@ db.version(1).stores({
 
 // Salvataggio di una spesa
 export async function saveSpesa(spesa) {
-  const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
+  try {
+    const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
 
-  const data = {
-    ...spesa,
-    dataInserimento: new Date().toISOString(),
-    dataSpesa: fomattedISO
-  };
+    const data = {
+      ...spesa,
+      dataInserimento: new Date().toISOString(),
+      dataSpesa: fomattedISO
+    };
 
-  await saveCategoria(spesa.categoria);
+    await saveCategoria(spesa.categoria);
 
-  await db.spese.add(data);
+    // restituisce l'id della spesa salvata
+    const id = await db.spese.add(data);
 
-  await popolaCategoria();
+    await popolaCategoria();
+
+    // ritorno un valore utile per sapere se è andato tutto bene
+    return { success: true, id };
+  } catch (error) {
+    console.error("Errore nel salvataggio spesa:", error);
+    return { success: false, error };
+  }
 }
 
 async function saveCategoria(categoria) {

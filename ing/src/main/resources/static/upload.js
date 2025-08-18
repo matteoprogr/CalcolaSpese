@@ -600,7 +600,12 @@ document.addEventListener("DOMContentLoaded", () => {
         importo: parseFloat(formData.get("importo")),
         descrizione: formData.get("descrizione")
         };
-        await saveSpesa(spesa);  // la tua funzione salva
+        const result = await saveSpesa(spesa);  // la tua funzione salva
+          if (result.success) {
+            showToast("Spesa salvata con successo ✅", "success");
+          } else {
+            showToast("Errore nel salvataggio ❌", "error");
+          }
         await getSpese();        // la tua funzione aggiorna la tabella
         e.target.reset();
     });
@@ -631,7 +636,7 @@ document.getElementById("fullscreenBtn").addEventListener("click", async () => {
 async function screenRequest(){
      try {
         await screen.orientation.unlock();
-        if (screen.orientation && screen.orientation.lock && (targetId === "inserisci-spesa" || targetId  === undefined)) {
+        if (screen.orientation && screen.orientation.lock && (targetId === "inserisci-spesa" || targetId === "info" || targetId  === undefined)) {
           await screen.orientation.lock("portrait");
         }else if (screen.orientation && screen.orientation.lock) {
           await screen.orientation.lock("landscape");
@@ -639,4 +644,20 @@ async function screenRequest(){
       } catch (err) {
         console.warn("Orientamento non riuscito:", err);
       }
+}
+
+// Mostra un toast
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 100); // fade in
+
+  // rimuovi dopo 3 secondi
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
 }
