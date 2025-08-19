@@ -3,33 +3,30 @@ import { querySpese } from './queryDexie.js';
 import { deleteSpese } from './queryDexie.js';
 import { popolaCategoria } from './queryDexie.js';
 
-async function initDate() {
-    const oggi = new Date();
-    const meseFa = new Date();
-    meseFa.setMonth(oggi.getMonth() - 1);
 
-    const formattaData = (data) => {
-      const anno = data.getFullYear();
-      const mese = String(data.getMonth() + 1).padStart(2, '0');
-      const giorno = String(data.getDate()).padStart(2, '0');
-      return `${anno}-${mese}-${giorno}`;
-    };
+//  EVENT LISTENER //////////////////////////////////
+document.getElementById("getSpesaBtn").addEventListener("click", getSpese);
+document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
+document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
+document.getElementById("uploadResultBtn").addEventListener("click", uploadResult);
+document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
+document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheSelezionate);
 
-    document.getElementById('startDateExpense').value = formattaData(meseFa);
-    document.getElementById('endDateExpense').value = formattaData(oggi);
-  };
+
+//  VARIABILI GLOBALI //////////////////////////////////
 
 const manualForm = document.getElementById('manualForm');
 let targetId;
+
+
+// SUBMIT FORM  e SECTIONS //////////////////////////////////////////
+
 document.querySelectorAll('nav a').forEach(link => {
     link.addEventListener('click', () => {
         targetId = link.getAttribute('data-target');
         // Rimuove classe active da tutti i link
         document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
         link.classList.add('active');
-
-        // verifico se visualizzazione è in full screen, e modifica il landscape se necessario
-       // screenRequest()
 
         // Nasconde tutte le sezioni
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
@@ -52,20 +49,181 @@ document.querySelectorAll('nav a').forEach(link => {
     });
 });
 
+document.getElementById("uploadForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const fileInput = document.getElementById("fileInput");
+    const selectNomeBanca = document.getElementById("nomeBanca");
+    const nomeBanca = selectNomeBanca.options[selectNomeBanca.selectedIndex].text;
+    const startDate = document.getElementById("startDate");
+    const endDate = document.getElementById("endDate");
+    const file = fileInput.files[0];
+    const dataInizio = startDate.value;
+    const datafine = endDate.value;
+
+
+     if (!file || (!startDate && !endDate)) {
+           showErrorToast("Inserisci un file Excel.", "error");
+           return;
+       }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("nomeBanca", nomeBanca);
+    formData.append("dataInizio", dataInizio);
+    formData.append("dataFine", datafine);
+
+    fetch("/api/excel/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Errore nel caricamento del file");
+        }
+        return response.json();
+    })
+    .then(result => {
+        mostraTabella(result);
+    })
+    .catch(error => {
+        document.getElementById("response").innerText = "Errore durante l'upload: " + error;
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    popolaCategoria();
+    document.getElementById("modalForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const spesa = {
+        categoria: formData.get("categoria"),
+        dataSpesa: formData.get("dataSpesa"),
+        importo: parseFloat(formData.get("importo")),
+        descrizione: formData.get("descrizione")
+        };
+        e.target.reset();
+        const result = await saveSpesa(spesa);  // la tua funzione salva
+          if (result.success) {
+            showToast("Spesa salvata con successo ✅", "success");
+          } else {
+            showErrorToast("Errore nel salvataggio ❌", "error");
+          }
+
+        await getSpese();
+
+    });
+});
+
+//  FUNZIONI //////////////////////////////////
+
+async function initDate() {
+    const oggi = new Date();
+    const meseFa = new Date();
+    meseFa.setMonth(oggi.getMonth() - 1);
+
+    const formattaData = (data) => {
+      const anno = data.getFullYear();
+      const mese = String(data.getMonth() + 1).padStart(2, '0');
+      const giorno = String(data.getDate()).padStart(2, '0');
+      return `${anno}-${mese}-${giorno}`;
+    };
+
+    document.getElementById('startDateExpense').value = formattaData(meseFa);
+    document.getElementById('endDateExpense').value = formattaData(oggi);
+  };
+
 async function tracciaSpeseClick(criteri) {
     try {
         const spese = await querySpese(criteri);
-        if(isMobile()){
-             await creaTabellaManualeMobile(spese);
-        }else{
-             await creaTabellaManuale(spese);
-        }
-
+        spese.sort((a, b) => new Date(a.dataSpesa).getTime() - new Date(b.dataSpesa).getTime());
+        await creaTabellaManuale(spese);
     } catch (err) {
         console.error("Errore nel recupero spese:", err);
     }
 }
 
+function mostraTabella(data) {
+    const resultsTable = document.getElementById("resultsTable");
+    const resultsTableTot = document.getElementById("resultsTableTot");
+    const resultsBody = document.getElementById("resultsBody");
+    const resultsBodyTot = document.getElementById("resultsBodyTot");
+
+    resultsBody.innerHTML = "";
+    resultsBodyTot.innerHTML = "";
+
+    const dataValuta = data.dataValuta;
+    const categoria = data.categoria;
+    const descrizione = data.descrizione;
+    const valore = data.valore;
+    const totale = data.totale;
+
+    for (let i = 0; i < dataValuta.length; i++) {
+         aggiungiRiga(dataValuta[i],categoria[i],descrizione[i],valore[i],"resultsBody");
+    }
+
+    aggiungiRiga(null,"Totale", null, totale, "resultsBodyTot");
+    aggiungiRiga(null,"Totale selezionato", null, 0, "resultsBodyTot");
+
+//    const buttonRow = document.createElement("tr");
+//    buttonRow.id = "buttonRow";
+//    const buttonCell = document.createElement("td");
+//    buttonCell.colSpan = 1;
+//    buttonCell.style.textAlign = "left";
+//
+//    const addRowBtn = document.createElement("button");
+//    addRowBtn.textContent = "+";
+//    addRowBtn.id = "addRowBtn";
+//    addRowBtn.title = "Aggiungi riga";
+//    addRowBtn.addEventListener("click", function(event) {
+//    const inputCategoria = document.getElementById("inputCategoria");
+//    const inputTesto = document.getElementById("inputTesto");
+//    const inputDouble = document.getElementById("inputDouble");
+//    addNuovaRiga(inputCategoria, inputTesto, inputDouble);
+//    });
+//
+//    buttonCell.appendChild(addRowBtn);
+//    buttonRow.appendChild(buttonCell);
+//
+//    const categoriaCell = document.createElement("td");
+//    const inputCategoria = document.createElement("input");
+//    inputCategoria.type = "text";
+//    inputCategoria.style.width = "100%";
+//    inputCategoria.required = true;
+//    inputCategoria.id = "inputCategoria";
+//    categoriaCell.appendChild(inputCategoria);
+//    buttonRow.appendChild(categoriaCell);
+//
+//    // 2️⃣ Seconda cella: input testo
+//    const textCell = document.createElement("td");
+//    const inputText = document.createElement("input");
+//    inputText.type = "text";
+//    inputText.style.width = "100%";
+//    inputText.required = true;
+//    inputText.id = "inputTesto";
+//    textCell.appendChild(inputText);
+//    buttonRow.appendChild(textCell);
+//
+//    // 3️⃣ Terza cella: input double
+//    const numberCell = document.createElement("td");
+//    const inputNumber = document.createElement("input");
+//    inputNumber.type = "number";
+//    inputNumber.step = "0.01";
+//    inputNumber.id = "inputDouble";
+//    inputNumber.style.width = "100%";
+//    inputNumber.required = true;
+//    numberCell.appendChild(inputNumber);
+//    buttonRow.appendChild(numberCell);
+//
+//    resultsBody.appendChild(buttonRow);
+
+    resultsTable.style.display = "table";
+    resultsTableTot.style.display = "table";
+    document.getElementById("mergeRowsBtn").style.display = "inline-block";
+    document.getElementById("uploadResultBtn").style.display = "inline-block";
+    document.getElementById("removeRowsBtn").style.display = "inline-block";
+
+}
 
 async function creaTabellaManuale(spese) {
      const tbody = document.getElementById("resultsBodyManual");
@@ -155,85 +313,73 @@ async function creaTabellaManuale(spese) {
 
 }
 
-async function creaTabellaManualeMobile(spese) {
-     const tbody = document.getElementById("resultsBodyManualMobile");
-     const tbodyTot = document.getElementById("resultsBodyTotManualMobile");
+function aggiungiRiga(dataValuta, categoria ,descrizione, valore, results) {
 
-     tbody.innerHTML = "";
-     tbodyTot.innerHTML = "";
+   // Aggiunge la nuova riga unita
+    if (!isValid(descrizione) && categoria !== "Totale" && categoria !== "Totale selezionato") {
+      showErrorToast("Inserisci un testo valido", "error");
+       return;
+    }
+   if (isNaN(valore)) {
+        showErrorToast("Inserisci un numero valido", "error");
+       return;
+   }
+    const tabella = document.getElementById(results);
+    const nuovaRiga = document.createElement("tr");
 
-     if (!spese || spese.length === 0) {
-         document.getElementById("resultsTableManualMobile").style.display = "none";
-         document.getElementById("resultsTableTotManualMobile").style.display = "none";
-         return;
-     }
+    const dataValutaCell = document.createElement("td");
+    dataValutaCell.textContent = dataValuta;
 
-     let totale = 0;
-     let selectedRow = null;
+    const categoriaCell = document.createElement("td");
+    categoriaCell.textContent = categoria;
 
-     spese.forEach(spesa => {
-         const tr = document.createElement("tr");
+    const descrizioneCell = document.createElement("td");
+    descrizioneCell.textContent = descrizione;
 
-         // Salva l'id della spesa direttamente sulla riga
-         tr.dataset.dataIns = spesa.dataInserimento;
+    const valoreCell = document.createElement("td");
+    valoreCell.classList.add("valore-spesa");
+    valoreCell.textContent = valore.toFixed(2);
 
-         // Colonna Data Spesa
-         const tdData = document.createElement("td");
-         const dateObj = new Date(spesa.dataSpesa);
+    if (categoria.toLowerCase() === "totale") {
+        nuovaRiga.style.fontWeight = "bold";
+        nuovaRiga.id = "rigaTotaleBackend";
+    }
+    if(categoria.toLowerCase() === "totale selezionato") {
+        nuovaRiga.style.fontWeight = "bold";
+        nuovaRiga.id = "totaleLive";
+    }
 
-         // Recuperiamo giorno, mese e anno
-         const day = String(dateObj.getDate()).padStart(2, '0');       // aggiunge 0 iniziale se <10
-         const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // i mesi in JS partono da 0
-         const year = dateObj.getFullYear();
-         // Formattiamo la data come dd/mm/yyyy
-         tdData.textContent = `${day}/${month}/${year}`;
-         tdData.title = `Data Spesa: ${day}/${month}/${year}`;
-         tdData.style.textAlign = "center";
-         tr.appendChild(tdData);
+    if(9){
 
-         // Colonna Categoria
-         const tdCategoria = document.createElement("td");
-         tdCategoria.textContent = spesa.categoria || "";
-         tdCategoria.title = `Categoria: ${spesa.categoria}`;
-         tdCategoria.style.textAlign = "center";
-         tr.appendChild(tdCategoria);
+    }
 
-         // Colonna Importo
-         const tdImporto = document.createElement("td");
-         tdImporto.textContent = spesa.importo ? spesa.importo.toFixed(2) : "0.00";
-         tdImporto.title = `Importo: ${spesa.importo}`;
-         tdImporto.style.textAlign = "center";
-         tr.appendChild(tdImporto);
 
-         // Aggiungi listener per selezione
-          tr.addEventListener("click", () => {
-              tr.classList.toggle("selected-row");
-          });
+    if(categoria !== "Totale" && categoria !== "Totale selezionato"){
+     // Aggiungi listener per selezione
+        nuovaRiga.addEventListener("click", () => {
+        nuovaRiga.classList.toggle("selected-row");
+        aggiornaTotaleLive();
+        });
 
-         tbody.appendChild(tr);
+        nuovaRiga.appendChild(dataValutaCell);
+        nuovaRiga.appendChild(categoriaCell);
+        nuovaRiga.appendChild(descrizioneCell);
+        nuovaRiga.appendChild(valoreCell);
+    }else{
+        nuovaRiga.appendChild(categoriaCell);
+        nuovaRiga.appendChild(valoreCell);
+    }
 
-         totale += spesa.importo || 0;
-     });
 
-     // Totale
-     const trTot = document.createElement("tr");
-     const tdTot = document.createElement("td");
-     tdTot.colSpan = 4;
-     tdTot.style.textAlign = "right";
-     tdTot.style.fontWeight = "bold";
-     tdTot.textContent = "Totale:";
-     trTot.appendChild(tdTot);
 
-     const tdTotVal = document.createElement("td");
-     tdTotVal.textContent = totale.toFixed(2);
-     trTot.appendChild(tdTotVal);
-
-     tbodyTot.appendChild(trTot);
-
-     // Mostra le tabelle
-     document.getElementById("resultsTableManualMobile").style.display = "table";
-     document.getElementById("resultsTableTotManualMobile").style.display = "table";
-
+// TODO Parte commentate da rivedere per gestire add di una nuova riga nella tabella
+//    if(categoria !== "Totale selezionato") {
+//        // Inserisci la riga appena prima della riga del totale live
+//        const buttonwRow = document.getElementById("buttonRow");
+//        tabella.insertBefore(nuovaRiga, buttonwRow);
+//    }else{
+        tabella.appendChild(nuovaRiga);
+//    }
 }
 
 
@@ -241,56 +387,7 @@ function isValid(value) {
     return value != null && !Number.isNaN(value) && value !== "";
 }
 
-
-document.getElementById("uploadForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const fileInput = document.getElementById("fileInput");
-    const selectNomeBanca = document.getElementById("nomeBanca");
-    const nomeBanca = selectNomeBanca.options[selectNomeBanca.selectedIndex].text;
-    const startDate = document.getElementById("startDate");
-    const endDate = document.getElementById("endDate");
-    const file = fileInput.files[0];
-    const dataInizio = startDate.value;
-    const datafine = endDate.value;
-
-
-     if (!file || (!startDate && !endDate)) {
-           alert("Inserisci un file Excel e seleziona un mese o un intervallo di date.");
-           return;
-       }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("nomeBanca", nomeBanca);
-    formData.append("dataInizio", dataInizio);
-    formData.append("dataFine", datafine);
-
-    fetch("/api/excel/upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Errore nel caricamento del file");
-        }
-        return response.json();
-    })
-    .then(result => {
-        mostraTabella(result);
-    })
-    .catch(error => {
-        document.getElementById("response").innerText = "Errore durante l'upload: " + error;
-    });
-});
-
-document.getElementById("getSpesaBtn").addEventListener("click", getSpese);
-document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
-
-
 async function getSpese() {
-    const dataInizio = new Date(manualForm.startDateExpense.value).toISOString().split('T')[0];
-    const dataFine = new Date(manualForm.endDateExpense.value).toISOString().split('T')[0];
 
     const criteri = {};
     if (isValid(manualForm.categoria.value)) {
@@ -304,9 +401,11 @@ async function getSpese() {
     }
 
     if(isValid(manualForm.startDateExpense.value)){
+       const dataInizio = new Date(manualForm.startDateExpense.value).toISOString().split('T')[0];
        criteri.dataInizio = dataInizio
     }
     if(isValid(manualForm.endDateExpense.value)){
+       const dataFine = new Date(manualForm.endDateExpense.value).toISOString().split('T')[0];
        criteri.dataFine = dataFine
     }
 
@@ -324,7 +423,6 @@ async function deleteSpesaBtn() {
         return;
     }
 
-    // Recupera tutti gli id delle spese selezionate
     const criteri = [];
     if (selectedRows.length > 0) {
          selectedRows.forEach(row => {
@@ -346,7 +444,6 @@ async function deleteSpesaBtn() {
         return;
     }
 
-    // Esegui la chiamata di eliminazione (array di ID)
     await deleteSpese(criteri);
 
     if(criteri.length === 1){
@@ -355,170 +452,92 @@ async function deleteSpesaBtn() {
         showToast("Spese eliminate con successo", "success");
     }
 
-
-    // Aggiorna la tabella dopo l'eliminazione
     getSpese();
 }
 
-
-
-document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
-
-async function resetForm(){
-    const startDate = manualForm.startDateExpense.value;
-    const endDate = manualForm.endDateExpense.value;
-
-    manualForm.reset();
-    manualForm.startDateExpense.value = startDate;
-    manualForm.endDateExpense.value = endDate;
-}
-
-document.getElementById("uploadResultBtn").addEventListener("click", function () {
+function uploadResult() {
     const tabella = document.getElementById("resultsBody");
     const rowTot = document.getElementById("rigaTotaleBackend");
     const rows = tabella.getElementsByTagName("tr");
-    const dati = {};
 
+    const dati = {
+        dataValuta: [],
+        categoria: [],
+        descrizione: [],
+        valore: [],
+        totale: 0
+    };
+
+    // Ciclo sulle righe della tabella
     for (let row of rows) {
         const celle = row.getElementsByTagName("td");
-        if (celle.length === 3) {
-            const chiave = celle[1].innerText.trim();
-            const valore = parseFloat(celle[2].innerText.trim());
-            if(chiave !== "" && valore !== null && valore !== undefined && valore !== NaN){
-                dati[chiave] = valore;
+
+        if (celle.length >= 4) {
+            const dataValuta = celle[0].innerText.trim();
+            const categoria = celle[1].innerText.trim();
+            const descrizione = celle[2].innerText.trim();
+            const valore = parseFloat(celle[3].innerText.trim());
+
+            if (!isNaN(valore)) {
+                dati.dataValuta.push(dataValuta);
+                dati.categoria.push(categoria);
+                dati.descrizione.push(descrizione);
+                dati.valore.push(valore);
             }
         }
     }
+
+    // Riga totale
     const celle = rowTot.getElementsByTagName("td");
-    const chiave = celle[1].innerText.trim();
-    const valore = parseFloat(celle[2].innerText.trim());
-    dati[chiave] = valore;
+    if (celle.length >= 4) {
+        const valore = parseFloat(celle[3].innerText.trim());
 
-
-    // Invio al backend
-    fetch("/api/excel/download", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(dati)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error("Errore durante l'invio");
-        return response.blob();
-    })
-    .then(blob => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "elaborazione.xlsx";
-        link.click();
-    })
-    .catch(err => console.error(err));
-});
-
-
-function mostraTabella(data) {
-    const resultsTable = document.getElementById("resultsTable");
-    const resultsTableTot = document.getElementById("resultsTableTot");
-    const resultsBody = document.getElementById("resultsBody");
-    const resultsBodyTot = document.getElementById("resultsBodyTot");
-
-    resultsBody.innerHTML = "";
-    resultsBodyTot.innerHTML = "";
-
-    for (const [chiave, valore] of Object.entries(data)) {
-
-        if(chiave.toLowerCase() === "totale"){
-         aggiungiRiga(chiave,valore,"resultsBodyTot");
-        }else{
-         aggiungiRiga(chiave,valore,"resultsBody");
-         }
+        if (!isNaN(valore)) {
+            dati.totale = valore;
+        }
     }
 
-    // Aggiungi riga "Totale selezionato"
-    const totalRow = document.createElement("tr");
-    totalRow.id = "rigaTotaleSelezionato";
-    totalRow.style.fontWeight = "bold";
-    totalRow.style.backgroundColor = "#e0f7fa";
-
-    const emptyCell = document.createElement("td");
-    const labelCell = document.createElement("td");
-    labelCell.textContent = "Totale selezionato";
-
-    const valueCell = document.createElement("td");
-    valueCell.id = "totaleLive";
-    valueCell.textContent = "0.00";
-
-    totalRow.appendChild(emptyCell);
-    totalRow.appendChild(labelCell);
-    totalRow.appendChild(valueCell);
-    resultsBodyTot.appendChild(totalRow);
-
-    const buttonRow = document.createElement("tr");
-    buttonRow.id = "buttonRow";
-    const buttonCell = document.createElement("td");
-    buttonCell.colSpan = 1;
-    buttonCell.style.textAlign = "left";
-
-    const addRowBtn = document.createElement("button");
-    addRowBtn.textContent = "+";
-    addRowBtn.id = "addRowBtn";
-    addRowBtn.title = "Aggiungi riga";
-    addRowBtn.addEventListener("click", function(event) {
-    const inputTesto = document.getElementById("inputTesto");
-    const inputDouble = document.getElementById("inputDouble");
-    addNuovaRiga(inputTesto, inputDouble);
-    });
-
-    buttonCell.appendChild(addRowBtn);
-    buttonRow.appendChild(buttonCell);
-
-    // 2️⃣ Seconda cella: input testo
-    const textCell = document.createElement("td");
-    const inputText = document.createElement("input");
-    inputText.type = "text";
-    inputText.style.width = "100%";
-    inputText.required = true;
-    inputText.id = "inputTesto";
-    textCell.appendChild(inputText);
-    buttonRow.appendChild(textCell);
-
-    // 3️⃣ Terza cella: input double
-    const numberCell = document.createElement("td");
-    const inputNumber = document.createElement("input");
-    inputNumber.type = "number";
-    inputNumber.step = "0.01";
-    inputNumber.id = "inputDouble";
-    inputNumber.style.width = "100%";
-    inputNumber.required = true;
-    numberCell.appendChild(inputNumber);
-    buttonRow.appendChild(numberCell);
-
-    resultsBody.appendChild(buttonRow);
-
-    aggiornaTotaleLive(); // calcolo iniziale
-    resultsTable.style.display = "table";
-    resultsTableTot.style.display = "table";
-    document.getElementById("mergeRowsBtn").style.display = "inline-block";
-    document.getElementById("uploadResultBtn").style.display = "inline-block";
-    document.getElementById("removeRowsBtn").style.display = "inline-block";
-
+    fetchDownload(dati);
 }
 
-function addNuovaRiga(inputTesto, inputDouble) {
+
+export async function fetchDownload(dati) {
+    // Invio al backend
+        fetch("/api/excel/download", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dati)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Errore durante l'invio");
+            return response.blob();
+        })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "elaborazione.xlsx";
+            link.click();
+        })
+        .catch(err => console.error(err));
+}
+
+function addNuovaRiga(inputCategoria, inputTesto, inputDouble) {
     const resultsBody = document.getElementById("resultsBody");
 
+    const categoria = inputCategoria.value.trim();
     const testo = inputTesto.value.trim();
     // valore inserito con il meno " - "
     const numero = parseFloat(-inputDouble.value);
 
-    if (!testo) {
-        alert("Inserisci un testo valido");
+    if (!isValid(testo)) {
+        showErrorToast("Inserisci un testo valido", "error");
         return;
     }
     if (isNaN(numero)) {
-        alert("Inserisci un numero valido");
+        showErrorToast("Inserisci un numero valido", "error");
         return;
     }
 
@@ -526,7 +545,7 @@ function addNuovaRiga(inputTesto, inputDouble) {
     let rigaTrovata = null;
     for (const row of resultsBody.rows) {
         const cellTesto = row.cells[1];
-         const cellTestotrim = cellTesto.textContent.trim(); //cellTestotrim// la seconda cella contiene il testo
+        const cellTestotrim = cellTesto.textContent.trim(); //cellTestotrim// la seconda cella contiene il testo
         if (cellTesto && cellTestotrim === testo) {
             rigaTrovata = row;
             break;
@@ -541,7 +560,7 @@ function addNuovaRiga(inputTesto, inputDouble) {
         cellValore.textContent = nuovoValore.toFixed(2);
     } else {
         // Se non esiste, aggiungo una nuova riga
-        aggiungiRiga(testo, numero,"resultsBody");
+        aggiungiRiga(null, categoria, testo, numero,"resultsBody");
     }
 
     // Pulisco input
@@ -557,20 +576,19 @@ function aggiornaTotale() {
    let somma = 0;
 
    rows.forEach(row => {
-       const checkbox = row.querySelector("input[type='checkbox']");
        const valoreCell = row.querySelector(".valore-spesa");
-       const etichettaCell = row.children[1];
-       const etichetta = etichettaCell?.textContent?.toLowerCase();
-
         if(valoreCell){
-        const valore = parseFloat(valoreCell.textContent);
+           const valore = parseFloat(valoreCell.textContent);
            somma += valore;
         }
    });
 
-   const elementTot = rowsTot[0];
+   const totaleCell = document.getElementById("rigaTotaleBackend");
+   const valoreCell = totaleCell.querySelector(".valore-spesa");
    let valueTot = parseFloat(somma).toFixed(2);
-   elementTot.children[2].textContent = valueTot;
+    if (totaleCell) {
+           valoreCell.textContent = somma.toFixed(2);
+       }
 
 }
 
@@ -579,15 +597,9 @@ function aggiornaTotaleLive() {
     const rows = document.querySelectorAll("#resultsBody tr");
 
     rows.forEach(row => {
-        const checkbox = row.querySelector("input[type='checkbox']");
         const valoreCell = row.querySelector(".valore-spesa");
-        const etichettaCell = row.children[1];
 
-        // Esclude la riga "totale" del backend dal calcolo
-        const etichetta = etichettaCell?.textContent?.toLowerCase();
-        const isTotaleBackend = etichetta === "totale";
-
-        if (checkbox && checkbox.checked && valoreCell && !isTotaleBackend) {
+        if (row.classList.contains("selected-row") && valoreCell) {
             const valore = parseFloat(valoreCell.textContent);
             if (!isNaN(valore)) {
                 somma += valore;
@@ -596,13 +608,11 @@ function aggiornaTotaleLive() {
     });
 
     const totaleCell = document.getElementById("totaleLive");
+    const valoreCell = totaleCell.querySelector(".valore-spesa");
     if (totaleCell) {
-        totaleCell.textContent = somma.toFixed(2);
+        valoreCell.textContent = somma.toFixed(2);
     }
 }
-
-document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
-document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheSelezionate);
 
 function rimuoviRigheSelezionate() {
     const rows = document.querySelectorAll("#resultsBody tr");
@@ -614,12 +624,11 @@ function rimuoviRigheSelezionate() {
     // raccoglie le righe con checkbox selezionata, escludendo totale
     rows.forEach(row => {
 
-        const checkbox = row.querySelector("input[type='checkbox']");
         const valoreCell = row.querySelector(".valore-spesa");
         const etichettaCell = row.children[1];
         const etichetta = etichettaCell?.textContent?.toLowerCase();
 
-        if (checkbox && checkbox.checked && !checkbox.disabled && valoreCell) {
+        if (row.classList.contains("selected-row") && valoreCell) {
             const valore = parseFloat(valoreCell.textContent);
             const etichetta = etichettaCell.textContent;
             righeRimuovere.push({ etichetta, valore, row });
@@ -629,7 +638,7 @@ function rimuoviRigheSelezionate() {
 
      // Se meno di due righe selezionate, non si unisce
         if (righeRimuovere.length < 1) {
-            alert("Seleziona almeno una riga da rimuovere.");
+            showErrorToast("Seleziona almeno una riga da rimuovere.", "error");
             return;
         }
 
@@ -646,104 +655,42 @@ function unisciRigheSelezionate() {
 
     // raccoglie le righe con checkbox selezionata, escludendo totale
     rows.forEach(row => {
-        const checkbox = row.querySelector("input[type='checkbox']");
         const valoreCell = row.querySelector(".valore-spesa");
-        const etichettaCell = row.children[1];
+        const dataCell = row.children[0];
+        const categoriaCell = row.children[1];
+        const descrizioneCell = row.children[2];
 
-        if (checkbox && checkbox.checked && !checkbox.disabled && valoreCell) {
+        if (row.classList.contains("selected-row") && valoreCell) {
+            const data = dataCell.textContent;
+            const categoria = categoriaCell.textContent;
             const valore = parseFloat(valoreCell.textContent);
-            const etichetta = etichettaCell.textContent;
-            righeDaUnire.push({ etichetta, valore, row });
+            const descrizione = descrizioneCell.textContent;
+            righeDaUnire.push({ data, categoria, descrizione, valore, row });
         }
     });
 
     // Se meno di due righe selezionate, non si unisce
     if (righeDaUnire.length < 2) {
-        alert("Seleziona almeno due righe da unire.");
+        showErrorToast("Seleziona almeno due righe da unire.", "error");
         return;
     }
 
     // Somma valori e concatena etichette
-    const nuovaEtichetta = righeDaUnire.map(r => r.etichetta).join(" + ");
+    const dataSum = righeDaUnire.map(r => r.data).join("   ");
+    const categoriaSum = righeDaUnire.map(r => r.categoria).join("   ");
+    const descrizioneSum = righeDaUnire.map(r => r.etichetta).join("   ");
     const nuovoValore = righeDaUnire.reduce((acc, curr) => acc + curr.valore, 0);
 
     // Rimuove le righe originali
     righeDaUnire.forEach(r => r.row.remove());
 
-    aggiungiRiga(nuovaEtichetta, nuovoValore,"resultsBody");
+    aggiungiRiga(dataSum,categoriaSum,descrizioneSum, nuovoValore,"resultsBody");
 
     aggiornaTotale();
 
 }
 
-function aggiungiRiga(nuovaEtichetta,nuovoValore,results) {
-   // Aggiunge la nuova riga unita
-     if (!nuovaEtichetta) {
-           alert("Inserisci un testo valido");
-           return;
-       }
-       if (isNaN(nuovoValore)) {
-           alert("Inserisci un numero valido");
-           return;
-       }
-    const tabella = document.getElementById(results);
-    const nuovaRiga = document.createElement("tr");
 
-    const checkboxCell = document.createElement("td");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = false;
-    checkbox.addEventListener("change", aggiornaTotaleLive);
-    checkboxCell.appendChild(checkbox);
-
-    const etichettaCell = document.createElement("td");
-    etichettaCell.textContent = nuovaEtichetta;
-
-    const valoreCell = document.createElement("td");
-    valoreCell.classList.add("valore-spesa");
-    valoreCell.textContent = nuovoValore.toFixed(2);
-
-    if (nuovaEtichetta.toLowerCase() === "totale") {
-        checkbox.disabled = true;
-        checkbox.style.visibility = "hidden";
-        nuovaRiga.style.fontWeight = "bold";
-        nuovaRiga.id = "rigaTotaleBackend";
-    }
-
-    nuovaRiga.appendChild(checkboxCell);
-    nuovaRiga.appendChild(etichettaCell);
-    nuovaRiga.appendChild(valoreCell);
-
-    // Inserisci la riga appena prima della riga del totale live
-    const buttonwRow = document.getElementById("buttonRow");
-    tabella.insertBefore(nuovaRiga, buttonwRow);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    popolaCategoria();
-    document.getElementById("modalForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const spesa = {
-        categoria: formData.get("categoria"),
-        dataSpesa: formData.get("dataSpesa"),
-        importo: parseFloat(formData.get("importo")),
-        descrizione: formData.get("descrizione")
-        };
-        e.target.reset();
-        const result = await saveSpesa(spesa);  // la tua funzione salva
-          if (result.success) {
-            showToast("Spesa salvata con successo ✅", "success");
-          } else {
-            showToast("Errore nel salvataggio ❌", "error");
-          }
-
-        await getSpese();        // la tua funzione aggiorna la tabella
-
-    });
-});
-
-const fullscreenBtn = document.getElementById("fullscreenBtn");
 
 function isMobile() {
   const isMobileUA = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -751,37 +698,8 @@ function isMobile() {
   return isMobileUA && isSmallScreen;
 }
 
-if (isMobile()) {
-  document.getElementById("fullscreenBtn").style.display = "block";
-}
-
-document.getElementById("fullscreenBtn").addEventListener("click", async () => {
-  try {
-  if (document.fullscreenElement) {
-     await document.exitFullscreen();
-    }
-    await document.documentElement.requestFullscreen();
-    await screenRequest();
-  } catch (err) {
-    console.warn("Fullscreen non riuscito:", err);
-  }
-});
-
-async function screenRequest(){
-     try {
-        await screen.orientation.unlock();
-        if (screen.orientation && screen.orientation.lock && (targetId === "inserisci-spesa" || targetId === "info" || targetId  === undefined)) {
-          await screen.orientation.lock("portrait");
-        }else if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock("landscape");
-        }
-      } catch (err) {
-        console.warn("Orientamento non riuscito:", err);
-      }
-}
-
 // Mostra un toast
-function showToast(message, type = "success") {
+export function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
   toast.textContent = message;
@@ -796,7 +714,7 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-function showErrorToast(message,type = "error") {
+export function showErrorToast(message,type = "error") {
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
   toast.textContent = message;

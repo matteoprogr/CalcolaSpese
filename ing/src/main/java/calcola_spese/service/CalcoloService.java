@@ -1,14 +1,17 @@
 package calcola_spese.service;
 
+import calcola_spese.dto.DataTabella;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
+
 
 public interface CalcoloService {
 
-    Map<String, Double> estraiSpese(MultipartFile file,String nomeBanca, String dataInizio, String dataFine);
+    DataTabella estraiSpese(MultipartFile file,String nomeBanca, String dataInizio, String dataFine);
 
-    Map<String, Double> sommaSpeseIngdirect(Map<String, Double> data);
+    DataTabella sommaSpeseIngdirect(DataTabella data);
 
-    byte[] download(Map<String, Double> data);
+    byte[] download(DataTabella data);
+
+    DataTabella elaborazioneImport(MultipartFile file);
 }

@@ -1,5 +1,6 @@
 package calcola_spese.controller;
 
+import calcola_spese.dto.DataTabella;
 import calcola_spese.service.CalcoloService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class ExcelController {
     }
 
     @PostMapping("/upload")
-    public  ResponseEntity<Map<String, Double>> handleUpload(
+    public  ResponseEntity<DataTabella> handleUpload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("nomeBanca") String nomeBanca,
             @RequestParam("dataInizio") String dataInizio,
@@ -28,15 +29,22 @@ public class ExcelController {
             throw new IllegalArgumentException("File vuoto o mese non valido.");
         }
 
-        Map<String, Double> calcoloSpese = calcoloService.estraiSpese(file,nomeBanca, dataInizio, dataFine);
+        DataTabella calcoloSpese = calcoloService.estraiSpese(file,nomeBanca, dataInizio, dataFine);
 
         return ResponseEntity.ok(calcoloSpese);
     }
 
     @PostMapping("/download")
-    public ResponseEntity<byte[]> handleDownload(@RequestBody Map<String, Double> body) {
+    public ResponseEntity<byte[]> handleDownload(@RequestBody DataTabella body) {
 
         byte[] file = calcoloService.download(body);
         return ResponseEntity.ok(file);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<DataTabella> importExcel(@RequestParam("file") MultipartFile file) {
+
+        DataTabella result = calcoloService.elaborazioneImport(file);
+        return ResponseEntity.ok(result);
     }
 }

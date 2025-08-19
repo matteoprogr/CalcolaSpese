@@ -28,18 +28,19 @@
         <a href="#" data-target="inserisci-spesa">Aggiungi Spese</a>
         <a href="#" data-target="traccia-spesa">Traccia Spese</a>
         <a href="#" data-target="elabora-excel">Elabora Excel</a>
+        <a href="#" data-target="gestisci-dati">Gestione Dati</a>
         <a href="#" data-target="info">Info</a>
     </div>
 </nav>
 
 
 <h1 class="page-title">TieniIlConto</h1>
-<button id="fullscreenBtn" style="display:none;">📱 Schermo Intero</button>
 
+<!-- Pagina Inserisci Spesa //////////////////////////////////////////////////////////////-->
 <section id="inserisci-spesa" class="page-section active">
     <div class="excel-container">
         <div class="excel-form">
-            <form id="modalForm" >
+            <form id="modalForm">
                 <h2>Inserisci Spesa</h2>
                 <label>Categoria:<br><input type="text" name="categoria" required></label>
                 <label>Data:<br><input type="date" name="dataSpesa" required></label>
@@ -53,7 +54,10 @@
     </div>
 </section>
 
-<!-- Pagina Elabora Excel -->
+
+
+
+<!-- Pagina Elabora Excel //////////////////////////////////////////////////////////////-->
 <section id="elabora-excel" class="page-section">
     <div class="excel-container">
         <div class="excel-form">
@@ -81,21 +85,23 @@
 
       <div class="table-container">
             <div class="table-header">
-                <button id="mergeRowsBtn" class="excel-button" style="display: none;" title="Unisci righe selezionate">Unisci righe</button>
-                <button id="removeRowsBtn" class="excel-button" style="display: none;" title="Rimuovi righe selezionate">Rimuovi righe</button>
-                <button id="uploadResultBtn" class="excel-button" style="display: none;"title="Scarica in formato excel">Download Excel</button>
+                <button id="mergeRowsBtn" class="btn" style="display: none;" title="Unisci righe selezionate">Somma</button>
+                <button id="removeRowsBtn" class="btn" style="display: none;" title="Rimuovi righe selezionate">Elimina</button>
+                <button id="uploadResultBtn" class="btn" style="display: none;"title="Scarica in formato excel">Esporta</button>
             </div>
 
             <table id="resultsTable" style="display: none;">
                 <colgroup>
-                    <col style="width: 10%">
-                    <col style="width: 70%">
-                    <col style="width: 20%">
+                    <col style="width: 25%">
+                    <col style="width: 25%">
+                    <col style="width: 25%">
+                    <col style="width: 25%">
                 </colgroup>
                 <thead>
                 <tr>
-                    <th></th>
+                    <th>Data</th>
                     <th>Categoria</th>
+                    <th>Descrizione</th>
                     <th> (€)</th>
                 </tr>
                 </thead>
@@ -111,6 +117,8 @@
     </div>
 </section>
 
+
+<!-- Pagina Traccia Spese //////////////////////////////////////////////////////////////-->
 <section id="traccia-spesa" class="page-section">
     <div class="excel-container">
         <div class="excel-form">
@@ -161,35 +169,36 @@
                     <tbody id="resultsBodyTotManual"></tbody>
                 </table>
             </div>
-
-            <table id="resultsTableManualMobile" style="display: none;">
-                <colgroup>
-                    <col style="width: 35%">
-                    <col style="width: 35%">
-                    <col style="width: 30%">
-                </colgroup>
-                <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Categoria</th>
-                    <th>(€)</th>
-                </tr>
-                </thead>
-                <tbody id="resultsBodyManualMobile"></tbody>
-            </table>
-
-            <div class="table-header-tot">
-                <table id="resultsTableTotManualMobile" style="display: none;">
-                    <tbody id="resultsBodyTotManualMobile"></tbody>
-                </table>
-            </div>
-
         </div>
-
     </div>
-
 </section>
 
+
+
+<!-- Pagina Gestisci dati //////////////////////////////////////////////////////////////-->
+<section id="gestisci-dati" class="page-section">
+    <h2>Gestisci i tuoi dati</h2>
+
+    <div class="btn">
+        <h3>Importa dati</h3>
+        <input type="file" id="fileImport" name="file" accept=".xls,.xlsx" required/>
+        <button id="btnImport" disabled>Importa</button>
+    </div>
+
+    <div class="btn">
+        <h3>Esporta dati</h3>
+        <button id="btnExportJSON">Esporta JSON</button>
+    </div>
+
+    <div class="btn">
+        <h3>Cancella tutti i dati</h3>
+        <button id="btnDeleteData">Cancella tutto</button>
+    </div>
+</section>
+
+
+
+<!-- Pagina Informazioni //////////////////////////////////////////////////////////////-->
 <section id="info" class="page-section info-section">
     <h2>Informazioni</h2>
     <p>
@@ -204,7 +213,6 @@
         <li><strong>Gestione Dati:</strong> i dati restano disponibili solo finché la cronologia non viene cancellata. Una volta eliminata, tutte le informazioni andranno perse.</li>
     </ul>
 </section>
-
 
 <script type="module" src="upload.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

@@ -1,17 +1,30 @@
   import { Dexie } from 'https://unpkg.com/dexie/dist/modern/dexie.mjs';
-//  import { exportDB } from 'dexie-export-import';
-//  import { importDB } from 'dexie-export-import';
+  import { fetchDownload } from './upload.js';
+  import { showToast } from './upload.js';
+  import { showErrorToast } from './upload.js';
 
-// Inizializzazione del database con schema e indice composto
-const db = new Dexie('TieniIlContoDB');
-db.version(1).stores({
-  spese: '++id, categoria, importo, dataSpesa ,[categoria+dataSpesa], [categoria+importo], [importo+dataSpesa] ,[categoria+importo+dataSpesa]',
-  categorie: '&categoria'
-});
+
+
+let db;
+initDB();// variabile globale per il database
+
+// Funzione di inizializzazione del database
+export function initDB() {
+  if (!db) {
+    db = new Dexie('TieniIlContoDB');
+    db.version(1).stores({
+      spese: '++id, categoria, importo, dataSpesa, [categoria+dataSpesa], [categoria+importo], [importo+dataSpesa], [categoria+importo+dataSpesa]',
+      categorie: '&categoria'
+    });
+  }
+  return db;
+}
 
 // Salvataggio di una spesa
 export async function saveSpesa(spesa) {
   try {
+
+    initDB();
     const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
 
     const data = {
@@ -21,13 +34,9 @@ export async function saveSpesa(spesa) {
     };
 
     await saveCategoria(spesa.categoria);
-
-    // restituisce l'id della spesa salvata
     const id = await db.spese.add(data);
-
     await popolaCategoria();
 
-    // ritorno un valore utile per sapere se è andato tutto bene
     return { success: true, id };
   } catch (error) {
     console.error("Errore nel salvataggio spesa:", error);
@@ -115,8 +124,6 @@ export async function deleteSpese(criteri = {}) {
 }
 
 
-
-
 export async function popolaCategoria(){
   const selectCategoria = document.getElementById("categoria");
   selectCategoria.innerHTML = "";
@@ -142,145 +149,125 @@ export async function popolaCategoria(){
   });
 }
 
-async function esportaDatabase() {
+document.getElementById('btnDeleteData').addEventListener('click', PulisciDatabase);
+async function PulisciDatabase() {
   try {
-    const db = new Dexie('TieniIlContoDB');
-    await db.open();
+  //TODO da migliorare
+    const conferma = window.confirm(
+      "Sei sicuro di voler eliminare TUTTO il database? Questa operazione non può essere annullata."
+    );
+    if (conferma) {
 
-    const blob = await exportDB(db);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'backup_tieniilconto.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    console.log('Esportazione completata con successo.');
+        await db.delete();
+        db = null;
+        const esiste = await Dexie.exists("TieniIlContoDB");
+
+        if (!esiste) {
+          showToast("Database eliminato con successo!");
+        } else {
+         showErrorToast("Attenzione: il database non è stato eliminato correttamente!", "error");
+        }
+    }
   } catch (error) {
-    console.error('Errore durante l\'esportazione:', error);
+    showErrorToast("Errore durante l'eliminazione del database", "error");
   }
 }
+
+
+
+document.getElementById('btnExportJSON').addEventListener('click', esportaDatabase);
+async function esportaDatabase() {
+
+  try {
+  const spese = await querySpese();
+
+  const result = {
+          id: [],
+          dataValuta: [],
+          categoria: [],
+          descrizione: [],
+          valore: [],
+          totale: 0
+      };
+
+  spese.forEach(item => {
+          result.id.push(item.id);
+          result.dataValuta.push(item.dataSpesa);   // mappo su dataValuta
+          result.categoria.push(item.categoria);
+          result.descrizione.push(item.descrizione || "");
+          result.valore.push(item.importo);
+      });
+
+  fetchDownload(result);
+
+  }catch (error) {
+    console.error('Errore durante l\'esportazione dei dati:', error);
+  }
+
+}
+
+const fileInput = document.getElementById('fileImport');
+const btnImport = document.getElementById('btnImport');
+
+// abilita il bottone solo quando c'è un file selezionato
+fileInput.addEventListener('change', () => {
+  btnImport.disabled = fileInput.files.length === 0;
+});
+
+btnImport.addEventListener('click', () => {
+  const file = fileInput.files[0]; // <-- prendi il primo file
+  if (file) {
+    importaDatabase(file);
+  }
+});
+
+
 
 async function importaDatabase(file) {
-  try {
-    const db = new Dexie('TieniIlContoDB');
-    await db.open();
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await fetch("/api/excel/import", {
+          method: "POST",
+          body: formData
+        });
 
-    const importedDb = await importDB(file);
-    const nativeDb = importedDb.backendDB();
+        if (!response.ok) {
+          showErrorToast("Errore durante l'importazione", "error");
+          throw new Error("Errore nel caricamento del file");
+        }
 
-    // Copia i dati importati nel tuo database Dexie
-    await nativeDb.transaction('rw', nativeDb.objectStoreNames, async () => {
-      for (const storeName of nativeDb.objectStoreNames) {
-        const store = nativeDb.transaction(storeName, 'readwrite').objectStore(storeName);
-        const records = await store.getAll();
-        await Promise.all(records.map(record => store.put(record)));
+        const result = await response.json();
+
+        const spese = parseDataTabella(result);
+
+        for (const spesa of spese) {
+          await saveSpesa(spesa);
+        }
+
+        showToast("Importazione completata!", "success");
+      } catch (error) {
+
+        showErrorToast("Errore durante l'importazione", "error");
       }
-    });
-
-    console.log('Importazione completata con successo.');
-  } catch (error) {
-    console.error('Errore durante l\'importazione:', error);
-  }
 }
 
-async function salvaNelPersistentStorage() {
-  try {
-    const isPersistent = await navigator.storage.persist();
-    if (isPersistent) {
-      console.log('I dati saranno conservati anche se lo spazio di archiviazione è limitato.');
-    } else {
-      console.log('Non è possibile garantire la persistenza dei dati.');
+ function parseDataTabella(dataTabella) {
+      const spese = [];
+
+      for (let i = 0; i < dataTabella.categoria.length; i++) {
+        spese.push({
+          id: dataTabella.id[i],
+          dataSpesa: dataTabella.dataValuta[i],
+          categoria: dataTabella.categoria[i],
+          descrizione: dataTabella.descrizione[i],
+          importo: dataTabella.valore[i]
+        });
+      }
+
+      return spese;
     }
-  } catch (error) {
-    console.error('Errore durante la richiesta di persistenza:', error);
-  }
-}
 
-async function verificaPersistentStorage() {
-  try {
-    const isPersistent = await navigator.storage.persisted();
-    if (isPersistent === undefined) {
-      console.log('Il browser non supporta l\'API StorageManager.');
-    } else if (isPersistent) {
-      console.log('Il Persistent Storage è attivo.');
-    } else {
-      console.log('Il Persistent Storage non è attivo.');
-    }
-  } catch (error) {
-    console.error('Errore durante la verifica dello stato del Persistent Storage:', error);
-  }
-}
 
-async function gestisciBackup() {
-  // Esporta i dati
-  await esportaDatabase();
 
-  // Verifica lo stato del Persistent Storage
-  await verificaPersistentStorage();
 
-  // Richiedi la persistenza se non è attiva
-  await salvaNelPersistentStorage();
-}
-
-async function esportaDatiPersistenti() {
-  try {
-    // Chiedi all'utente di selezionare un file per salvare i dati
-    const [fileHandle] = await window.showSaveFilePicker({
-      suggestedName: 'dati_backup.json',
-      types: [
-        {
-          description: 'File JSON',
-          accept: { 'application/json': ['.json'] },
-        },
-      ],
-    });
-
-    // Crea un writable stream per il file selezionato
-    const writable = await fileHandle.createWritable();
-
-    // Prepara i dati da esportare (ad esempio, dati dal Persistent Storage)
-    const dati = JSON.stringify({ chiave: 'valore' });
-
-    // Scrivi i dati nel file
-    await writable.write(dati);
-    await writable.close();
-
-    console.log('Esportazione completata con successo.');
-  } catch (error) {
-    console.error('Errore durante l\'esportazione:', error);
-  }
-}
-
-// import dati da vedere se utile o ridondante rispettoo a alla funzione importaDatabase()  presente sopra
-async function importaDati() {
-  try {
-    // Chiedi all'utente di selezionare il file da importare
-    const [fileHandle] = await window.showOpenFilePicker({
-      types: [
-        {
-          description: 'File JSON',
-          accept: { 'application/json': ['.json'] },
-        },
-      ],
-    });
-
-    // Ottieni il file selezionato
-    const file = await fileHandle.getFile();
-    const text = await file.text();
-
-    // Parsea i dati dal file
-    const dati = JSON.parse(text);
-
-    // Inserisci i dati nel database IndexedDB
-    const db = new Dexie('TieniIlContoDB');
-    await db.open();
-    await db.spese.bulkPut(dati.spese);
-    await db.categorie.bulkPut(dati.categorie);
-
-    console.log('Importazione completata con successo.');
-  } catch (error) {
-    console.error('Errore durante l\'importazione:', error);
-  }
-}

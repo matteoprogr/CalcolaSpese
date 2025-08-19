@@ -1,5 +1,7 @@
 package calcola_spese.service.impl;
 
+import calcola_spese.dto.DataTabella;
+import calcola_spese.exception.CatchAllException;
 import calcola_spese.service.CalcoloService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -12,6 +14,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +26,7 @@ import java.util.*;
 public class CalcoloServiceImpl implements CalcoloService {
 
     @Override
-    public byte[] download(Map<String, Double> data) {
+    public byte[] download(DataTabella dataTabella) {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Risultati");
 
@@ -42,36 +45,74 @@ public class CalcoloServiceImpl implements CalcoloService {
             headerStyle.setBorderLeft(BorderStyle.THIN);
             headerStyle.setBorderRight(BorderStyle.THIN);
 
-            // Riga intestazioni
+           //Inserimento intestazioni
             Row header = sheet.createRow(0);
-            Cell cell0 = header.createCell(0);
-            cell0.setCellValue("Categoria / Presso");
-            cell0.setCellStyle(headerStyle);
 
-            Cell cell1 = header.createCell(1);
-            cell1.setCellValue("Importo (€)");
-            cell1.setCellStyle(headerStyle);
+            //id
+            Cell idCell = header.createCell(0);
+            idCell.setCellValue("Id");
+            idCell.setCellStyle(headerStyle);
+
+            // Data
+            Cell dataCell = header.createCell(1);
+            dataCell.setCellValue("Data");
+            dataCell.setCellStyle(headerStyle);
+
+            // Categoria
+            Cell categoriaCell = header.createCell(2);
+            categoriaCell.setCellValue("Categoria");
+            categoriaCell.setCellStyle(headerStyle);
+
+            // Descrizione
+            Cell descrizioneCell = header.createCell(3);
+            descrizioneCell.setCellValue("Descrizione");
+            descrizioneCell.setCellStyle(headerStyle);
+
+            // Valore
+            Cell valueCell = header.createCell(4);
+            valueCell.setCellValue(" (€)");
+            valueCell.setCellStyle(headerStyle);
 
             // Righe dati
-            int rowIndex = 1;
-            for (Map.Entry<String, Double> entry : data.entrySet()) {
-                Row row = sheet.createRow(rowIndex++);
+            int indexRow = 1;
+            for (int i = 0; i < dataTabella.getDataValuta().size(); i++) {
+                Row row = sheet.createRow(indexRow++);
 
-                Cell keyCell = row.createCell(0);
-                Cell valueCell = row.createCell(1);
+                Cell id = row.createCell(0);
+                Cell data = row.createCell(1);
+                Cell categoria = row.createCell(2);
+                Cell descrizione = row.createCell(3);
+                Cell valore = row.createCell(4);
 
-                keyCell.setCellValue(entry.getKey());
-                valueCell.setCellValue(entry.getValue());
-
-                // Se è la riga del totale → applica stile speciale
-                if ("totale".equalsIgnoreCase(entry.getKey())) {
-                    keyCell.setCellStyle(headerStyle);
-                    valueCell.setCellStyle(headerStyle);
-                }
+                id.setCellValue(dataTabella.getId().get(i));
+                data.setCellValue(dataTabella.getDataValuta().get(i));
+                categoria.setCellValue(dataTabella.getCategoria().get(i));
+                descrizione.setCellValue(dataTabella.getDescrizione().get(i));
+                valore.setCellValue(dataTabella.getValore().get(i));
             }
 
+            if(dataTabella.getTotale() != 0){
+                Row row = sheet.createRow(dataTabella.getDataValuta().size()+1);
+
+                Cell data = row.createCell(0);
+                Cell categoria = row.createCell(1);
+                Cell descrizione = row.createCell(2);
+                Cell valore = row.createCell(3);
+                // Se è la riga del totale → applica stile speciale
+                data.setCellValue("");
+                categoria.setCellValue("Totale");
+                descrizione.setCellValue("");
+                valore.setCellValue(dataTabella.getTotale());
+
+                data.setCellStyle(headerStyle);
+                categoria.setCellStyle(headerStyle);
+                descrizione.setCellStyle(headerStyle);
+                valore.setCellStyle(headerStyle);
+            }
+
+
             // Adatta automaticamente la larghezza delle colonne
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 4; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -86,9 +127,9 @@ public class CalcoloServiceImpl implements CalcoloService {
     }
 
     @Override
-    public Map<String, Double> estraiSpese(MultipartFile file, String nomeBanca,String dataInizio, String dataFine) {
+    public DataTabella estraiSpese(MultipartFile file, String nomeBanca,String dataInizio, String dataFine) {
 
-        Map<String, Double> data = Map.of();
+        DataTabella data = new DataTabella();
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
@@ -103,8 +144,6 @@ public class CalcoloServiceImpl implements CalcoloService {
                 throw new RuntimeException();
             }
 
-
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -113,32 +152,49 @@ public class CalcoloServiceImpl implements CalcoloService {
 
     }
 
-    public Map<String, Double> elaborazioneExcelIngdirect( String[][] matrice, String dataInizio, String dataFine) {
+    @Override
+    public DataTabella elaborazioneImport(MultipartFile file) {
+        try (InputStream inputStream = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(inputStream)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            String[][]  matrice = estraiExcel(sheet);
+            return convertiImport(matrice);
+
+        } catch (Exception e) {
+            throw new CatchAllException(e);
+        }
+    }
+
+    public DataTabella elaborazioneExcelIngdirect( String[][] matrice, String dataInizio, String dataFine) {
 
         int righe = matrice.length;
         int indexDataValuta = 2;
+        int indexCausale = 3;
         int indexDescrizione = 4;
         int indexValore = 5;
+        DataTabella dataTabella = new DataTabella();
 
         String after = !dataInizio.isEmpty() ? convertIsoToCustomFormat(dataInizio) : null;
         String before = !dataFine.isEmpty() ? convertIsoToCustomFormat(dataFine) : null;
-        Map<String, Double> data = new HashMap<>();
 
-        for (int riga = 13; riga < righe; riga++) {
-            String descrizione = matrice[riga][indexDataValuta];
+        for (int riga = 12; riga < righe; riga++) {
+            String descrizione = matrice[riga][indexDescrizione];
             String valore =  matrice[riga][indexValore];
-            if(isBeforeAndAfter(after,before,matrice[riga][indexDataValuta]) && descrizione != null && valore != null) {
+            String dataValuta = matrice[riga][indexDataValuta];
+            String categoria = matrice[riga][indexCausale];
+            if(isBeforeAndAfter(after,before,dataValuta) && descrizione != null && valore != null) {
                 double parseDouble = Double.parseDouble(valore);
-                if(data.get(descrizione) != null && parseDouble < 0) {
-                    double val = data.get(descrizione);
-                    val += Double.parseDouble(valore);
-                    data.put(matrice[riga][indexDescrizione],val);
-                }else if(parseDouble < 0){
-                    data.put(matrice[riga][indexDescrizione], Double.parseDouble(matrice[riga][indexValore]));
+               if(parseDouble < 0){
+                    dataTabella.getDataValuta().add(dataValuta);
+                    dataTabella.getCategoria().add(categoria);
+                    dataTabella.getDescrizione().add(descrizione);
+                    dataTabella.getValore().add(parseDouble);
                 }
             }
         }
-        return sommaSpeseIngdirect(data);
+
+        return sommaSpeseIngdirect(dataTabella);
 
     }
 
@@ -178,23 +234,41 @@ public class CalcoloServiceImpl implements CalcoloService {
     }
 
 
-    public Map<String, Double> sommaSpeseIngdirect(Map<String, Double> data) {
-        Map<String, Double> pulisciChiave = new LinkedHashMap<>();
+    public DataTabella sommaSpeseIngdirect(DataTabella data) {
 
-        for (Map.Entry<String, Double> entry : data.entrySet()) {
-            String presso = entry.getKey();
+        DataTabella dataPuliti = new DataTabella();
+        dataPuliti.setValore(data.getValore());
+        dataPuliti.setCategoria(data.getCategoria());
+
+        for (String  descrizione : data.getDescrizione()) {
+            String presso = descrizione;
             if (presso.toLowerCase().contains("presso")) {
                 int index = presso.toLowerCase().indexOf("presso")+6;
                 presso = presso.substring(index);
+                dataPuliti.getDescrizione().add(presso);
+            }else {
+                dataPuliti.getDescrizione().add(presso);
             }
-
-            pulisciChiave.merge(presso, entry.getValue(), Double::sum);
         }
 
-        double tot = pulisciChiave.values().stream().mapToDouble(Double::doubleValue).sum();
-        pulisciChiave.put("totale", tot);
+        for (String  dataValuta : data.getDataValuta()) {
+            try{
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(dataValuta, formatter);
+                DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String formattedDate = zonedDateTime.format(outputFormatter);
+                dataPuliti.getDataValuta().add(formattedDate);
+            }catch (Exception e) {
+                log.error(e.getMessage());
+                throw new CatchAllException("Errore nel parsing della data", e);
+            }
 
-        return pulisciChiave;
+        }
+
+        double tot = dataPuliti.getValore().stream().mapToDouble(Double::doubleValue).sum();
+        dataPuliti.setTotale(tot);
+
+        return dataPuliti;
     }
 
     public String[][] estraiExcel(Sheet sheet) {
@@ -268,6 +342,38 @@ public class CalcoloServiceImpl implements CalcoloService {
             default:
                 return "";
         }
+    }
+
+    public DataTabella convertiImport(String[][] matrice) {
+
+        int righe = matrice.length;
+        int idx = 0;
+        int indexData = 1;
+        int indexCategoria = 2;
+        int indexDescrizione = 3;
+        int indexValore = 4;
+        DataTabella dataTabella = new DataTabella();
+
+
+        for (int riga = 1; riga < righe; riga++) {
+            String id = matrice[riga][idx];
+            String descrizione = matrice[riga][indexDescrizione];
+            String valore =  matrice[riga][indexValore];
+            String dataValuta = matrice[riga][indexData];
+            String categoria = matrice[riga][indexCategoria];
+            if(valore != null) {
+                double parseDouble = Double.parseDouble(valore);
+                double parseId =  Double.parseDouble(id);
+                dataTabella.getId().add(parseId);
+                dataTabella.getDataValuta().add(dataValuta);
+                dataTabella.getCategoria().add(categoria);
+                dataTabella.getDescrizione().add(descrizione);
+                dataTabella.getValore().add(parseDouble);
+            }
+        }
+
+        return dataTabella;
+
     }
 
 }

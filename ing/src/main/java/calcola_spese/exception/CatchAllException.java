@@ -4,5 +4,7 @@ public class CatchAllException extends RuntimeException{
 
     public CatchAllException(String message) {super(message);}
 
+    public CatchAllException(Throwable cause) {super(cause);}
+
     public CatchAllException(String message, Throwable cause) {super(message, cause);}
 }
