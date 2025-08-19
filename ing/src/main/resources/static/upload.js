@@ -2,6 +2,7 @@ import { saveSpesa } from './queryDexie.js';
 import { querySpese } from './queryDexie.js';
 import { deleteSpese } from './queryDexie.js';
 import { popolaCategoria } from './queryDexie.js';
+import { creaSpesaComponent } from './card.js';
 
 
 //  EVENT LISTENER //////////////////////////////////
@@ -137,7 +138,14 @@ async function tracciaSpeseClick(criteri) {
     try {
         const spese = await querySpese(criteri);
         spese.sort((a, b) => new Date(a.dataSpesa).getTime() - new Date(b.dataSpesa).getTime());
-        await creaTabellaManuale(spese);
+        const listaSpese = document.getElementById("lista-spese");
+        listaSpese.innerHTML = "";
+        spese.forEach(spesa => {
+          const nodo = creaSpesaComponent(spesa);
+          listaSpese.appendChild(nodo);
+        });
+
+        //await creaTabellaManuale(spese);
     } catch (err) {
         console.error("Errore nel recupero spese:", err);
     }
@@ -415,26 +423,18 @@ async function getSpese() {
 
 async function deleteSpesaBtn() {
     // Trova tutte le righe selezionate
-    const selectedRows = document.querySelectorAll("#resultsBodyManual tr.selected-row");
-    const selectedRowsMobile = document.querySelectorAll("#resultsBodyManualMobile tr.selected-row");
+    const selectedCards = document.querySelectorAll('.spesa.selected');
 
-    if (selectedRows.length === 0 && selectedRowsMobile.length === 0) {
+    if (selectedCards.length === 0) {
         showErrorToast("Seleziona almeno una riga da eliminare.","error");
         return;
     }
 
     const criteri = [];
-    if (selectedRows.length > 0) {
-         selectedRows.forEach(row => {
-        if (row.dataset.dataIns) {
-            criteri.push(row.dataset.dataIns);
-        }
-    });
-    }
-    if (selectedRowsMobile.length > 0) {
-    selectedRowsMobile.forEach(row => {
-        if (row.dataset.dataIns) {
-            criteri.push(row.dataset.dataIns);
+    if (selectedCards.length > 0) {
+         selectedCards.forEach(card => {
+        if (card.getAttribute('datains') !== null) {
+            criteri.push(card.getAttribute('datains'));
         }
     });
     }
