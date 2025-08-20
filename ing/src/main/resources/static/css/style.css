@@ -8,17 +8,28 @@ body {
 }
 
 h2 {
+    width: 30%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1rem;
+    color: #333333;
     text-align: center;
-    color: #2c3e50;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-    margin: 1vw;
-    font-size: 16px;
+    margin: 0.2rem auto; /* margini verticali + centratura orizzontale */
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
+    display: block; /* opzionale, h2 è block di default */
 }
+
 
 .excel-container {
     display: flex;
     flex-direction: column; /* Dispone gli elementi in colonna */
-    gap: 20px;
+    /*gap: 20px;*/
     align-items: flex-start;
 }
 
@@ -498,8 +509,48 @@ tr:hover {
   box-sizing: border-box;
   margin: 0 auto;
   padding: 0 1rem;
+  overflow-y: auto;
+  padding-bottom: 4rem;
 }
 
+#lista-spese-totale {
+  width: 30%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  margin: 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+#zero-spese {
+  width: 80%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  margin: 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+#zero-categorie {
+  width: 80%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  margin: 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+#gestione-categorie {
+  width: 100%;
+  max-width: 100vw;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 0 1rem;
+  overflow-y: auto;
+  padding-bottom: 4rem;
+}
 
 .spesa {
   display: flex;
@@ -507,25 +558,62 @@ tr:hover {
   flex: 1;
   width: 100%;
   max-width: 100%;
-  background-color: #e0f7fa;
+  background: linear-gradient(135deg, #ffc9c9, #ffe6e6);
   padding: 1rem;
   box-sizing: border-box;
   position: relative;
   margin: 0.5rem 0;
-  border: 0.125rem solid #000000;
+  border: 0.025rem solid #000000;
   border-radius: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.spesa.selected {
-  opacity: 0.5; /* Riduce l'opacità al 50% */
+.cat {
+  font-size: 1.50rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  background: linear-gradient(135deg, #c9dcff, #e6f0ff);
+  padding: 1rem;
+  box-sizing: border-box;
+  position: relative;
+  margin: 0.5rem 0;
+  border: 0.025rem solid #000000;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+
+.spesa-totale {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
+    background: linear-gradient(135deg, #ffc9c9, #ffe6e6);
+    padding: 0.5rem;
+    box-sizing: border-box;
+    margin-top: 0.2rem;   /* sopra */
+    margin-bottom: 0.2rem; /* sotto */
+    margin-left: 0;        /* a sinistra */
+    margin-right: 0;
+    border: 0.025rem solid #000000;
+    border-radius: 0.8rem;
+    transition: background-color 0.3s ease;
+}
+
+.selected {
+  opacity: 0.6; /
 }
 
 .spesa-header,
 .spesa-footer {
   font-size: 0.90rem; /* Testo piccolo per data e categoria */
-  color: #6c757d;
+  color: #5a6c7d;
   font-weight: 750;
 }
 
@@ -534,11 +622,13 @@ tr:hover {
   align-items: center;
   position: relative;
   margin-top: 0.5rem;
-  background-color: #dcfafe; /* Colore di sfondo tenue */
-  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #ffb3b3, #ffcccc);
+  border-radius: 0.65rem;
   padding: 0.2rem;
-  box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.1); /* Ombra leggera */
+  box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.1);
+  color: #2c3e50;
 }
+
 
 .descrizione {
   flex-basis: 75%;
@@ -558,5 +648,241 @@ tr:hover {
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
+  color: #1a2e40;
+}
+
+.fullscreenBtnContainer {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.7); /* bianco semitrasparente */
+    backdrop-filter: blur(10px);           /* effetto vetro */
+    padding: 0.5rem 1rem;
+    border-radius: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    border: 0.025rem solid #000000;
+}
+
+/* Pulsanti tenui */
+.fullscreenBtn {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #7eaefc, #b8d0f9); /* azzurro leggermente più scuro */
+    color: #2c3e50;             /* testo scuro ma non nero */
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: transform 0.2s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+    opacity: 0.95;
+}
+
+.fullscreenBtn:hover {
+    transform: scale(1.1);
+    opacity: 1;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
+}
+
+
+.sticky-bar {
+    background: linear-gradient(135deg, #e3f2fd, #f4f7fb);
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    boeder radius: 0.5rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Input alternativo visibile creato da Flatpickr */
+#date-range + .flatpickr-alt-input {
+    background-color: #007bff;   /* blu brillante */
+    color: white;                /* testo bianco */
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+/* Focus sull'input */
+#date-range + .flatpickr-alt-input:focus {
+    outline: none;
+    background-color: #0056b3; /* blu più scuro al focus */
+    border-color: #0056b3;
+}
+
+/* Calendario */
+.flatpickr-calendar {
+    background-color: #e6f0ff;       /* azzurro chiaro coerente con sito */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Giorni selezionati */
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+}
+
+/* Giorni al passaggio del mouse */
+.flatpickr-day:hover {
+    background-color: #cce0ff;
+}
+
+/* Pulsanti di navigazione e header calendario */
+.flatpickr-months, .flatpickr-weekdays {
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px 4px 0 0;
+}
+
+.flatpickr-weekdays {
+    font-weight: 600;
+}
+
+/* Bottone clear e today (opzionale) */
+.flatpickr-clear, .flatpickr-today {
+    color: #007bff;
+    cursor: pointer;
+}
+
+
+/*OVERLAY*/
+.main-content.blur-active {
+  filter: blur(5px);
+  transition: filter 0.3s ease;
+}
+
+/* Overlay fullscreen con animazione dal basso */
+#spesaFormOverlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(240, 240, 240, 0.95);
+  display: none;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+#spesaForm {
+  width: 100%;
+  max-width: 500px;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+}
+
+/* Mostra il form animato */
+#spesaFormOverlay.show #spesaForm {
+  transform: translateY(0);
+}
+
+/* Gruppo input stile Material */
+.input-group {
+  position: relative;
+  margin: 1.5rem 0;
+}
+
+.input-group input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-bottom-color: #007bff;
+}
+
+.input-group label {
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  font-size: 1rem;
+  color: #aaa;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+/* Label sale quando il campo è attivo o contiene testo */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: -0.8rem;
+  font-size: 0.8rem;
+  color: #007bff;
+}
+
+/* Bottoni */
+#spesaForm button {
+  width: 100%;
+  padding: 0.8rem;
+  margin-top: 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+#spesaForm button[type="submit"] {
+  background-color: #007bff;
+  color: white;
+}
+
+#spesaForm button#closeFormBtn {
+  background-color: #ccc;
+  color: #333;
+}
+
+
+.nessuna-spesa {
+  display: flex;
+  justify-content: center;         /* centra orizzontalmente */
+  align-items: center;             /* centra verticalmente */
+  height: 4rem;                    /* altezza ridotta, relativa */
+  background-color: rgba(220, 220, 220, 0.2); /* sfondo leggero */
+  border: 0.1rem dashed #bbb;      /* bordo tratteggiato relativo */
+  border-radius: 0.5rem;           /* angoli arrotondati */
+  margin: 1rem 0;                  /* spazio sopra e sotto */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;                 /* dimensione del testo relativa */
+  color: #555;                     /* grigio discreto */
+  text-align: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nessuna-spesa span {
+  padding: 0.5rem 1rem;            /* padding relativo */
+}
+
+/* opzionale: effetto hover leggero */
+.nessuna-spesa:hover {
+  background-color: rgba(220, 220, 220, 0.3);
+  color: #333;
 }
 

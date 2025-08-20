@@ -1,8 +1,7 @@
   import { Dexie } from 'https://unpkg.com/dexie/dist/modern/dexie.mjs';
-  import { fetchDownload } from './upload.js';
-  import { showToast } from './upload.js';
-  import { showErrorToast } from './upload.js';
-
+  import { fetchDownload } from './main.js';
+  import { showToast } from './main.js';
+  import { showErrorToast } from './main.js';
 
 
 let db;
@@ -35,7 +34,7 @@ export async function saveSpesa(spesa) {
 
     await saveCategoria(spesa.categoria);
     const id = await db.spese.add(data);
-    await popolaCategoria();
+    showToast("Spesa aggiunta con successo", "success");
 
     return { success: true, id };
   } catch (error) {
@@ -48,7 +47,6 @@ async function saveCategoria(categoria) {
   const categoriaLower = categoria.toLowerCase();
   try {
     await db.categorie.add({ categoria: categoriaLower });
-    console.log(`Categoria "${categoriaLower}" aggiunta.`);
   } catch (error) {
     if (error.name !== 'ConstraintError') {
       console.error('Errore durante l\'aggiunta della categoria:', error);
@@ -58,6 +56,8 @@ async function saveCategoria(categoria) {
 
 // Ricerca spese con più criteri combinati
 export async function querySpese(criteri = {}) {
+  initDB();
+
   let collezione = db.spese;
 
   // indici singoli
@@ -123,31 +123,21 @@ export async function deleteSpese(criteri = {}) {
     }
 }
 
-
-export async function popolaCategoria(){
-  const selectCategoria = document.getElementById("categoria");
-  selectCategoria.innerHTML = "";
-
-  // Recupera tutte le categorie dalla tabella 'categorie'
-  const categorie = await db.categorie.toArray();
-
-    if(document.getElementById('iDoption') === null){
-      // Aggiungi un'opzione vuota come placeholder
-      const optionDefault = document.createElement("option");
-      optionDefault.value = "";
-      optionDefault.id = "iDoption";
-      optionDefault.textContent = "Seleziona";
-      selectCategoria.appendChild(optionDefault);
+export async function deleteCategorie(criteri = {}) {
+    if (Array.isArray(criteri) && criteri.length > 0) {
+        await db.categorie
+            .toCollection()
+            .filter(categoria => criteri.includes(categoria.categoria))
+            .delete();
+        return;
     }
-
-  // Aggiungi le categorie al campo select
-  categorie.forEach(categoria => {
-    const option = document.createElement("option");
-    option.value = categoria.categoria;
-    option.textContent = categoria.categoria;
-    selectCategoria.appendChild(option);
-  });
 }
+
+export async function getCategorie() {
+    initDB();
+    return await db.categorie.toArray();
+}
+
 
 document.getElementById('btnDeleteData').addEventListener('click', PulisciDatabase);
 async function PulisciDatabase() {

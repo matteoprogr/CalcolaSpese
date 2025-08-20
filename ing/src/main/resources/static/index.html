@@ -2,17 +2,19 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Calcolo Spese Mensili</title>
+    <title>MoneyLog</title>
     <link rel="stylesheet" href="css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#333333">
 
     <!-- Per iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-orientation" content="landscape">
+    <meta name="apple-mobile-web-app-orientation" content="portrait">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
 
 </head>
@@ -25,35 +27,59 @@
         <span></span>
     </label>
     <div class="nav-links">
-        <a href="#" data-target="inserisci-spesa">Aggiungi Spese</a>
         <a href="#" data-target="traccia-spesa">Traccia Spese</a>
         <a href="#" data-target="elabora-excel">Elabora Excel</a>
         <a href="#" data-target="gestisci-dati">Gestione Dati</a>
+        <a href="#" data-target="categorie-section">Categorie</a>
         <a href="#" data-target="info">Info</a>
     </div>
 </nav>
 
+<!-- Pagina Traccia Spese //////////////////////////////////////////////////////////////-->
+<section id="traccia-spesa" class="page-section active">
+    <div class="main-content">
+        <h2>Traccia Spese</h2>
+        <div class="excel-container">
+            <div class="sticky-bar">
+                <input type="text" id="date-range">
+                <div id="lista-spese-totale"></div>
+                <div id="zero-spese"></div>
+            </div>
 
-<h1 class="page-title">TieniIlConto</h1>
+            <div id="lista-spese"></div>
 
-<!-- Pagina Inserisci Spesa //////////////////////////////////////////////////////////////-->
-<section id="inserisci-spesa" class="page-section active">
-    <div class="excel-container">
-        <div class="excel-form">
-            <form id="modalForm">
-                <h2>Inserisci Spesa</h2>
-                <label>Categoria:<br><input type="text" name="categoria" required></label>
-                <label>Data:<br><input type="date" name="dataSpesa" required></label>
-                <label>Importo (€):<br><input type="number" name="importo" step="0.01" required></label>
-                <label>Descrizione:<br><input type="text" name="descrizione"></label>
-                <div>
-                    <button type="submit">Salva</button>
-                </div>
-            </form>
+            <div class="fullscreenBtnContainer">
+                <button class="fullscreenBtn" id="addSpesaBtn">➕ </button>
+                <button class="fullscreenBtn" id="editSpesaBtn">✏️</button>
+                <button class="fullscreenBtn" id="getSpesaBtn">🔍 </button>
+                <button class="fullscreenBtn" id="deleteSpesaBtn">🗑️</button>
+            </div>
         </div>
     </div>
-</section>
 
+
+    <!-- OVERLAY INSERT -->
+    <div id="spesaFormOverlay">
+        <form id="spesaForm">
+            <div class="input-group">
+                <input type="text" id="categoria" required placeholder="Categoria">
+            </div>
+            <div class="input-group">
+                <input type="date" id="data" required placeholder=" ">
+            </div>
+            <div class="input-group">
+                <input type="number" step="0.01" id="importo" required placeholder="Importo (€)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="descrizione" required placeholder="Descrizione">
+            </div>
+            <button type="submit">Salva</button>
+            <button type="button" id="closeFormBtn">Chiudi</button>
+        </form>
+    </div>
+
+
+</section>
 
 
 
@@ -118,43 +144,9 @@
 </section>
 
 
-<!-- Pagina Traccia Spese //////////////////////////////////////////////////////////////-->
-<section id="traccia-spesa" class="page-section">
-    <div class="excel-container">
-        <div class="excel-form">
-        <h2>Traccia spese</h2>
-            <form id="manualForm">
-                    <label for="categoria">Categoria</label>
-                    <select id="categoria" name="categoria"></select>
-
-                    <label for="importo">Importo (€)</label>
-                    <input type="number" step="0.01" id="importo" name="importo">
-
-                    <label for="startDateExpense">Data inizio</label>
-                    <input type="date" id="startDateExpense" name="startDateExpense">
-
-                    <label for="endDateExpense">Data fine</label>
-                    <input type="date" id="endDateExpense" name="endDateExpense">
-
-
-                <div class="form-row">
-                    <button id="getSpesaBtn">Ricerca spesa</button>
-                    <button id="deleteSpesaBtn" title="Elimina la spesa selezionata">Elimina spesa</button>
-                </div>
-            </form>
-        </div>
-
-
-        <div id="lista-spese"></div>
-
-    </div>
-</section>
-
-
-
 <!-- Pagina Gestisci dati //////////////////////////////////////////////////////////////-->
 <section id="gestisci-dati" class="page-section">
-    <h2>Gestisci i tuoi dati</h2>
+    <h2>Gestione dati</h2>
 
     <div class="btn">
         <h3>Importa dati</h3>
@@ -171,8 +163,23 @@
         <h3>Cancella tutti i dati</h3>
         <button id="btnDeleteData">Cancella tutto</button>
     </div>
+
 </section>
 
+
+
+<!-- Pagina Gestisci Categorie //////////////////////////////////////////////////////////////-->
+<section id="categorie-section" class="page-section">
+    <h2>Le tue categorie</h2>
+    <div class="excel-container">
+        <div id="gestione-categorie"></div>
+        <div id="zero-categorie"></div>
+    </div>
+    <div class="fullscreenBtnContainer">
+        <button class="fullscreenBtn" id="deleteCategoriaBtn">🗑️</button>
+    </div>
+
+</section>
 
 
 <!-- Pagina Informazioni //////////////////////////////////////////////////////////////-->
@@ -191,8 +198,9 @@
     </ul>
 </section>
 
-<script type="module" src="upload.js"></script>
+<script type="module" src="main.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
 
 </body>
 </html>

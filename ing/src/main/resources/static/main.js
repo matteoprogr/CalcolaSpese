@@ -1,14 +1,38 @@
 import { saveSpesa } from './queryDexie.js';
 import { querySpese } from './queryDexie.js';
 import { deleteSpese } from './queryDexie.js';
-import { popolaCategoria } from './queryDexie.js';
+import { deleteCategorie } from './queryDexie.js';
 import { creaSpesaComponent } from './card.js';
+import { creaComponentTotale } from './card.js';
+import { overlayAddSpesa } from './card.js';
+import { nessunaElementoComponent } from './card.js';
+import { categoriaComponent } from './card.js';
+import { getCategorie } from './queryDexie.js';
+
+
+
+
+// SERVICE WORKER //////////////////////////////////
+//if ('serviceWorker' in navigator) {
+//  window.addEventListener('load', () => {
+//    navigator.serviceWorker.register('/service-worker.js')
+//      .then((registration) => {
+//        console.log('Service Worker registrato con successo:', registration);
+//      })
+//      .catch((error) => {
+//        console.log('Registrazione del Service Worker fallita:', error);
+//      });
+//  });
+//}
+
 
 
 //  EVENT LISTENER //////////////////////////////////
-document.getElementById("getSpesaBtn").addEventListener("click", getSpese);
+document.getElementById("getSpesaBtn").addEventListener("click", createCriteri);
+//document.getElementById("addSpesaBtn").addEventListener("click", createCriteri);
 document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
-document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
+document.getElementById("deleteCategoriaBtn").addEventListener("click", deleteCategoriaBtn);
+//document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
 document.getElementById("uploadResultBtn").addEventListener("click", uploadResult);
 document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
 document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheSelezionate);
@@ -18,6 +42,8 @@ document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheS
 
 const manualForm = document.getElementById('manualForm');
 let targetId;
+let picker;
+
 
 
 // SUBMIT FORM  e SECTIONS //////////////////////////////////////////
@@ -43,8 +69,10 @@ document.querySelectorAll('nav a').forEach(link => {
         }
         // Sezione specifica "traccia-spesa"
         if (targetId === 'traccia-spesa') {
-            initDate();
-            getSpese();
+            setDateRange();
+        }
+        if (targetId === 'categorie-section') {
+            categorieCreateComponent()
         }
 
     });
@@ -92,62 +120,101 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
     });
 });
 
+// DOM CONTENT LOADED ///////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
-    popolaCategoria();
-    document.getElementById("modalForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const spesa = {
-        categoria: formData.get("categoria"),
-        dataSpesa: formData.get("dataSpesa"),
-        importo: parseFloat(formData.get("importo")),
-        descrizione: formData.get("descrizione")
-        };
-        e.target.reset();
-        const result = await saveSpesa(spesa);  // la tua funzione salva
-          if (result.success) {
-            showToast("Spesa salvata con successo ✅", "success");
-          } else {
-            showErrorToast("Errore nel salvataggio ❌", "error");
-          }
-
-        await getSpese();
-
-    });
+    //popolaCategoria();
+     overlayAddSpesa();
+     setDateRange();
 });
 
 //  FUNZIONI //////////////////////////////////
 
-async function initDate() {
-    const oggi = new Date();
-    const meseFa = new Date();
-    meseFa.setMonth(oggi.getMonth() - 1);
+export function setDateRange() {
+  const today = new Date();
+  const currentMonth = today.toLocaleString('it-IT', { month: 'long' });
 
-    const formattaData = (data) => {
-      const anno = data.getFullYear();
-      const mese = String(data.getMonth() + 1).padStart(2, '0');
-      const giorno = String(data.getDate()).padStart(2, '0');
-      return `${anno}-${mese}-${giorno}`;
-    };
+  // Calcolo inizio e fine mese
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    document.getElementById('startDateExpense').value = formattaData(meseFa);
-    document.getElementById('endDateExpense').value = formattaData(oggi);
-  };
+  let criteri = {};
+  picker = flatpickr("#date-range", {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d/m/Y",
+    locale: "it",
+    minDate: "2020-01-01",
+    maxDate: "2030-12-31",
+    disableMobile: true,
+    defaultDate: [
+      startOfMonth.toISOString().split('T')[0],
+      endOfMonth.toISOString().split('T')[0]
+    ],
+    placeholder: `Seleziona intervallo di date (${currentMonth})`,
+    onChange: function (selectedDates, dateStr, instance) {
+      const [startDate, endDate] = selectedDates;
+
+      // Aggiorna input visivo
+      const rangeText = startDate && endDate
+        ? `${startDate.toLocaleDateString('it-IT')} a ${endDate.toLocaleDateString('it-IT')}`
+        : 'Seleziona intervallo di date';
+      instance.altInput.value = rangeText;
+
+      // Passa i dati a tracciaSpeseClick in formato ISO
+      criteri = {
+        dataInizio: startDate ? startDate.toISOString().split('T')[0] : null,
+        dataFine: endDate ? endDate.toISOString().split('T')[0] : null,
+      };
+      tracciaSpeseClick(criteri);
+    }
+  });
+
+    createCriteri();
+}
 
 async function tracciaSpeseClick(criteri) {
     try {
         const spese = await querySpese(criteri);
         spese.sort((a, b) => new Date(a.dataSpesa).getTime() - new Date(b.dataSpesa).getTime());
         const listaSpese = document.getElementById("lista-spese");
+        const listaSpeseTotale = document.getElementById("lista-spese-totale");
+        const zeroSpese = document.getElementById("zero-spese");
         listaSpese.innerHTML = "";
         spese.forEach(spesa => {
           const nodo = creaSpesaComponent(spesa);
           listaSpese.appendChild(nodo);
         });
 
-        //await creaTabellaManuale(spese);
+        const totale = creaComponentTotale(spese);
+        listaSpeseTotale.innerHTML = "";
+        zeroSpese.innerHTML = "";
+        const totaleText = totale.innerText.trim();
+        if(totaleText !== "0.00 €") {
+            listaSpeseTotale.appendChild(totale);
+        }else {
+        const nodo = nessunaElementoComponent("spesa")
+        zeroSpese.appendChild(nodo);
+        }
+
     } catch (err) {
         console.error("Errore nel recupero spese:", err);
+    }
+}
+
+export async function categorieCreateComponent() {
+    const categorie = await getCategorie();
+    const categorieList = document.getElementById("gestione-categorie");
+    const zeroCategorie = document.getElementById("zero-categorie");
+    categorieList.innerHTML = "";
+    if (!categorie || categorie.length === 0) {
+        const nodo = nessunaElementoComponent("categoria")
+        zeroCategorie.appendChild(nodo);
+    }else{
+        categorie.forEach(cat => {
+          const nodo = categoriaComponent(cat.categoria);
+          categorieList.appendChild(nodo);
+        });
     }
 }
 
@@ -172,58 +239,6 @@ function mostraTabella(data) {
 
     aggiungiRiga(null,"Totale", null, totale, "resultsBodyTot");
     aggiungiRiga(null,"Totale selezionato", null, 0, "resultsBodyTot");
-
-//    const buttonRow = document.createElement("tr");
-//    buttonRow.id = "buttonRow";
-//    const buttonCell = document.createElement("td");
-//    buttonCell.colSpan = 1;
-//    buttonCell.style.textAlign = "left";
-//
-//    const addRowBtn = document.createElement("button");
-//    addRowBtn.textContent = "+";
-//    addRowBtn.id = "addRowBtn";
-//    addRowBtn.title = "Aggiungi riga";
-//    addRowBtn.addEventListener("click", function(event) {
-//    const inputCategoria = document.getElementById("inputCategoria");
-//    const inputTesto = document.getElementById("inputTesto");
-//    const inputDouble = document.getElementById("inputDouble");
-//    addNuovaRiga(inputCategoria, inputTesto, inputDouble);
-//    });
-//
-//    buttonCell.appendChild(addRowBtn);
-//    buttonRow.appendChild(buttonCell);
-//
-//    const categoriaCell = document.createElement("td");
-//    const inputCategoria = document.createElement("input");
-//    inputCategoria.type = "text";
-//    inputCategoria.style.width = "100%";
-//    inputCategoria.required = true;
-//    inputCategoria.id = "inputCategoria";
-//    categoriaCell.appendChild(inputCategoria);
-//    buttonRow.appendChild(categoriaCell);
-//
-//    // 2️⃣ Seconda cella: input testo
-//    const textCell = document.createElement("td");
-//    const inputText = document.createElement("input");
-//    inputText.type = "text";
-//    inputText.style.width = "100%";
-//    inputText.required = true;
-//    inputText.id = "inputTesto";
-//    textCell.appendChild(inputText);
-//    buttonRow.appendChild(textCell);
-//
-//    // 3️⃣ Terza cella: input double
-//    const numberCell = document.createElement("td");
-//    const inputNumber = document.createElement("input");
-//    inputNumber.type = "number";
-//    inputNumber.step = "0.01";
-//    inputNumber.id = "inputDouble";
-//    inputNumber.style.width = "100%";
-//    inputNumber.required = true;
-//    numberCell.appendChild(inputNumber);
-//    buttonRow.appendChild(numberCell);
-//
-//    resultsBody.appendChild(buttonRow);
 
     resultsTable.style.display = "table";
     resultsTableTot.style.display = "table";
@@ -357,11 +372,6 @@ function aggiungiRiga(dataValuta, categoria ,descrizione, valore, results) {
         nuovaRiga.id = "totaleLive";
     }
 
-    if(9){
-
-    }
-
-
     if(categoria !== "Totale" && categoria !== "Totale selezionato"){
      // Aggiungi listener per selezione
         nuovaRiga.addEventListener("click", () => {
@@ -378,16 +388,8 @@ function aggiungiRiga(dataValuta, categoria ,descrizione, valore, results) {
         nuovaRiga.appendChild(valoreCell);
     }
 
-
-
-// TODO Parte commentate da rivedere per gestire add di una nuova riga nella tabella
-//    if(categoria !== "Totale selezionato") {
-//        // Inserisci la riga appena prima della riga del totale live
-//        const buttonwRow = document.getElementById("buttonRow");
-//        tabella.insertBefore(nuovaRiga, buttonwRow);
-//    }else{
         tabella.appendChild(nuovaRiga);
-//    }
+
 }
 
 
@@ -395,27 +397,24 @@ function isValid(value) {
     return value != null && !Number.isNaN(value) && value !== "";
 }
 
-async function getSpese() {
+export async function createCriteri() {
 
     const criteri = {};
-    if (isValid(manualForm.categoria.value)) {
-        criteri.categoria = manualForm.categoria.value;
-    }
+//    if (isValid(manualForm.categoria.value)) {
+//        criteri.categoria = manualForm.categoria.value;
+//    }
+//
+//    const importo = parseFloat(manualForm.importo.value);
+//    if (isValid(importo)) {
+//        criteri.importoMin = importo;
+//        criteri.importoMax = importo;
+//    }
 
-    const importo = parseFloat(manualForm.importo.value);
-    if (isValid(importo)) {
-        criteri.importoMin = importo;
-        criteri.importoMax = importo;
-    }
-
-    if(isValid(manualForm.startDateExpense.value)){
-       const dataInizio = new Date(manualForm.startDateExpense.value).toISOString().split('T')[0];
-       criteri.dataInizio = dataInizio
-    }
-    if(isValid(manualForm.endDateExpense.value)){
-       const dataFine = new Date(manualForm.endDateExpense.value).toISOString().split('T')[0];
-       criteri.dataFine = dataFine
-    }
+   if (picker && picker.selectedDates.length > 0) {
+     const [startDate, endDate] = picker.selectedDates;
+     if (startDate) criteri.dataInizio = startDate.toISOString().split('T')[0];
+     if (endDate) criteri.dataFine = endDate.toISOString().split('T')[0];
+   }
 
      await tracciaSpeseClick(criteri);;
 }
@@ -452,7 +451,39 @@ async function deleteSpesaBtn() {
         showToast("Spese eliminate con successo", "success");
     }
 
-    getSpese();
+    createCriteri();
+}
+
+async function deleteCategoriaBtn() {
+    // Trova tutte le righe selezionate
+    const selectedCards = document.querySelectorAll('.cat.selected');
+
+    if (selectedCards.length === 0) {
+        showErrorToast("Seleziona almeno una riga da eliminare.","error");
+        return;
+    }
+
+    const criteri = [];
+    if (selectedCards.length > 0) {
+         selectedCards.forEach(card => {
+            criteri.push(card.innerText);
+    });
+    }
+
+    if (criteri.length === 0) {
+        showErrorToast("Errore durante l'eliminazione.","error");
+        return;
+    }
+
+    await deleteCategorie(criteri);
+
+    if(criteri.length === 1){
+        showToast("Categoria eliminata con successo", "success");
+    } else {
+        showToast("Categorie eliminate con successo", "success");
+    }
+
+    categorieCreateComponent();
 }
 
 function uploadResult() {

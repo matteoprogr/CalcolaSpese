@@ -1,6 +1,6 @@
 {
-  "name": "TieniIlConto",
-  "short_name": "TieniIlConto",
+  "name": "MoneyLog",
+  "short_name": "MoneyLog",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
