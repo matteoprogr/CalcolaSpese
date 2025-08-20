@@ -17,7 +17,7 @@ export function creaSpesaComponent(spesa) {
            <span class="importo">${spesa.importo.toFixed(2)} €</span>
          </div>
          <div class="spesa-footer">
-           <small class="categoria">${spesa.categoria}</small>
+           <small >${spesa.categoria}</small>
          </div>
        `;
 

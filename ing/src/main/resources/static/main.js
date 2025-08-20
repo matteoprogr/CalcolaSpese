@@ -132,45 +132,39 @@ export function setDateRange() {
   const today = new Date();
   const currentMonth = today.toLocaleString('it-IT', { month: 'long' });
 
-  // Calcolo inizio e fine mese
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   let criteri = {};
-  picker = flatpickr("#date-range", {
+  const picker = flatpickr("#date-range", {
     mode: "range",
     dateFormat: "Y-m-d",
-    altInput: true,
-    altFormat: "d/m/Y",
+    altInput: false,
     locale: "it",
     minDate: "2020-01-01",
     maxDate: "2030-12-31",
-    disableMobile: true,
     defaultDate: [
       startOfMonth.toISOString().split('T')[0],
       endOfMonth.toISOString().split('T')[0]
     ],
     placeholder: `Seleziona intervallo di date (${currentMonth})`,
     onChange: function (selectedDates, dateStr, instance) {
-      const [startDate, endDate] = selectedDates;
+      if (selectedDates.length === 2) {
+        const [startDate, endDate] = selectedDates;
 
-      // Aggiorna input visivo
-      const rangeText = startDate && endDate
-        ? `${startDate.toLocaleDateString('it-IT')} a ${endDate.toLocaleDateString('it-IT')}`
-        : 'Seleziona intervallo di date';
-      instance.altInput.value = rangeText;
+        criteri = {
+          dataInizio: startDate.toISOString().split('T')[0],
+          dataFine: endDate.toISOString().split('T')[0],
+        };
 
-      // Passa i dati a tracciaSpeseClick in formato ISO
-      criteri = {
-        dataInizio: startDate ? startDate.toISOString().split('T')[0] : null,
-        dataFine: endDate ? endDate.toISOString().split('T')[0] : null,
-      };
-      tracciaSpeseClick(criteri);
+        tracciaSpeseClick(criteri);
+      }
     }
   });
 
-    createCriteri();
+  createCriteri();
 }
+
 
 async function tracciaSpeseClick(criteri) {
     try {

@@ -515,7 +515,7 @@ tr:hover {
 }
 
 #lista-spese-totale {
-  width: 30%;
+  width: auto;
   max-width: 100vw;
   box-sizing: border-box;
   margin: 0 auto;
@@ -569,17 +569,13 @@ tr:hover {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
-.categoria {
-text-transform: capitalize;
-}
 
 .cat {
-  font-size: 1.50rem;
+  font-size: 1.7rem;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  width: 100%;
-  max-width: 100%;
+  flex: 0 0 auto;      /* La card non si allarga né si restringe */
+  min-width: 120px;    /* Larghezza minima per rendere lo scroll utile */
   background: linear-gradient(135deg, #c9dcff, #e6f0ff);
   padding: 1rem;
   box-sizing: border-box;
@@ -589,29 +585,25 @@ text-transform: capitalize;
   border-radius: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  text-transform: capitalize;
-}
-.categoria {
-text-transform: capitalize;
 }
 
+
+
 .spesa-totale {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    width: 100%;
-    max-width: 100%;
+    width: auto;
+    max-width: 100vw;
     background: linear-gradient(135deg, #ffc9c9, #ffe6e6);
     padding: 0.5rem;
     box-sizing: border-box;
-    margin-top: 0.2rem;   /* sopra */
-    margin-bottom: 0.2rem; /* sotto */
-    margin-left: 0;        /* a sinistra */
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+    margin-left: 0;
     margin-right: 0;
     border: 0.025rem solid #000000;
     border-radius: 0.8rem;
     transition: background-color 0.3s ease;
 }
+
 
 .importo-totale {
   text-align: center;
@@ -630,7 +622,7 @@ text-transform: capitalize;
 
 .spesa-header,
 .spesa-footer {
-  font-size: 0.90rem; /* Testo piccolo per data e categoria */
+  font-size: 0.90rem;
   color: #5a6c7d;
   font-weight: 750;
 }
@@ -723,10 +715,9 @@ text-transform: capitalize;
     z-index: 10;
 }
 
-/* Input alternativo visibile creato da Flatpickr */
-#date-range + .flatpickr-alt-input {
-    background-color: #007bff;   /* blu brillante */
-    color: white;                /* testo bianco */
+#date-range {
+    background-color: #007bff;
+    color: white;
     border: 2px solid #007bff;
     border-radius: 4px;
     padding: 8px 12px;
@@ -735,35 +726,38 @@ text-transform: capitalize;
     box-sizing: border-box;
     cursor: pointer;
 }
+#date-range.flatpickr-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
 
-/* Focus sull'input */
-#date-range + .flatpickr-alt-input:focus {
+#date-range:focus {
     outline: none;
-    background-color: #0056b3; /* blu più scuro al focus */
+    background-color: #0056b3;
     border-color: #0056b3;
 }
 
-/* Calendario */
 .flatpickr-calendar {
-    background-color: #e6f0ff;       /* azzurro chiaro coerente con sito */
+    background-color: #e6f0ff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Giorni selezionati */
+
 .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
     background-color: #007bff;
     color: white;
     border-radius: 50%;
 }
 
-/* Giorni al passaggio del mouse */
 .flatpickr-day:hover {
     background-color: #cce0ff;
 }
 
-/* Pulsanti di navigazione e header calendario */
 .flatpickr-months, .flatpickr-weekdays {
     background-color: #007bff;
     color: white;
@@ -774,7 +768,6 @@ text-transform: capitalize;
     font-weight: 600;
 }
 
-/* Bottone clear e today (opzionale) */
 .flatpickr-clear, .flatpickr-today {
     color: #007bff;
     cursor: pointer;
@@ -876,41 +869,29 @@ text-transform: capitalize;
   padding: 0.5rem 1rem;            /* padding relativo */
 }
 
-/* opzionale: effetto hover leggero */
+
 .nessuna-spesa:hover {
   background-color: rgba(220, 220, 220, 0.3);
   color: #333;
 }
-/* Stile per le card delle categorie */
+
 .categorie-cards {
   display: flex;
   overflow-x: auto;
   gap: 1rem;
   padding-bottom: 1rem;
-}
-
-.categorie-card {
-  flex: 0 0 auto;
-  width: 6rem;
-  height: 6rem;
-  background-color: #fff;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s;
+  justify-content: flex-start;
 }
 
 /* overlay "fluttuante" sopra i bottoni */
 #overlayRicerca {
+  width: calc(100% - 2rem);
   position: fixed;
-  bottom: /* altezza bottoni */ 5rem; /* aggiusta come serve */
+  bottom: 5rem;
   left: 0;
   margin-left: 0.95rem;
   margin-right: 0.95rem;
-  height: 20vh;
+  height: 25vh;
   background-color: rgba(204, 229, 255, 0.5);
   padding-bottom: 1rem;
   border-radius: 1rem;
@@ -941,7 +922,6 @@ text-transform: capitalize;
 
 .row:last-child {
   margin-bottom: 0.5rem;
-
 }
 
 .card {

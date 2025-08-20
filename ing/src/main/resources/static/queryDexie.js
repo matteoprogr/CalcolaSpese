@@ -43,10 +43,16 @@ export async function saveSpesa(spesa) {
   }
 }
 
+function capitalizeFirstLetter(str) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 async function saveCategoria(categoria) {
   const categoriaLower = categoria.toLowerCase();
+  const categoriaCapitalized = capitalizeFirstLetter(categoriaLower);
   try {
-    await db.categorie.add({ categoria: categoriaLower });
+    await db.categorie.add({ categoria: categoriaCapitalized });
   } catch (error) {
     if (error.name !== 'ConstraintError') {
       console.error('Errore durante l\'aggiunta della categoria:', error);
