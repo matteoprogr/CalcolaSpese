@@ -123,15 +123,16 @@ export async function deleteSpese(criteri = {}) {
     }
 }
 
-export async function deleteCategorie(criteri = {}) {
+export async function deleteCategorie(criteri = []) {
     if (Array.isArray(criteri) && criteri.length > 0) {
         await db.categorie
-            .toCollection()
-            .filter(categoria => criteri.includes(categoria.categoria))
+            .where('categoria')
+            .anyOfIgnoreCase(criteri)  // Confronto case-insensitive
             .delete();
         return;
     }
 }
+
 
 export async function getCategorie() {
     initDB();

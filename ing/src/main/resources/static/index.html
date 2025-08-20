@@ -62,7 +62,8 @@
     <div id="spesaFormOverlay">
         <form id="spesaForm">
             <div class="input-group">
-                <input type="text" id="categoria" required placeholder="Categoria">
+                <input list="categorie" id="categoria" name="categoria" placeholder="Seleziona o scrivi...">
+                <datalist id="categorie"></datalist>
             </div>
             <div class="input-group">
                 <input type="date" id="data" required placeholder=" ">
@@ -78,6 +79,20 @@
         </form>
     </div>
 
+
+    <!-- OVERLAY ENTRATA -->
+    <div id="overlayRicerca">
+            <!-- Prima riga: Categorie in card -->
+            <div class="input-group row">
+                <div class="categorie-cards" id="categorieCardsEntrata"></div>
+            </div>
+
+            <!-- Seconda riga: Input importo -->
+            <div class="input-group row">
+                <input class="importoOverlay" type="number" step="0.01" id="importoMinEntrata" placeholder="Min (€)">
+                <input class="importoOverlay" type="number" step="0.01" id="importoMaxEntrata" placeholder="Max (€)">
+            </div>
+    </div>
 
 </section>
 

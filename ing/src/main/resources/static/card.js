@@ -1,6 +1,7 @@
 import { saveSpesa } from './queryDexie.js';
 import { createCriteri } from './main.js';
 import { showErrorToast } from './main.js';
+import { getCategorie } from './queryDexie.js';
 
 export function creaSpesaComponent(spesa) {
        const container = document.createElement("div");
@@ -38,7 +39,7 @@ export function creaComponentTotale(spese) {
        container.classList.add("spesa-totale");
        container.innerHTML = `
          <div>
-           <span class="importo">${totale.toFixed(2)} €</span>
+           <span class="importo-totale">${totale.toFixed(2)} €</span>
          </div>
        `;
 
@@ -73,16 +74,19 @@ export function categoriaComponent(categoria) {
         return container;
 }
 
-export function overlayAddSpesa() {
+export async function overlayAddSpesa() {
 const openBtn = document.getElementById('addSpesaBtn');
 const closeBtn = document.getElementById('closeFormBtn');
 const overlay = document.getElementById('spesaFormOverlay');
 const form = document.getElementById('spesaForm');
 const mainContent = document.querySelector('.main-content');
+const categoriaInput = document.getElementById('categoria');
+const datalist = document.getElementById('categorie');
 
-openBtn.addEventListener('click', () => {
+openBtn.addEventListener('click', async () => {
   overlay.style.display = 'flex';
   mainContent.classList.add('blur-active');
+  await popolaCategorie(datalist);
   setTimeout(() => overlay.classList.add('show'), 10);
 });
 
@@ -94,8 +98,10 @@ closeBtn.addEventListener('click', () => {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+  const categorie = await getCategorie();
   const spesa = {
-    categoria: document.getElementById('categoria').value,
+    categoria: categoriaInput.value,
+    dataSpesa: document.getElementById('data').value,
     dataSpesa: document.getElementById('data').value,
     importo: -Math.abs(parseFloat(document.getElementById('importo').value)),
     descrizione: document.getElementById('descrizione').value
@@ -112,5 +118,52 @@ form.addEventListener('submit', async (e) => {
     showErrorToast("Errore durante il salvataggio:", "error");
   }
 });
+}
 
+  async function popolaCategorie(datalist) {
+    const categorie = await getCategorie(); // supponendo sia un array di stringhe
+    datalist.innerHTML = ""; // svuota le opzioni precedenti
+    categorie.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.categoria;
+      datalist.appendChild(option);
+    });
+  }
+
+  export async function overlayRicerca() {
+
+    const openBtn = document.getElementById('getSpesaBtn');
+    const overlay = document.getElementById('overlayRicerca');
+    const catRow = document.getElementById('categorieCardsEntrata');
+
+    openBtn.addEventListener('click', async (e) => {
+        if (overlay.classList.contains('showOverlay')) {
+            overlay.classList.remove('showOverlay');
+        } else {
+            catRow.innerHTML = "";
+            overlay.classList.toggle("showOverlay");
+            const categorie = await getCategorie();
+            categorie.forEach(cat => {
+            const card = catOverlay(cat.categoria);
+            catRow.appendChild(card);
+            });
+        }
+    });
+
+  }
+
+function catOverlay(categoria) {
+        const container = document.createElement("div");
+        container.classList.add("card");
+           container.innerHTML = `
+             <div>
+               <span> ${categoria} </span>
+             </div>
+           `;
+
+            container.addEventListener("click", () => {
+              container.classList.toggle("selected");
+            });
+
+        return container;
 }

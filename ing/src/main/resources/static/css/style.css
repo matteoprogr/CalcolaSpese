@@ -194,6 +194,7 @@ select {
 }
 
 
+
 button {
   background: linear-gradient(90deg, #3498db, #5dade2);
   color: #fff;
@@ -568,6 +569,9 @@ tr:hover {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+.categoria {
+text-transform: capitalize;
+}
 
 .cat {
   font-size: 1.50rem;
@@ -585,8 +589,11 @@ tr:hover {
   border-radius: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  text-transform: capitalize;
 }
-
+.categoria {
+text-transform: capitalize;
+}
 
 .spesa-totale {
     display: flex;
@@ -604,6 +611,17 @@ tr:hover {
     border: 0.025rem solid #000000;
     border-radius: 0.8rem;
     transition: background-color 0.3s ease;
+}
+
+.importo-totale {
+  text-align: center;
+  font-size: 1.125rem; /* Testo più grande per importo */
+  font-weight: 550;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #1a2e40;
 }
 
 .selected {
@@ -776,7 +794,6 @@ tr:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(240, 240, 240, 0.95);
   display: none;
   justify-content: center;
   align-items: flex-end;
@@ -785,11 +802,11 @@ tr:hover {
 
 #spesaForm {
   width: 100%;
-  max-width: 500px;
-  background: #fff;
-  padding: 2rem;
+  max-width: 30rem;           /* invece di 500px */
+  background-color: #e6f7ff;
+  padding: 2rem;              /* già relativo, mantiene proporzioni */
   border-radius: 1rem 1rem 0 0;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 -0.25rem 0.75rem rgba(0, 0, 0, 0.2); /* valori in rem */
   transform: translateY(100%);
   transition: transform 0.3s ease-out;
 }
@@ -799,64 +816,43 @@ tr:hover {
   transform: translateY(0);
 }
 
-/* Gruppo input stile Material */
+
 .input-group {
   position: relative;
-  margin: 1.5rem 0;
+  margin: 1rem 0;
 }
 
-.input-group input {
-  width: 100%;
-  border: none;
-  border-bottom: 2px solid #ccc;
-  font-size: 1rem;
-  padding: 0.5rem 0;
-  background: transparent;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.input-group input:focus {
-  border-bottom-color: #007bff;
-}
-
-.input-group label {
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
-  font-size: 1rem;
-  color: #aaa;
-  pointer-events: none;
-  transition: 0.2s ease all;
-}
-
-/* Label sale quando il campo è attivo o contiene testo */
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label {
-  top: -0.8rem;
-  font-size: 0.8rem;
-  color: #007bff;
-}
-
-/* Bottoni */
+/* Bottoni per il form */
 #spesaForm button {
-  width: 100%;
-  padding: 0.8rem;
-  margin-top: 1rem;
+  display: block;
+  width: 100%;                /* occupa tutta la larghezza del form */
+  padding: 0.75rem 0;         /* verticale più comodo su mobile */
+  margin-top: 1rem;           /* spazio tra bottoni */
   border: none;
   border-radius: 0.5rem;
+  font-size: 1rem;            /* leggibile su smartphone */
+  font-weight: 500;
   cursor: pointer;
-  font-size: 1rem;
+  transition: background-color 0.25s ease, transform 0.2s ease;
 }
 
-#spesaForm button[type="submit"] {
-  background-color: #007bff;
-  color: white;
-}
-
+/* Bottone principale (Submit) e chiusura con lo stesso stile */
+#spesaForm button[type="submit"],
 #spesaForm button#closeFormBtn {
-  background-color: #ccc;
-  color: #333;
+  background-color: #007bff;  /* blu moderato */
+  color: #fff;
+}
+
+/* Hover/Focus */
+#spesaForm button:hover,
+#spesaForm button:focus {
+  background-color: #0056b3;
+  transform: translateY(-0.05rem); /* leggero effetto di “click” */
+}
+
+/* Optional: leggero effetto attivo al click */
+#spesaForm button:active {
+  transform: translateY(0);
 }
 
 
@@ -885,4 +881,98 @@ tr:hover {
   background-color: rgba(220, 220, 220, 0.3);
   color: #333;
 }
+/* Stile per le card delle categorie */
+.categorie-cards {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.categorie-card {
+  flex: 0 0 auto;
+  width: 6rem;
+  height: 6rem;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* overlay "fluttuante" sopra i bottoni */
+#overlayRicerca {
+  position: fixed;
+  bottom: /* altezza bottoni */ 5rem; /* aggiusta come serve */
+  left: 0;
+  margin-left: 0.95rem;
+  margin-right: 0.95rem;
+  height: 20vh;
+  background-color: rgba(204, 229, 255, 0.5);
+  padding-bottom: 1rem;
+  border-radius: 1rem;
+  box-shadow:
+    0 -8px 20px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255,255,255,0.8);
+  backdrop-filter: blur(4px);
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+#overlayRicerca.showOverlay {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0rem;
+}
+
+.row:last-child {
+  margin-bottom: 0.5rem;
+
+}
+
+.card {
+  flex: 1;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: 0.5rem;
+  margin-right: 0.3rem;
+  padding: 1rem;
+  background-color: #e6f7ff;
+  border-radius: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+
+.importoOverlay {
+  width: 45%;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 0.5rem;
+  border: 2px solid transparent;
+  border-bottom: 2px solid #ADD8E6;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.importoOverlay:focus {
+  border-color: #007bff; /* Colore blu per il focus */
+}
+
 

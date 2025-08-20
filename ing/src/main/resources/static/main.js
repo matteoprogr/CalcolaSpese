@@ -8,6 +8,7 @@ import { overlayAddSpesa } from './card.js';
 import { nessunaElementoComponent } from './card.js';
 import { categoriaComponent } from './card.js';
 import { getCategorie } from './queryDexie.js';
+import { overlayRicerca } from './card.js';
 
 
 
@@ -29,10 +30,8 @@ import { getCategorie } from './queryDexie.js';
 
 //  EVENT LISTENER //////////////////////////////////
 document.getElementById("getSpesaBtn").addEventListener("click", createCriteri);
-//document.getElementById("addSpesaBtn").addEventListener("click", createCriteri);
 document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
 document.getElementById("deleteCategoriaBtn").addEventListener("click", deleteCategoriaBtn);
-//document.getElementById("manualForm").addEventListener("submit", async function (e) {e.preventDefault();});
 document.getElementById("uploadResultBtn").addEventListener("click", uploadResult);
 document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
 document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheSelezionate);
@@ -122,8 +121,8 @@ document.getElementById("uploadForm").addEventListener("submit", function (e) {
 
 // DOM CONTENT LOADED ///////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
-    //popolaCategoria();
      overlayAddSpesa();
+     overlayRicerca();
      setDateRange();
 });
 
