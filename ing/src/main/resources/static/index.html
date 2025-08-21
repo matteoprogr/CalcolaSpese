@@ -38,10 +38,10 @@
 <!-- Pagina Traccia Spese //////////////////////////////////////////////////////////////-->
 <section id="traccia-spesa" class="page-section active">
     <div class="main-content">
-        <h2>Traccia Spese</h2>
+
         <div class="excel-container">
             <div class="sticky-bar">
-
+                <h2>Traccia Spese</h2>
                 <div id="lista-spese-totale"></div>
                 <div id="zero-spese"></div>
             </div>
@@ -50,7 +50,6 @@
 
             <div class="fullscreenBtnContainer">
                 <button class="fullscreenBtn" id="addSpesaBtn">➕ </button>
-                <button class="fullscreenBtn" id="editSpesaBtn">✏️</button>
                 <button class="fullscreenBtn" id="getSpesaBtn">🔍 </button>
                 <button class="fullscreenBtn" id="deleteSpesaBtn">🗑️</button>
             </div>
@@ -62,8 +61,10 @@
     <div id="spesaFormOverlay">
         <form id="spesaForm">
             <div class="input-group">
-                <input list="categorie" id="categoria" name="categoria" placeholder="Seleziona o scrivi...">
-                <datalist id="categorie"></datalist>
+                <div class="autocomplete">
+                    <input type="text" id="categoria" placeholder="Seleziona o scrivi...">
+                    <div id="categorie" class="suggestions"></div>
+                </div>
             </div>
             <div class="input-group">
                 <input type="date" id="data" required placeholder=" ">
@@ -80,82 +81,76 @@
     </div>
 
 
-    <!-- OVERLAY ENTRATA -->
+    <!-- OVERLAY RICERCA -->
     <div id="overlayRicerca">
-
         <input type="text" id="date-range">
-            <div class="input-group row">
-                <div class="categorie-cards" id="categorieCardsEntrata"></div>
-            </div>
-
-            <div class="input-group row">
-                <input class="importoOverlay" type="number" step="0.01" id="importoMinEntrata" placeholder="Min (€)">
-                <input class="importoOverlay" type="number" step="0.01" id="importoMaxEntrata" placeholder="Max (€)">
-            </div>
+        <div class="input-group row">
+            <div class="categorie-cards" id="categorieCardsEntrata"></div>
+        </div>
+        <div class="input-group row">
+            <input class="importoOverlay" type="number" step="0.01" id="importoMinEntrata" placeholder="Min (€)">
+            <input class="importoOverlay" type="number" step="0.01" id="importoMaxEntrata" placeholder="Max (€)">
+        </div>
     </div>
 
+    <!-- OVERLAY EDIT SPESA -->
+    <div id="editSpesaFormOverlay">
+        <form id="editSpesaForm">
+            <h3>Modifica Spesa</h3>
+            <input type="hidden" id="editSpesaId">
+
+            <div class="input-group">
+                <input type="text"  id="editCategoria" name="categoria" placeholder="Seleziona o scrivi...">
+                <div id="editCategorie" class="suggestions"></div>
+            </div>
+            <div class="input-group">
+                <input type="date" id="editData" required placeholder=" ">
+            </div>
+            <div class="input-group">
+                <input type="number" step="0.01" id="editImporto" required placeholder="Importo (€)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="editDescrizione" required placeholder="Descrizione">
+            </div>
+            <div class="button-group">
+                <button type="submit">Salva Modifiche</button>
+                <button type="button" id="closeEditFormBtn">Annulla</button>
+            </div>
+        </form>
+    </div>
 </section>
 
 
 
 <!-- Pagina Elabora Excel //////////////////////////////////////////////////////////////-->
 <section id="elabora-excel" class="page-section">
-    <div class="excel-container">
-        <div class="excel-form">
-            <h2>Importa il tuo file Excel</h2>
-            <form id="uploadForm">
-                    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
-                    <label>Nome della tua banca</label>
-                    <select id="nomeBanca" required>
-                        <option value="" disabled selected>-- Seleziona --</option>
-                        <option value="ingDirect">IngDirect</option>
-                    </select>
 
-                    <label for="startDate">Da:</label>
-                    <input type="date" id="startDate" name="startDate">
+            <div class="main-content">
+                <div class="excel-container">
+                    <div class="sticky-bar">
+                        <h2>Importa Excel</h2>
+                        <div id="zero-rows"></div>
+                        <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
+                        <select id="nomeBanca" required>
+                            <option value="" disabled selected>-- Nome della tua banca --</option>
+                            <option value="ingDirect">IngDirect</option>
+                        </select>
+                        <input type="date" id="startDate" name="startDate">
+                        <input type="date" id="endDate" name="endDate">
+                        <button id="invioBtn" type="button">Invia</button>
+                        <div id="lista-spese-excel-totale"></div>
+                    </div>
 
-                    <label for="endDate">A:</label>
-                    <input type="date" id="endDate" name="endDate">
+                    <div id="lista-spese-excel"></div>
 
-                <div class="form-row">
-                    <button type="submit">Invia</button>
+                    <div class="fullscreenBtnContainer">
+<!--                        <button class="fullscreenBtn" id="addExcelSpesaBtn">➕ </button>-->
+                        <button class="fullscreenBtn" id="deleteExcelSpesaBtn">🗑️</button>
+                        <button class="fullscreenBtn" id="downloadBtn">⬇</button>
+                    </div>
                 </div>
-
-            </form>
-        </div>
-
-      <div class="table-container">
-            <div class="table-header">
-                <button id="mergeRowsBtn" class="btn" style="display: none;" title="Unisci righe selezionate">Somma</button>
-                <button id="removeRowsBtn" class="btn" style="display: none;" title="Rimuovi righe selezionate">Elimina</button>
-                <button id="uploadResultBtn" class="btn" style="display: none;"title="Scarica in formato excel">Esporta</button>
             </div>
 
-            <table id="resultsTable" style="display: none;">
-                <colgroup>
-                    <col style="width: 25%">
-                    <col style="width: 25%">
-                    <col style="width: 25%">
-                    <col style="width: 25%">
-                </colgroup>
-                <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Categoria</th>
-                    <th>Descrizione</th>
-                    <th> (€)</th>
-                </tr>
-                </thead>
-                <tbody id="resultsBody"></tbody>
-            </table>
-
-            <div class="table-header-tot">
-                <table id="resultsTableTot" style="display: none;">
-                    <tbody id="resultsBodyTot"></tbody>
-                </table>
-            </div>
-          </div>
-    </div>
 </section>
 
 

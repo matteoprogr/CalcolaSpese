@@ -93,26 +93,28 @@ public class CalcoloServiceImpl implements CalcoloService {
 
             if(dataTabella.getTotale() != 0){
                 Row row = sheet.createRow(dataTabella.getDataValuta().size()+1);
-
-                Cell data = row.createCell(0);
-                Cell categoria = row.createCell(1);
-                Cell descrizione = row.createCell(2);
-                Cell valore = row.createCell(3);
+                Cell id = row.createCell(0);
+                Cell data = row.createCell(1);
+                Cell categoria = row.createCell(2);
+                Cell descrizione = row.createCell(3);
+                Cell valore = row.createCell(4);
                 // Se è la riga del totale → applica stile speciale
+                id.setCellValue("");
                 data.setCellValue("");
-                categoria.setCellValue("Totale");
-                descrizione.setCellValue("");
+                categoria.setCellValue("");
+                descrizione.setCellValue("Totale");
                 valore.setCellValue(dataTabella.getTotale());
 
+                id.setCellStyle(headerStyle);
                 data.setCellStyle(headerStyle);
                 categoria.setCellStyle(headerStyle);
                 descrizione.setCellStyle(headerStyle);
                 valore.setCellStyle(headerStyle);
             }
 
-
+            int size = dataTabella.getTotale() != null ? 5 : 4 ;
             // Adatta automaticamente la larghezza delle colonne
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < size; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -135,7 +137,7 @@ public class CalcoloServiceImpl implements CalcoloService {
 
             Sheet sheet = workbook.getSheetAt(0);
             String[][]  matrice = estraiExcel(sheet);
-            if(nomeBanca != null && nomeBanca.equals("IngDirect")) {
+            if(nomeBanca != null && nomeBanca.equals("ingDirect")) {
                 data = elaborazioneExcelIngdirect(matrice, dataInizio, dataFine);
             }
             else if(nomeBanca != null && nomeBanca.equals("unicredit")) {

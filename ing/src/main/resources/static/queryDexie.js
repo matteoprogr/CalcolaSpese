@@ -7,12 +7,11 @@
 let db;
 initDB();// variabile globale per il database
 
-// Funzione di inizializzazione del database
 export function initDB() {
   if (!db) {
     db = new Dexie('TieniIlContoDB');
     db.version(1).stores({
-      spese: '++id, categoria, importo, dataSpesa, [categoria+dataSpesa], [categoria+importo], [importo+dataSpesa], [categoria+importo+dataSpesa]',
+      spese: '++id, *categoria, importo, dataSpesa, [importo+dataSpesa]',
       categorie: '&categoria'
     });
   }
@@ -28,6 +27,7 @@ export async function saveSpesa(spesa) {
 
     const data = {
       ...spesa,
+      categoria: capitalizeFirstLetter(spesa.categoria),
       dataInserimento: new Date().toISOString(),
       dataSpesa: fomattedISO
     };
@@ -60,64 +60,111 @@ async function saveCategoria(categoria) {
   }
 }
 
-// Ricerca spese con più criteri combinati
+// UPDATE
+export async function updateSpesa(spesa) {
+  try {
+    initDB();
+
+    if (!spesa.id) {
+      throw new Error("ID spesa mancante per la sostituzione");
+    }
+
+    const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
+    const data = {
+      ...spesa,
+      categoria: capitalizeFirstLetter(spesa.categoria),
+      dataSpesa: fomattedISO,
+      dataModifica: new Date().toISOString()
+    };
+
+    await saveCategoria(spesa.categoria);
+
+    // put sostituisce completamente il record
+    const id = await db.spese.put(data);
+
+    showToast("Spesa sostituita con successo", "success");
+    return { success: true, id };
+
+  } catch (error) {
+    console.error("Errore nella sostituzione spesa:", error);
+    showToast("Errore durante la sostituzione della spesa", "error");
+    return { success: false, error };
+  }
+}
+
+
+
+//// Ricerca spese con più criteri combinati
 export async function querySpese(criteri = {}) {
   initDB();
 
   let collezione = db.spese;
+  let usaFiltri = false;
 
-  // indici singoli
-    if (criteri.categoria && !criteri.importoMin && !criteri.importoMax && !criteri.dataInizio && !criteri.dataFine) {
-      collezione = collezione.where('categoria').equals(criteri.categoria);
-    }
-    if ((criteri.importoMin != null || criteri.importoMax != null) && !criteri.categoria && !criteri.dataInizio && !criteri.dataFine) {
-      const min = criteri.importoMin ?? -Infinity;
-      const max = criteri.importoMax ?? Infinity;
-      collezione = collezione.where('importo').between( min, max, true, true );
-    }
-    if ((criteri.dataInizio || criteri.dataFine) && !criteri.categoria && !criteri.importoMin && !criteri.importoMax) {
-      const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
-      const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-      collezione = collezione.where('dataSpesa').between(start, end,true,true);
-    }
+  // Se abbiamo solo categoria, usa l'indice multiEntry
+  if (criteri.categoria && !criteri.importoMin && !criteri.importoMax && !criteri.dataInizio && !criteri.dataFine) {
+    collezione = collezione.where('categoria').anyOf(criteri.categoria).distinct();
+  }
+  // Se abbiamo solo importo, usa l'indice
+  else if ((criteri.importoMin != null || criteri.importoMax != null) && !criteri.categoria && !criteri.dataInizio && !criteri.dataFine) {
+    const min = criteri.importoMin ?? -Infinity;
+    const max = criteri.importoMax ?? Infinity;
+    collezione = collezione.where('importo').between(min, max, true, true);
+  }
+  // Se abbiamo solo data, usa l'indice
+  else if ((criteri.dataInizio || criteri.dataFine) && !criteri.categoria && !criteri.importoMin && !criteri.importoMax) {
+    const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
+    const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
+    collezione = collezione.where('dataSpesa').between(start, end, true, true);
+  }
+  // Se abbiamo importo + data (senza categoria), usa l'indice composto
+  else if ((criteri.importoMin != null || criteri.importoMax != null) && (criteri.dataInizio || criteri.dataFine) && !criteri.categoria) {
+    const min = criteri.importoMin ?? -Infinity;
+    const max = criteri.importoMax ?? Infinity;
+    const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
+    const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
+    collezione = collezione
+      .where('[importo+dataSpesa]')
+      .between([min, start], [max, end], true, true);
+  }
+  // Per tutti gli altri casi (categoria + altri criteri), usa filtri
+  else {
+    usaFiltri = true;
 
-  // Utilizza indice composto
-    if (criteri.categoria && (criteri.dataInizio || criteri.dataFine) && !criteri.importoMin  && !criteri.importoMax) {
-        const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
-        const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-        collezione = collezione
-          .where('[categoria+dataSpesa]')
-          .between([criteri.categoria, start], [criteri.categoria, end],true,true);
+    // Se c'è categoria, inizia con quello per sfruttare l'indice multiEntry
+    if (criteri.categoria) {
+      collezione = collezione.where('categoria').anyOf(criteri.categoria);
     }
-    if (criteri.categoria && (criteri.importoMin != null || criteri.importoMax != null) && !criteri.dataInizio && !criteri.dataFine) {
-        const min = criteri.importoMin ?? -Infinity;
-        const max = criteri.importoMax ?? Infinity;
-        collezione = collezione
-        .where('[categoria+importo]')
-        .between([criteri.categoria, min], [criteri.categoria, max],true,true);
-    }
-    if ((criteri.importoMin != null || criteri.importoMax != null) && (criteri.dataInizio || criteri.dataFine) && !criteri.categoria) {
-        const min = criteri.importoMin ?? -Infinity;
-        const max = criteri.importoMax ?? Infinity;
-        const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
-        const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-        collezione = collezione
-        .where('[importo+dataSpesa]')
-        .between([ min , start ], [ max, end ],true,true);
-    }
-    if (criteri.categoria && (criteri.importoMin != null || criteri.importoMax != null) && (criteri.dataInizio || criteri.dataFine)) {
-        const min = criteri.importoMin ?? -Infinity;
-        const max = criteri.importoMax ?? Infinity;
-        const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
-        const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-        collezione = collezione
-        .where('[categoria+importo+dataSpesa]')
-        .between([ criteri.categoria, min , start], [ criteri.categoria , max , end ],true,true);
-    }
+  }
 
+  // Applica filtri aggiuntivi se necessario
+  if (usaFiltri ||
+      (criteri.categoria && (criteri.importoMin != null || criteri.importoMax != null || criteri.dataInizio || criteri.dataFine))) {
+
+    collezione = collezione.filter(spesa => {
+      // Filtra per categoria se specificata (controllo intersezione array)
+      if (criteri.categoria) {
+        const categorieSpesa = Array.isArray(spesa.categoria) ? spesa.categoria : [spesa.categoria];
+        const criteriCategorie = Array.isArray(criteri.categoria) ? criteri.categoria : [criteri.categoria];
+        const hasCategoriaComune = categorieSpesa.some(cat => criteriCategorie.includes(cat));
+        if (!hasCategoriaComune) return false;
+      }
+
+      // Filtra per importo
+      if (criteri.importoMin != null && spesa.importo < criteri.importoMin) return false;
+      if (criteri.importoMax != null && spesa.importo > criteri.importoMax) return false;
+
+      // Filtra per data
+      if (criteri.dataInizio && spesa.dataSpesa < criteri.dataInizio) return false;
+      if (criteri.dataFine && spesa.dataSpesa > criteri.dataFine) return false;
+
+      return true;
+    });
+  }
 
   return collezione.toArray();
 }
+
 
 export async function deleteSpese(criteri = {}) {
     if (Array.isArray(criteri) && criteri.length > 0) {

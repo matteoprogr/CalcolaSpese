@@ -9,6 +9,7 @@ import { nessunaElementoComponent } from './card.js';
 import { categoriaComponent } from './card.js';
 import { getCategorie } from './queryDexie.js';
 import { overlayRicerca } from './card.js';
+import { overlayEdit } from './card.js';
 
 
 
@@ -29,12 +30,14 @@ import { overlayRicerca } from './card.js';
 
 
 //  EVENT LISTENER //////////////////////////////////
-document.getElementById("getSpesaBtn").addEventListener("click", createCriteri);
 document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
 document.getElementById("deleteCategoriaBtn").addEventListener("click", deleteCategoriaBtn);
-document.getElementById("uploadResultBtn").addEventListener("click", uploadResult);
-document.getElementById("mergeRowsBtn").addEventListener("click", unisciRigheSelezionate);
-document.getElementById("removeRowsBtn").addEventListener("click", rimuoviRigheSelezionate);
+document.getElementById("deleteExcelSpesaBtn").addEventListener("click", deleteSpesaBtnExcel);
+document.getElementById("importoMinEntrata").addEventListener("input", createCriteri);
+document.getElementById("importoMaxEntrata").addEventListener("input", createCriteri);
+document.getElementById("invioBtn").addEventListener("click", uploadExcel);
+document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
+
 
 
 //  VARIABILI GLOBALI //////////////////////////////////
@@ -73,62 +76,36 @@ document.querySelectorAll('nav a').forEach(link => {
         if (targetId === 'categorie-section') {
             categorieCreateComponent()
         }
-
-    });
-});
-
-document.getElementById("uploadForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const fileInput = document.getElementById("fileInput");
-    const selectNomeBanca = document.getElementById("nomeBanca");
-    const nomeBanca = selectNomeBanca.options[selectNomeBanca.selectedIndex].text;
-    const startDate = document.getElementById("startDate");
-    const endDate = document.getElementById("endDate");
-    const file = fileInput.files[0];
-    const dataInizio = startDate.value;
-    const datafine = endDate.value;
-
-
-     if (!file || (!startDate && !endDate)) {
-           showErrorToast("Inserisci un file Excel.", "error");
-           return;
-       }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("nomeBanca", nomeBanca);
-    formData.append("dataInizio", dataInizio);
-    formData.append("dataFine", datafine);
-
-    fetch("/api/excel/upload", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Errore nel caricamento del file");
+        if(targetId === 'elabora-excel'){
+            const listTraccia = document.getElementById("lista-spese");
+            listTraccia.innerHTML = "";
         }
-        return response.json();
-    })
-    .then(result => {
-        mostraTabella(result);
-    })
-    .catch(error => {
-        document.getElementById("response").innerText = "Errore durante l'upload: " + error;
+
+        const selectedCards = document.querySelectorAll('.selected');
+        selectedCards.forEach(card => {card.classList.remove('selected');});
     });
 });
+
+
 
 // DOM CONTENT LOADED ///////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
      overlayAddSpesa();
      overlayRicerca();
      setDateRange();
-});
+//event.target.closest('#mobile-nav')
+     document.addEventListener('click', (event) => {
+         if (event.target.tagName === 'SPAN' || event.target.closest('#nav-toggle')) return;
+           const navToggle = document.getElementById('nav-toggle');
+               if (navToggle) {
+                   navToggle.checked = false;
+               }
+       });
+     });
 
 //  FUNZIONI //////////////////////////////////
 
-export function setDateRange() {
+export function setDateRange(range = "#date-range") {
   const today = new Date();
   const currentMonth = today.toLocaleString('it-IT', { month: 'long' });
 
@@ -136,7 +113,7 @@ export function setDateRange() {
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   let criteri = {};
-  const picker = flatpickr("#date-range", {
+  const picker = flatpickr(range , {
     mode: "range",
     dateFormat: "Y-m-d",
     altInput: false,
@@ -149,16 +126,7 @@ export function setDateRange() {
     ],
     placeholder: `Seleziona intervallo di date (${currentMonth})`,
     onChange: function (selectedDates, dateStr, instance) {
-      if (selectedDates.length === 2) {
-        const [startDate, endDate] = selectedDates;
-
-        criteri = {
-          dataInizio: startDate.toISOString().split('T')[0],
-          dataFine: endDate.toISOString().split('T')[0],
-        };
-
-        tracciaSpeseClick(criteri);
-      }
+      createCriteri();
     }
   });
 
@@ -195,6 +163,95 @@ async function tracciaSpeseClick(criteri) {
     }
 }
 
+
+async function uploadExcel() {
+    try {
+        const fileInput = document.getElementById("fileInput");
+        const file = fileInput.files[0];
+        const nomeBanca = document.getElementById("nomeBanca").value;
+        const startDate = document.getElementById("startDate");
+        const endDate = document.getElementById("endDate");
+        const dataInizio = startDate.value;
+        const dataFine = endDate.value;
+
+        if(!isValid(fileInput || !isValid(nomeBanca) || nomeBanca.contains("Nome della tua banca"))){
+            showErrorToast("Compila correttamente i campi:", "error");
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("nomeBanca", nomeBanca);
+        formData.append("dataInizio", dataInizio);
+        formData.append("dataFine", dataFine);
+
+        fetchUpload(formData)
+        } catch (err) {
+            showErrorToast("Errore nel recupero spese:", "error");
+        }
+}
+
+async function excelCardCreator(dati) {
+
+    try {
+        const dataValuta = dati.dataValuta;
+        const categoria = dati.categoria;
+        const descrizione = dati.descrizione;
+        const valore = dati.valore;
+
+        const spese = dataValuta.map((data, i) => ({
+          dataSpesa: data,
+          categoria: categoria[i],
+          descrizione: descrizione[i],
+          importo: valore[i]
+        }));
+
+        spese.sort((a, b) => new Date(a.dataSpesa) - new Date(b.dataSpesa));
+        const  totaleExcel = document.getElementById("lista-spese-excel-totale");
+        const  zeroExcel = document.getElementById("zero-rows");
+        const listaSpese = document.getElementById("lista-spese-excel");
+        listaSpese.innerHTML = "";
+        spese.forEach(spesa => {
+          const nodo = creaSpesaComponent(spesa);
+          listaSpese.appendChild(nodo);
+        });
+
+        const totale = creaComponentTotale(spese);
+        totaleExcel.innerHTML = "";
+        zeroExcel.innerHTML = "";
+        const totaleText = totale.innerText.trim();
+        if(totaleText !== "0.00 €") {
+            totaleExcel.appendChild(totale);
+        }else {
+        const nodo = nessunaElementoComponent("spesa")
+        zeroSpese.appendChild(nodo);
+        }
+
+    } catch (err) {
+        showErrorToast("Errore nel recupero spese:", "error");
+    }
+
+}
+
+async function fetchUpload(formData) {
+        fetch("/api/excel/upload", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Errore nel caricamento del file");
+            }
+            return response.json();
+        })
+        .then(result => {
+            excelCardCreator(result);
+        })
+        .catch(error => {
+            document.getElementById("response").innerText = "Errore durante l'upload: " + error;
+        });
+
+}
+
 export async function categorieCreateComponent() {
     const categorie = await getCategorie();
     const categorieList = document.getElementById("gestione-categorie");
@@ -211,180 +268,6 @@ export async function categorieCreateComponent() {
     }
 }
 
-function mostraTabella(data) {
-    const resultsTable = document.getElementById("resultsTable");
-    const resultsTableTot = document.getElementById("resultsTableTot");
-    const resultsBody = document.getElementById("resultsBody");
-    const resultsBodyTot = document.getElementById("resultsBodyTot");
-
-    resultsBody.innerHTML = "";
-    resultsBodyTot.innerHTML = "";
-
-    const dataValuta = data.dataValuta;
-    const categoria = data.categoria;
-    const descrizione = data.descrizione;
-    const valore = data.valore;
-    const totale = data.totale;
-
-    for (let i = 0; i < dataValuta.length; i++) {
-         aggiungiRiga(dataValuta[i],categoria[i],descrizione[i],valore[i],"resultsBody");
-    }
-
-    aggiungiRiga(null,"Totale", null, totale, "resultsBodyTot");
-    aggiungiRiga(null,"Totale selezionato", null, 0, "resultsBodyTot");
-
-    resultsTable.style.display = "table";
-    resultsTableTot.style.display = "table";
-    document.getElementById("mergeRowsBtn").style.display = "inline-block";
-    document.getElementById("uploadResultBtn").style.display = "inline-block";
-    document.getElementById("removeRowsBtn").style.display = "inline-block";
-
-}
-
-async function creaTabellaManuale(spese) {
-     const tbody = document.getElementById("resultsBodyManual");
-     const tbodyTot = document.getElementById("resultsBodyTotManual");
-
-     tbody.innerHTML = "";
-     tbodyTot.innerHTML = "";
-
-     if (!spese || spese.length === 0) {
-         document.getElementById("resultsTableManual").style.display = "none";
-         document.getElementById("resultsTableTotManual").style.display = "none";
-         return;
-     }
-
-     let totale = 0;
-     let selectedRow = null;
-
-     spese.forEach(spesa => {
-         const tr = document.createElement("tr");
-
-         // Salva l'id della spesa direttamente sulla riga
-         tr.dataset.dataIns = spesa.dataInserimento;
-
-         // Colonna Data Spesa
-         const tdData = document.createElement("td");
-         const dateObj = new Date(spesa.dataSpesa);
-
-         // Recuperiamo giorno, mese e anno
-         const day = String(dateObj.getDate()).padStart(2, '0');       // aggiunge 0 iniziale se <10
-         const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // i mesi in JS partono da 0
-         const year = dateObj.getFullYear();
-         // Formattiamo la data come dd/mm/yyyy
-         tdData.textContent = `${day}/${month}/${year}`;
-         tdData.title = `Data Spesa: ${day}/${month}/${year}`;
-         tdData.style.textAlign = "center";
-         tr.appendChild(tdData);
-
-         // Colonna Categoria
-         const tdCategoria = document.createElement("td");
-         tdCategoria.textContent = spesa.categoria || "";
-         tdCategoria.title = `Categoria: ${spesa.categoria}`;
-         tdCategoria.style.textAlign = "center";
-         tr.appendChild(tdCategoria);
-
-         // Colonna Descrizione
-         const tdDescr = document.createElement("td");
-         tdDescr.textContent = spesa.descrizione || "";
-         tdDescr.title = `Descrizione: ${spesa.descrizione}`;
-         tdDescr.style.textAlign = "center";
-         tr.appendChild(tdDescr);
-
-         // Colonna Importo
-         const tdImporto = document.createElement("td");
-         tdImporto.textContent = spesa.importo ? spesa.importo.toFixed(2) : "0.00";
-         tdImporto.title = `Importo: ${spesa.importo}`;
-         tdImporto.style.textAlign = "center";
-         tr.appendChild(tdImporto);
-
-         // Aggiungi listener per selezione
-          tr.addEventListener("click", () => {
-              tr.classList.toggle("selected-row");
-          });
-
-         tbody.appendChild(tr);
-
-         totale += spesa.importo || 0;
-     });
-
-     // Totale
-     const trTot = document.createElement("tr");
-     const tdTot = document.createElement("td");
-     tdTot.colSpan = 4;
-     tdTot.style.textAlign = "right";
-     tdTot.style.fontWeight = "bold";
-     tdTot.textContent = "Totale:";
-     trTot.appendChild(tdTot);
-
-     const tdTotVal = document.createElement("td");
-     tdTotVal.textContent = totale.toFixed(2);
-     trTot.appendChild(tdTotVal);
-
-     tbodyTot.appendChild(trTot);
-
-     // Mostra le tabelle
-     document.getElementById("resultsTableManual").style.display = "table";
-     document.getElementById("resultsTableTotManual").style.display = "table";
-
-}
-
-function aggiungiRiga(dataValuta, categoria ,descrizione, valore, results) {
-
-   // Aggiunge la nuova riga unita
-    if (!isValid(descrizione) && categoria !== "Totale" && categoria !== "Totale selezionato") {
-      showErrorToast("Inserisci un testo valido", "error");
-       return;
-    }
-   if (isNaN(valore)) {
-        showErrorToast("Inserisci un numero valido", "error");
-       return;
-   }
-    const tabella = document.getElementById(results);
-    const nuovaRiga = document.createElement("tr");
-
-    const dataValutaCell = document.createElement("td");
-    dataValutaCell.textContent = dataValuta;
-
-    const categoriaCell = document.createElement("td");
-    categoriaCell.textContent = categoria;
-
-    const descrizioneCell = document.createElement("td");
-    descrizioneCell.textContent = descrizione;
-
-    const valoreCell = document.createElement("td");
-    valoreCell.classList.add("valore-spesa");
-    valoreCell.textContent = valore.toFixed(2);
-
-    if (categoria.toLowerCase() === "totale") {
-        nuovaRiga.style.fontWeight = "bold";
-        nuovaRiga.id = "rigaTotaleBackend";
-    }
-    if(categoria.toLowerCase() === "totale selezionato") {
-        nuovaRiga.style.fontWeight = "bold";
-        nuovaRiga.id = "totaleLive";
-    }
-
-    if(categoria !== "Totale" && categoria !== "Totale selezionato"){
-     // Aggiungi listener per selezione
-        nuovaRiga.addEventListener("click", () => {
-        nuovaRiga.classList.toggle("selected-row");
-        aggiornaTotaleLive();
-        });
-
-        nuovaRiga.appendChild(dataValutaCell);
-        nuovaRiga.appendChild(categoriaCell);
-        nuovaRiga.appendChild(descrizioneCell);
-        nuovaRiga.appendChild(valoreCell);
-    }else{
-        nuovaRiga.appendChild(categoriaCell);
-        nuovaRiga.appendChild(valoreCell);
-    }
-
-        tabella.appendChild(nuovaRiga);
-
-}
-
 
 function isValid(value) {
     return value != null && !Number.isNaN(value) && value !== "";
@@ -392,24 +275,35 @@ function isValid(value) {
 
 export async function createCriteri() {
 
-    const criteri = {};
-//    if (isValid(manualForm.categoria.value)) {
-//        criteri.categoria = manualForm.categoria.value;
-//    }
-//
-//    const importo = parseFloat(manualForm.importo.value);
-//    if (isValid(importo)) {
-//        criteri.importoMin = importo;
-//        criteri.importoMax = importo;
-//    }
+    let criteri = {};
 
-   if (picker && picker.selectedDates.length > 0) {
-     const [startDate, endDate] = picker.selectedDates;
-     if (startDate) criteri.dataInizio = startDate.toISOString().split('T')[0];
-     if (endDate) criteri.dataFine = endDate.toISOString().split('T')[0];
-   }
+    const selectedCards = document.querySelectorAll('.card.selected');
+    if (selectedCards.length > 0) {
+     criteri = { categoria: [] };
+      selectedCards.forEach(card => {
+        criteri.categoria.push(card.innerText.trim());
+      });
+    }
+
+    const min = -Math.abs(document.getElementById("importoMaxEntrata").value);
+    const max = -Math.abs(document.getElementById("importoMinEntrata").value);
+    if (isValid(min) && min !== -0) {
+        criteri.importoMin = parseFloat(min);
+    }
+    if (isValid(max) && max !== -0) {
+        criteri.importoMax = parseFloat(max);
+    }
+
+    const dateRange = parseDateRange(document.getElementById("date-range").value.trim());
+    criteri.dataInizio = dateRange.dataInizio;
+    criteri.dataFine = dateRange.dataFine;
 
      await tracciaSpeseClick(criteri);;
+}
+
+function parseDateRange(str) {
+  const [dataInizio = null, dataFine = null] = str.split(' al ');
+  return { dataInizio, dataFine };
 }
 
 
@@ -447,6 +341,71 @@ async function deleteSpesaBtn() {
     createCriteri();
 }
 
+async function downloadExcel(){
+
+    const dati = {
+    id : [],
+    dataValuta : [],
+    categoria : [],
+    descrizione : [],
+    valore : [],
+    totale : 0
+    }
+    const totaleHTML = document.getElementById("lista-spese-excel-totale");
+    let totaleExcel = -Math.abs(parseFloat(totaleHTML.innerText));
+    dati.totale = totaleExcel;
+
+    const excelHTML = document.getElementById("lista-spese-excel");
+    const excelCards = excelHTML.querySelectorAll(".spesa");
+
+     if (excelCards.length === 0) {
+        showErrorToast("Importa un file prima del download.","error");
+        return;
+     }
+    let i = 0;
+    excelCards.forEach( card => {
+        dati.id.push(i++)
+        dati.dataValuta.push(card.querySelector('.spesa-header .data').innerText);
+        dati.categoria.push(card.querySelector('.spesa-footer .categoria').innerText);
+        dati.descrizione.push(card.querySelector('.spesa-body .descrizione').innerText)
+        dati.valore.push(estraiImporto(card.querySelector('.spesa-body .importo').innerText));
+    });
+
+    fetchDownload(dati);
+
+}
+
+async function deleteSpesaBtnExcel() {
+    // Trova tutte le righe selezionate
+    const selectedCards = document.querySelectorAll('.spesa.selected');
+    if (selectedCards.length === 0) {
+        showErrorToast("Seleziona almeno una riga da eliminare.","error");
+        return;
+    }
+
+    const totaleHTML = document.getElementById("lista-spese-excel-totale");
+    let totaleExcel = -Math.abs(parseFloat(totaleHTML.innerText));
+    let valuesSelected = 0;
+    selectedCards.forEach(card => {
+         valuesSelected += Math.abs(estraiImporto(card.querySelector('.spesa-body .importo').innerText));
+        card.style.display = 'none';
+        card.classList.remove("selected");
+    });
+
+    let totCell = totaleHTML.querySelector(".importo-totale");
+    const totValue = estraiImporto(totCell.innerText);
+    const newTot = (totValue + valuesSelected).toFixed(2);
+    totCell.textContent = newTot + " €";
+
+}
+
+function estraiImporto(str) {
+  const clean = str.replace(/[^0-9\.-]+/g, "");
+  const num = parseFloat(clean);
+  return isNaN(num) ? null : num;
+}
+
+
 async function deleteCategoriaBtn() {
     // Trova tutte le righe selezionate
     const selectedCards = document.querySelectorAll('.cat.selected');
@@ -479,52 +438,6 @@ async function deleteCategoriaBtn() {
     categorieCreateComponent();
 }
 
-function uploadResult() {
-    const tabella = document.getElementById("resultsBody");
-    const rowTot = document.getElementById("rigaTotaleBackend");
-    const rows = tabella.getElementsByTagName("tr");
-
-    const dati = {
-        dataValuta: [],
-        categoria: [],
-        descrizione: [],
-        valore: [],
-        totale: 0
-    };
-
-    // Ciclo sulle righe della tabella
-    for (let row of rows) {
-        const celle = row.getElementsByTagName("td");
-
-        if (celle.length >= 4) {
-            const dataValuta = celle[0].innerText.trim();
-            const categoria = celle[1].innerText.trim();
-            const descrizione = celle[2].innerText.trim();
-            const valore = parseFloat(celle[3].innerText.trim());
-
-            if (!isNaN(valore)) {
-                dati.dataValuta.push(dataValuta);
-                dati.categoria.push(categoria);
-                dati.descrizione.push(descrizione);
-                dati.valore.push(valore);
-            }
-        }
-    }
-
-    // Riga totale
-    const celle = rowTot.getElementsByTagName("td");
-    if (celle.length >= 4) {
-        const valore = parseFloat(celle[3].innerText.trim());
-
-        if (!isNaN(valore)) {
-            dati.totale = valore;
-        }
-    }
-
-    fetchDownload(dati);
-}
-
-
 export async function fetchDownload(dati) {
     // Invio al backend
         fetch("/api/excel/download", {
@@ -548,179 +461,7 @@ export async function fetchDownload(dati) {
         .catch(err => console.error(err));
 }
 
-function addNuovaRiga(inputCategoria, inputTesto, inputDouble) {
-    const resultsBody = document.getElementById("resultsBody");
 
-    const categoria = inputCategoria.value.trim();
-    const testo = inputTesto.value.trim();
-    // valore inserito con il meno " - "
-    const numero = parseFloat(-inputDouble.value);
-
-    if (!isValid(testo)) {
-        showErrorToast("Inserisci un testo valido", "error");
-        return;
-    }
-    if (isNaN(numero)) {
-        showErrorToast("Inserisci un numero valido", "error");
-        return;
-    }
-
-    // Controllo se esiste già una riga con lo stesso testo
-    let rigaTrovata = null;
-    for (const row of resultsBody.rows) {
-        const cellTesto = row.cells[1];
-        const cellTestotrim = cellTesto.textContent.trim(); //cellTestotrim// la seconda cella contiene il testo
-        if (cellTesto && cellTestotrim === testo) {
-            rigaTrovata = row;
-            break;
-        }
-    }
-
-    if (rigaTrovata) {
-        // Sommo il valore esistente con quello nuovo
-        const cellValore = rigaTrovata.cells[2];
-        const valoreAttuale = parseFloat(cellValore.textContent);
-        const nuovoValore = valoreAttuale + numero;
-        cellValore.textContent = nuovoValore.toFixed(2);
-    } else {
-        // Se non esiste, aggiungo una nuova riga
-        aggiungiRiga(null, categoria, testo, numero,"resultsBody");
-    }
-
-    // Pulisco input
-    inputTesto.value = "";
-    inputDouble.value = "";
-    aggiornaTotale();
-}
-
-
-function aggiornaTotale() {
-   const rows = document.querySelectorAll("#resultsBody tr");
-   const rowsTot = document.querySelectorAll("#resultsBodyTot tr");
-   let somma = 0;
-
-   rows.forEach(row => {
-       const valoreCell = row.querySelector(".valore-spesa");
-        if(valoreCell){
-           const valore = parseFloat(valoreCell.textContent);
-           somma += valore;
-        }
-   });
-
-   const totaleCell = document.getElementById("rigaTotaleBackend");
-   const valoreCell = totaleCell.querySelector(".valore-spesa");
-   let valueTot = parseFloat(somma).toFixed(2);
-    if (totaleCell) {
-           valoreCell.textContent = somma.toFixed(2);
-       }
-
-}
-
-function aggiornaTotaleLive() {
-    let somma = 0;
-    const rows = document.querySelectorAll("#resultsBody tr");
-
-    rows.forEach(row => {
-        const valoreCell = row.querySelector(".valore-spesa");
-
-        if (row.classList.contains("selected-row") && valoreCell) {
-            const valore = parseFloat(valoreCell.textContent);
-            if (!isNaN(valore)) {
-                somma += valore;
-            }
-        }
-    });
-
-    const totaleCell = document.getElementById("totaleLive");
-    const valoreCell = totaleCell.querySelector(".valore-spesa");
-    if (totaleCell) {
-        valoreCell.textContent = somma.toFixed(2);
-    }
-}
-
-function rimuoviRigheSelezionate() {
-    const rows = document.querySelectorAll("#resultsBody tr");
-    const rowsTot = document.querySelectorAll("#resultsBodyTot tr");
-    const righeRimuovere = [];
-    let sommadaRimuovere = 0;
-    let valoreTotale = 0;
-
-    // raccoglie le righe con checkbox selezionata, escludendo totale
-    rows.forEach(row => {
-
-        const valoreCell = row.querySelector(".valore-spesa");
-        const etichettaCell = row.children[1];
-        const etichetta = etichettaCell?.textContent?.toLowerCase();
-
-        if (row.classList.contains("selected-row") && valoreCell) {
-            const valore = parseFloat(valoreCell.textContent);
-            const etichetta = etichettaCell.textContent;
-            righeRimuovere.push({ etichetta, valore, row });
-            sommadaRimuovere += valore;
-        }
-    });
-
-     // Se meno di due righe selezionate, non si unisce
-        if (righeRimuovere.length < 1) {
-            showErrorToast("Seleziona almeno una riga da rimuovere.", "error");
-            return;
-        }
-
-    righeRimuovere.forEach(r => r.row.remove());
-    aggiornaTotaleLive();
-    aggiornaTotale();
-
-
-}
-
-function unisciRigheSelezionate() {
-    const rows = document.querySelectorAll("#resultsBody tr");
-    const righeDaUnire = [];
-
-    // raccoglie le righe con checkbox selezionata, escludendo totale
-    rows.forEach(row => {
-        const valoreCell = row.querySelector(".valore-spesa");
-        const dataCell = row.children[0];
-        const categoriaCell = row.children[1];
-        const descrizioneCell = row.children[2];
-
-        if (row.classList.contains("selected-row") && valoreCell) {
-            const data = dataCell.textContent;
-            const categoria = categoriaCell.textContent;
-            const valore = parseFloat(valoreCell.textContent);
-            const descrizione = descrizioneCell.textContent;
-            righeDaUnire.push({ data, categoria, descrizione, valore, row });
-        }
-    });
-
-    // Se meno di due righe selezionate, non si unisce
-    if (righeDaUnire.length < 2) {
-        showErrorToast("Seleziona almeno due righe da unire.", "error");
-        return;
-    }
-
-    // Somma valori e concatena etichette
-    const dataSum = righeDaUnire.map(r => r.data).join("   ");
-    const categoriaSum = righeDaUnire.map(r => r.categoria).join("   ");
-    const descrizioneSum = righeDaUnire.map(r => r.etichetta).join("   ");
-    const nuovoValore = righeDaUnire.reduce((acc, curr) => acc + curr.valore, 0);
-
-    // Rimuove le righe originali
-    righeDaUnire.forEach(r => r.row.remove());
-
-    aggiungiRiga(dataSum,categoriaSum,descrizioneSum, nuovoValore,"resultsBody");
-
-    aggiornaTotale();
-
-}
-
-
-
-function isMobile() {
-  const isMobileUA = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const isSmallScreen = window.innerWidth <= 968; // considera "mobile" se lo schermo è <= 768px
-  return isMobileUA && isSmallScreen;
-}
 
 // Mostra un toast
 export function showToast(message, type = "success") {

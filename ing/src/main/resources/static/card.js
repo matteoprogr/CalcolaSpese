@@ -1,4 +1,5 @@
 import { saveSpesa } from './queryDexie.js';
+import { updateSpesa } from './queryDexie.js';
 import { createCriteri } from './main.js';
 import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
@@ -7,23 +8,31 @@ export function creaSpesaComponent(spesa) {
        const container = document.createElement("div");
        container.classList.add("spesa");
        container.setAttribute("datains", spesa.dataInserimento);
+       container.setAttribute("id", spesa.id);
 
        container.innerHTML = `
          <div class="spesa-header">
            <small class="data">${spesa.dataSpesa}</small>
+           <button class="spesa-btn" type="button">✏️</button>
          </div>
          <div class="spesa-body">
            <span class="descrizione">${spesa.descrizione}</span>
            <span class="importo">${spesa.importo.toFixed(2)} €</span>
          </div>
          <div class="spesa-footer">
-           <small >${spesa.categoria}</small>
+           <small class="categoria">${spesa.categoria}</small>
          </div>
        `;
 
          // Aggiungi l'evento di clic per alternare la classe 'selected'
          container.addEventListener("click", () => {
            container.classList.toggle("selected");
+         });
+
+         const editBtn = container.querySelector('.spesa-btn');
+         editBtn.addEventListener("click", (e) => {
+             e.stopPropagation();
+             overlayEdit(spesa);
          });
 
        return container;
@@ -98,10 +107,9 @@ closeBtn.addEventListener('click', () => {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const categorie = await getCategorie();
+  //const categorie = await getCategorie();
   const spesa = {
     categoria: categoriaInput.value,
-    dataSpesa: document.getElementById('data').value,
     dataSpesa: document.getElementById('data').value,
     importo: -Math.abs(parseFloat(document.getElementById('importo').value)),
     descrizione: document.getElementById('descrizione').value
@@ -148,8 +156,12 @@ form.addEventListener('submit', async (e) => {
             catRow.appendChild(card);
             });
         }
+         document.addEventListener('click', (event) => {
+            if (!overlay.classList.contains('showOverlay')) return;
+            if (event.target.closest('#overlayRicerca') || event.target.closest('#getSpesaBtn')) return;
+              overlay.classList.remove('showOverlay');
+          });
     });
-
   }
 
 function catOverlay(categoria) {
@@ -163,7 +175,57 @@ function catOverlay(categoria) {
 
             container.addEventListener("click", () => {
               container.classList.toggle("selected");
+              createCriteri();
             });
 
         return container;
+}
+
+export async function overlayEdit (spesa) {
+    const overlay = document.getElementById('editSpesaFormOverlay');
+    const closeBtn = document.getElementById('closeEditFormBtn');
+    const form = document.getElementById('editSpesaForm');
+    const mainContent = document.querySelector('.main-content');
+    const datalist = document.getElementById('editCategorie');
+
+    // Popola i campi del form con i dati della spesa
+    document.getElementById('editSpesaId').value = spesa.id;
+    document.getElementById('editCategoria').value = spesa.categoria;
+    document.getElementById('editData').value = spesa.dataSpesa;
+    document.getElementById('editImporto').value = Math.abs(spesa.importo); // Rimuovi il segno negativo per visualizzazione
+    document.getElementById('editDescrizione').value = spesa.descrizione;
+
+    // Mostra l'overlay
+    overlay.style.display = 'flex';
+    mainContent.classList.add('blur-active');
+    await popolaCategorie(datalist);
+    setTimeout(() => overlay.classList.add('show'), 10);
+
+    closeBtn.addEventListener('click', () => {
+      overlay.classList.remove('show');
+      mainContent.classList.remove('blur-active');
+      setTimeout(() => overlay.style.display = 'none', 300);
+    });
+
+    form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const spesa = {
+        id: parseInt(document.getElementById('editSpesaId').value),
+        categoria: document.getElementById('editCategoria').value,
+        dataSpesa: document.getElementById('editData').value,
+        importo: -Math.abs(parseFloat(document.getElementById('editImporto').value)),
+        descrizione: document.getElementById('editDescrizione').value
+     };
+       try {
+         await updateSpesa(spesa);
+         overlay.classList.remove('show');
+         mainContent.classList.remove('blur-active');
+         setTimeout(() => overlay.style.display = 'none', 300);
+         createCriteri();
+         form.reset();
+       } catch (err) {
+         showErrorToast("Errore durante la modifica:", "error");
+       }
+    });
 }
