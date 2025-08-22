@@ -109,7 +109,7 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   //const categorie = await getCategorie();
   const spesa = {
-    categoria: categoriaInput.value,
+    categoria: categoriaInput.value.trim(),
     dataSpesa: document.getElementById('data').value,
     importo: -Math.abs(parseFloat(document.getElementById('importo').value)),
     descrizione: document.getElementById('descrizione').value
@@ -181,16 +181,17 @@ function catOverlay(categoria) {
         return container;
 }
 
-export async function overlayEdit (spesa) {
+export async function overlayEdit(spesa) {
     const overlay = document.getElementById('editSpesaFormOverlay');
     const closeBtn = document.getElementById('closeEditFormBtn');
     const form = document.getElementById('editSpesaForm');
     const mainContent = document.querySelector('.main-content');
     const datalist = document.getElementById('editCategorie');
+    const dataInserimento = spesa.dataInserimento;
 
     // Popola i campi del form con i dati della spesa
     document.getElementById('editSpesaId').value = spesa.id;
-    document.getElementById('editCategoria').value = spesa.categoria;
+    document.getElementById('editCategoria').value = spesa.categoria.trim();
     document.getElementById('editData').value = spesa.dataSpesa;
     document.getElementById('editImporto').value = Math.abs(spesa.importo); // Rimuovi il segno negativo per visualizzazione
     document.getElementById('editDescrizione').value = spesa.descrizione;
@@ -212,7 +213,8 @@ export async function overlayEdit (spesa) {
 
     const spesa = {
         id: parseInt(document.getElementById('editSpesaId').value),
-        categoria: document.getElementById('editCategoria').value,
+        categoria: document.getElementById('editCategoria').value.trim(),
+        dataInserimento: dataInserimento,
         dataSpesa: document.getElementById('editData').value,
         importo: -Math.abs(parseFloat(document.getElementById('editImporto').value)),
         descrizione: document.getElementById('editDescrizione').value

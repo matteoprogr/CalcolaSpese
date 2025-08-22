@@ -49,7 +49,7 @@ function capitalizeFirstLetter(str) {
 }
 
 async function saveCategoria(categoria) {
-  const categoriaLower = categoria.toLowerCase();
+  const categoriaLower = categoria.toLowerCase().trim();
   const categoriaCapitalized = capitalizeFirstLetter(categoriaLower);
   try {
     await db.categorie.add({ categoria: categoriaCapitalized });
@@ -72,6 +72,7 @@ export async function updateSpesa(spesa) {
     const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
     const data = {
       ...spesa,
+      dataInserimento: spesa.dataInserimento,
       categoria: capitalizeFirstLetter(spesa.categoria),
       dataSpesa: fomattedISO,
       dataModifica: new Date().toISOString()

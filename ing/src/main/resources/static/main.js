@@ -256,6 +256,7 @@ export async function categorieCreateComponent() {
     const categorie = await getCategorie();
     const categorieList = document.getElementById("gestione-categorie");
     const zeroCategorie = document.getElementById("zero-categorie");
+    zeroCategorie.innerHTML = "";
     categorieList.innerHTML = "";
     if (!categorie || categorie.length === 0) {
         const nodo = nessunaElementoComponent("categoria")
@@ -418,7 +419,7 @@ async function deleteCategoriaBtn() {
     const criteri = [];
     if (selectedCards.length > 0) {
          selectedCards.forEach(card => {
-            criteri.push(card.innerText);
+            criteri.push(card.innerText.trim());
     });
     }
 
