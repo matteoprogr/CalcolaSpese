@@ -124,7 +124,12 @@ export function setDateRange(range = "#date-range") {
       startOfMonth.toISOString().split('T')[0],
       endOfMonth.toISOString().split('T')[0]
     ],
-    placeholder: `Seleziona intervallo di date (${currentMonth})`,
+    formatDate: function(date, format, locale) {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      },
     onChange: function (selectedDates, dateStr, instance) {
       createCriteri();
     }
@@ -174,7 +179,7 @@ async function uploadExcel() {
         const dataInizio = startDate.value;
         const dataFine = endDate.value;
 
-        if(!isValid(fileInput || !isValid(nomeBanca) || nomeBanca.contains("Nome della tua banca"))){
+        if(!isValid(fileInput) || !isValid(nomeBanca) || nomeBanca.contains("")){
             showErrorToast("Compila correttamente i campi:", "error");
         }
 
@@ -247,7 +252,7 @@ async function fetchUpload(formData) {
             excelCardCreator(result);
         })
         .catch(error => {
-            document.getElementById("response").innerText = "Errore durante l'upload: " + error;
+            showErrorToast("Errore durante l'upload", "error");
         });
 
 }
@@ -296,8 +301,8 @@ export async function createCriteri() {
     }
 
     const dateRange = parseDateRange(document.getElementById("date-range").value.trim());
-    criteri.dataInizio = dateRange.dataInizio;
-    criteri.dataFine = dateRange.dataFine;
+    criteri.dataInizio = convertDDMMYYYYtoYYYYMMDD(dateRange.dataInizio);
+    criteri.dataFine = convertDDMMYYYYtoYYYYMMDD(dateRange.dataFine);
 
      await tracciaSpeseClick(criteri);;
 }
@@ -305,6 +310,19 @@ export async function createCriteri() {
 function parseDateRange(str) {
   const [dataInizio = null, dataFine = null] = str.split(' al ');
   return { dataInizio, dataFine };
+}
+
+function convertDDMMYYYYtoYYYYMMDD(dateStr) {
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return null;
+
+  const [dd, mm, yyyy] = parts;
+  const day = dd.padStart(2, '0');
+  const month = mm.padStart(2, '0');
+  const year = yyyy;
+
+  // Puoi aggiungere ulteriori controlli di validità qui, se serve
+  return `${year}-${month}-${day}`;
 }
 
 

@@ -12,7 +12,7 @@ export function creaSpesaComponent(spesa) {
 
        container.innerHTML = `
          <div class="spesa-header">
-           <small class="data">${spesa.dataSpesa}</small>
+           <small class="data">${formatDate(spesa.dataSpesa)}</small>
            <button class="spesa-btn" type="button">✏️</button>
          </div>
          <div class="spesa-body">
@@ -37,6 +37,13 @@ export function creaSpesaComponent(spesa) {
 
        return container;
      }
+
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("it-IT");
+}
+
 
 export function creaComponentTotale(spese) {
 
