@@ -524,7 +524,7 @@ button:hover {
 }
 
 .spesa-btn{
-    font-size: 0.75rem;
+    font-size: 0.95rem;
     cursor: pointer;
     padding: 0.125rem 0.25rem;
     border-radius: 50%;
@@ -534,8 +534,8 @@ button:hover {
     color: #666;
     background: linear-gradient(135deg, #ffb3b3, #ffcccc);
     transition: background-color 0.2s, color 0.2s;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.8rem;
+    height: 1.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -738,9 +738,8 @@ button:hover {
   left: 0;
   margin-left: 0.95rem;
   margin-right: 0.95rem;
-  height: 25vh;
+  height: 23vh;
   background-color: rgba(204, 229, 255, 0.5);
-  padding-bottom: 1rem;
   border-radius: 1rem;
   box-shadow:
     0 -8px 20px rgba(0, 0, 0, 0.1),
@@ -767,9 +766,8 @@ button:hover {
   left: 0;
   margin-left: 0.95rem;
   margin-right: 0.95rem;
-  height: 45vh;
+  height: 40vh;
   background-color: rgba(204, 229, 255, 0.5);
-  padding-bottom: 1rem;
   border-radius: 1rem;
   box-shadow:
     0 -8px 20px rgba(0, 0, 0, 0.1),
@@ -795,9 +793,8 @@ button:hover {
   left: 0;
   margin-left: 0.95rem;
   margin-right: 0.95rem;
-  height: 45vh;
+  height: 40vh;
   background-color: rgba(204, 229, 255, 0.5);
-  padding-bottom: 1rem;
   border-radius: 1rem;
   box-shadow:
     0 -8px 20px rgba(0, 0, 0, 0.1),
