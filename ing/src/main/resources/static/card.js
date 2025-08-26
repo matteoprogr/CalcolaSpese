@@ -95,7 +95,6 @@ const openBtn = document.getElementById('addSpesaBtn');
 const overlay = document.getElementById('spesaFormOverlay');
 const form = document.getElementById('spesaForm');
 const categoriaInput = document.getElementById('categoria');
-const saveBtn = document.getElementById("saveBtn");
 const catRow = document.getElementById('categorieCardsAdd');
 const closeBtn = document.getElementById('closeFormBtn');
 const importo = document.getElementById('importo');
@@ -125,24 +124,23 @@ openBtn.addEventListener('click', async (e) => {
         overlay.classList.remove('showOverlay');
     });
 
-    saveBtn.addEventListener('click', async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const spesa = {
         categoria: categoriaInput.value.trim(),
-        dataSpesa: document.getElementById('data').value,
+        dataSpesa: data.value,
         importo: -Math.abs(parseFloat(importo.value)),
         descrizione: descrizione.value
       };
+
 
       try {
         await saveSpesa(spesa);
         overlay.classList.remove('showOverlay');
         createCriteri();
-        categoriaInput.value = "";
-        importo.value = "";
-        descrizione.value = "";
+        form.reset();
       } catch (err) {
-        showErrorToast("Errore durante il salvataggio:", "error");
+        showErrorToast("Errore durante il salvataggio", "error");
       }
     });
 }
@@ -208,6 +206,8 @@ export async function overlayEdit(spesa) {
     const editBtn = document.getElementById('editBtn');
     const closeBtn = document.getElementById('closeEditFormBtn');
     const dataInserimento = spesa.dataInserimento;
+    const form = document.getElementById('editForm');
+
 
     // Popola i campi del form con i dati della spesa
     document.getElementById('editSpesaId').value = spesa.id;
@@ -237,7 +237,7 @@ export async function overlayEdit(spesa) {
       });
 
 
-    editBtn.addEventListener('click', async (e) => {
+    form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const spesa = {

@@ -59,22 +59,23 @@
 
     <!-- OVERLAY INSERT -->
     <div id="spesaFormOverlay">
-
+        <form id="spesaForm">
             <div class="input-group">
-                <input type="text"  id="categoria" placeholder="Seleziona o scrivi...">
+                <input type="text" id="categoria" placeholder="Seleziona o inserisci categoria ..."  required>
             <div class="categorie-cards" id="categorieCardsAdd"></div>
             </div>
             <div class="input-group row">
-                <input class="importoOverlay" type="date" id="data" required placeholder=" ">
-                <input class="importoOverlay" type="number" step="0.01" id="importo" required placeholder="Importo (€)">
+                <input class="importoOverlay" type="date" id="data" required>
+                <input class="importoOverlay" type="number" step="0.01" id="importo" placeholder="Importo (€)" required>
             </div>
             <div class="input-group">
-                <input type="text" id="descrizione" required placeholder="Descrizione">
+                <input type="text" id="descrizione" placeholder="Descrizione">
             </div>
             <div class="button-group row">
-                <button class="overlayButton" id="saveBtn" type="button">Salva</button>
+                <button class="overlayButton"  type="submit">Salva</button>
                 <button class="overlayButton" type="button" id="closeFormBtn">Annulla</button>
             </div>
+        </form>
     </div>
 
 
@@ -92,24 +93,25 @@
 
     <!-- OVERLAY EDIT SPESA -->
     <div id="editSpesaFormOverlay">
-
+        <form id="editForm">
             <input type="hidden" id="editSpesaId">
 
             <div class="input-group">
-                <input type="text"  id="editCategoria" name="categoria" placeholder="Seleziona o scrivi...">
+                <input type="text"  id="editCategoria" name="categoria" placeholder="Seleziona o scrivi..." required>
                 <div class="categorie-cards" id="categorieCardsEdit"></div>
             </div>
             <div class="input-group row">
-                <input class="importoOverlay" type="date" id="editData" required placeholder=" ">
-                <input class="importoOverlay" type="number" step="0.01" id="editImporto" required placeholder="Importo (€)">
+                <input class="importoOverlay" type="date" id="editData" placeholder=" " required>
+                <input class="importoOverlay" type="number" step="0.01" id="editImporto" placeholder="Importo (€)" required>
             </div>
             <div class="input-group">
-                <input type="text" id="editDescrizione" required placeholder="Descrizione">
+                <input type="text" id="editDescrizione" placeholder="Descrizione">
             </div>
             <div class="button-group row">
-                <button class="overlayButton" id="editBtn" type="button">Salva</button>
+                <button class="overlayButton"  type="submit">Salva</button>
                 <button class="overlayButton" type="button" id="closeEditFormBtn">Annulla</button>
             </div>
+        </form>
 
     </div>
 </section>
@@ -129,8 +131,10 @@
                             <option value="" disabled selected>-- Nome della tua banca --</option>
                             <option value="ingDirect">IngDirect</option>
                         </select>
-                        <input type="date" id="startDate" name="startDate">
-                        <input type="date" id="endDate" name="endDate">
+                        <div class="input-group row">
+                            <input type="date" id="startDate" name="startDate">
+                            <input type="date" id="endDate" name="endDate">
+                        </div>
                         <button id="invioBtn" type="button">Invia</button>
                         <div id="lista-spese-excel-totale"></div>
                     </div>
@@ -174,7 +178,9 @@
 
 <!-- Pagina Gestisci Categorie //////////////////////////////////////////////////////////////-->
 <section id="categorie-section" class="page-section">
-    <h2>Le tue categorie</h2>
+    <div class="sticky-bar">
+        <h2>Le tue categorie</h2>
+    </div>
     <div class="excel-container">
         <div id="gestione-categorie"></div>
         <div id="zero-categorie"></div>

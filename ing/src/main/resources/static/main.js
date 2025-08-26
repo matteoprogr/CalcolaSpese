@@ -179,7 +179,7 @@ async function uploadExcel() {
         const dataInizio = startDate.value;
         const dataFine = endDate.value;
 
-        if(!isValid(fileInput) || !isValid(nomeBanca) || nomeBanca.contains("")){
+        if(!isValid(fileInput) || !isValid(nomeBanca) || nomeBanca === ""){
             showErrorToast("Compila correttamente i campi:", "error");
         }
 
