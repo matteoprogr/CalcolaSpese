@@ -51,6 +51,18 @@ let picker;
 // SUBMIT FORM  e SECTIONS //////////////////////////////////////////
 
 document.querySelectorAll('nav a').forEach(link => {
+    link.addEventListener('touchstart', function(e) {
+        this.touchStartTime = Date.now();
+      });
+
+      link.addEventListener('touchend', function(e) {
+        if (Date.now() - this.touchStartTime < 400) {
+          // Tocco breve: comportamento predefinito
+          return;
+        }
+        // Tocco lungo: impedisci il menu contestuale
+        e.preventDefault();
+      });
     link.addEventListener('click', () => {
         targetId = link.getAttribute('data-target');
         // Rimuove classe active da tutti i link
@@ -79,6 +91,7 @@ document.querySelectorAll('nav a').forEach(link => {
         if(targetId === 'elabora-excel'){
             const listTraccia = document.getElementById("lista-spese");
             listTraccia.innerHTML = "";
+            setDataExcel();
         }
 
         const selectedCards = document.querySelectorAll('.selected');
@@ -105,32 +118,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
 //  FUNZIONI //////////////////////////////////
 
+function setDataExcel(){
+    const start = document.getElementById('startDate');
+    const end = document.getElementById('endDate');
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1, 2, 0, 0);
+    start.value = startOfMonth.toISOString().split("T")[0];
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1, 1, 59, 0);
+    end.value = endOfMonth.toISOString().split("T")[0];
+}
+
 export function setDateRange(range = "#date-range") {
   const today = new Date();
-  const currentMonth = today.toLocaleString('it-IT', { month: 'long' });
 
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1, 2, 0, 0);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 1, 59, 0);
+  const lastDay = endOfMonth.getDate();
 
-  let criteri = {};
-  const picker = flatpickr(range , {
+  function formatDMY(date) {
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+
+
+  function getMonthYearName(date) {
+    return date.toLocaleString("it-IT", { month: "long", year: "numeric" });
+  }
+
+  const picker = flatpickr(range, {
     mode: "range",
     dateFormat: "Y-m-d",
     altInput: false,
     locale: "it",
     minDate: "2020-01-01",
-    maxDate: "2030-12-31",
-    defaultDate: [
-      startOfMonth.toISOString().split('T')[0],
-      endOfMonth.toISOString().split('T')[0]
-    ],
+    maxDate: "2035-12-31",
+    defaultDate: [startOfMonth, endOfMonth],  // Passa direttamente Date objects
     formatDate: function(date, format, locale) {
-        const d = String(date.getDate()).padStart(2, '0');
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const y = date.getFullYear();
-        return `${d}/${m}/${y}`;
-      },
-    onChange: function (selectedDates, dateStr, instance) {
+      return formatDMY(date);
+    },
+    onReady: function(selectedDates, dateStr, instance) {
+      if (
+        selectedDates.length === 2 &&
+        selectedDates[0].getDate() === 1 &&
+        selectedDates[1].getDate() === lastDay &&
+        selectedDates[0].getMonth() === selectedDates[1].getMonth()
+      ) {
+        instance.input.value = getMonthYearName(selectedDates[0]).toUpperCase();
+      }
+    },
+    onChange: function(selectedDates, dateStr, instance) {
+      if (
+        selectedDates.length === 2 &&
+        selectedDates[0].getDate() === 1 &&
+        selectedDates[1].getDate() === lastDay &&
+        selectedDates[0].getMonth() === selectedDates[1].getMonth()
+      ) {
+        instance.input.value = getMonthYearName(selectedDates[0]).toUpperCase();
+      } else {
+        instance.input.value = `${formatDMY(selectedDates[0])} – ${formatDMY(selectedDates[1])}`;
+      }
+
       createCriteri();
     }
   });
@@ -300,29 +349,74 @@ export async function createCriteri() {
         criteri.importoMax = parseFloat(max);
     }
 
-    const dateRange = parseDateRange(document.getElementById("date-range").value.trim());
-    criteri.dataInizio = convertDDMMYYYYtoYYYYMMDD(dateRange.dataInizio);
-    criteri.dataFine = convertDDMMYYYYtoYYYYMMDD(dateRange.dataFine);
+
+    const inputRange = document.getElementById("date-range").value.trim();
+
+    let dataInizio, dataFine;
+    if (inputRange.match(/^[a-z]+\s+\d{4}$/i)) {
+        // Se assume il formato "mese anno"
+        const { startDate, endDate } = getMonthDateRange(inputRange);
+        dataInizio = startDate;
+        dataFine = endDate;
+    } else {
+        // Se è un range come "01/08/2025 – 31/08/2025"
+        const { dataInizio: ds, dataFine: df } = parseDateRange(inputRange);
+        dataInizio = convertDDMMYYYYtoDate(ds);
+        dataFine = convertDDMMYYYYtoDate(df);
+    }
+
+    criteri.dataInizio = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataInizio));
+    criteri.dataFine = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataFine));
 
      await tracciaSpeseClick(criteri);;
 }
 
+
+function getMonthDateRange(monthNameYear) {
+  const monthNames = [
+    'gennaio','febbraio','marzo','aprile','maggio','giugno',
+    'luglio','agosto','settembre','ottobre','novembre','dicembre'
+  ];
+
+  const parts = monthNameYear.trim().toLowerCase().split(' ');
+  if (parts.length < 2) {
+    throw new Error('Formato non valido: usare "mese anno", es. "agosto 2025"');
+  }
+
+  const year = parseInt(parts[parts.length - 1], 10);
+  const monthName = parts.slice(0, parts.length - 1).join(' ');
+  const monthIndex = monthNames.indexOf(monthName);
+
+  if (monthIndex === -1 || isNaN(year)) {
+    throw new Error(`Mese non valido: "${monthNameYear}"`);
+  }
+
+  const startDate = new Date(year, monthIndex, 1);
+  const endDate = new Date(year, monthIndex + 1, 0);
+
+  return { startDate, endDate };
+}
+
 function parseDateRange(str) {
-  const [dataInizio = null, dataFine = null] = str.split(' al ');
+  const [dataInizio = null, dataFine = null] = str.split(' – ');
   return { dataInizio, dataFine };
 }
 
-function convertDDMMYYYYtoYYYYMMDD(dateStr) {
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return null;
+function convertDDMMYYYYtoDate(str) {
+  const [d, m, y] = str.split('/');
+  return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+}
 
-  const [dd, mm, yyyy] = parts;
-  const day = dd.padStart(2, '0');
-  const month = mm.padStart(2, '0');
-  const year = yyyy;
+function formatDDMMYYYY(date) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+}
 
-  // Puoi aggiungere ulteriori controlli di validità qui, se serve
-  return `${year}-${month}-${day}`;
+function convertDDMMYYYYtoYYYYMMDD(str) {
+  const [d, m, y] = str.split('/');
+  return `${y}-${m}-${d}`;
 }
 
 
