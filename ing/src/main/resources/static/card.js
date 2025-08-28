@@ -104,6 +104,7 @@ const data = document.getElementById('data');
 openBtn.addEventListener('click', async (e) => {
         if (overlay.classList.contains('showOverlay')) {
             overlay.classList.remove('showOverlay');
+            form.reset();
         } else {
             catRow.innerHTML = "";
             overlay.classList.toggle("showOverlay");
@@ -118,10 +119,12 @@ openBtn.addEventListener('click', async (e) => {
             if (!overlay.classList.contains('showOverlay')) return;
             if (event.target.closest('#spesaFormOverlay') || event.target.closest('#addSpesaBtn')) return;
               overlay.classList.remove('showOverlay');
+              form.reset();
           });
     });
     closeBtn.addEventListener('click',async () =>{
         overlay.classList.remove('showOverlay');
+        form.reset();
     });
 
     form.addEventListener('submit', async (e) => {

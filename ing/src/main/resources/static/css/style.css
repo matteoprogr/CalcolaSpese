@@ -120,7 +120,7 @@ select {
   font-size: 0.875rem;
   box-sizing: border-box;
   display: block;
-  background: linear-gradient(135deg, #C0DFF7, #E6EDF2);
+  background: linear-gradient(135deg, rgba(236, 244, 251, 0.4), #FFFFFF);
 }
 
 
@@ -128,7 +128,7 @@ button {
   width: 100%;
   padding: 0.625rem;
   margin-top: 0.175rem;
-  background: linear-gradient(135deg, #C0DFF7, #E6EDF2);
+  background: linear-gradient(135deg, rgba(236, 244, 251, 0.4), #FFFFFF);
   color: #000; /* testo nero */
   font-weight: 500; /* meno pesante, più minimal */
   font-size: 0.9rem;
@@ -346,7 +346,7 @@ button:hover {
   margin: 0 auto;
   padding: 0 1rem;
   overflow-y: auto;
-  padding-bottom: 4rem;
+  padding-bottom: 5rem;
 }
 
 #lista-spese-excel {
@@ -418,7 +418,7 @@ button:hover {
   margin: 0 auto;
   padding: 0 1rem;
   overflow-y: auto;
-  padding-bottom: 4rem;
+  padding-bottom: 5rem;
 }
 
 .spesa {
@@ -441,13 +441,14 @@ button:hover {
 }
 
 .cat {
-  font-size: 1.7rem;
+  font-size: 1.2rem;
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
   min-width: 120px;
+  font-weight:500;
   background: linear-gradient(135deg, #c9dcff, #e6f0ff);
-  padding: 1rem;
+  padding: 0.8rem;
   border-radius: 0.425rem;
   box-sizing: border-box;
   position: relative;
@@ -633,7 +634,7 @@ button:hover {
     font-weight: 500;
 }
 #date-range.flatpickr-input {
-  width: 50%;
+  width: 60%;
   border: 1px solid #ccc;
   border-radius: 0.425rem;
   margin-top:0.3rem;

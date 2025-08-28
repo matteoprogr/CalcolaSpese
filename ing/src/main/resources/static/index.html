@@ -63,7 +63,7 @@
     <div id="spesaFormOverlay">
         <form id="spesaForm">
             <div class="input-group">
-                <input type="text" id="categoria" placeholder="Seleziona o inserisci categoria ..."  required>
+                <input type="text" id="categoria"  maxlength="25" placeholder="Seleziona o inserisci una categoria..."  required>
             <div class="categorie-cards" id="categorieCardsAdd"></div>
             </div>
             <div class="input-group row">
@@ -71,7 +71,7 @@
                 <input class="importoOverlay" type="number" step="0.01" id="importo" placeholder="Importo (€)" required>
             </div>
             <div class="input-group">
-                <input type="text" id="descrizione" placeholder="Descrizione">
+                <input type="text" id="descrizione" maxlength="35" placeholder="Descrizione">
             </div>
             <div class="button-group row">
                 <button class="overlayButton"  type="submit">Salva</button>
@@ -99,7 +99,7 @@
             <input type="hidden" id="editSpesaId">
 
             <div class="input-group">
-                <input type="text"  id="editCategoria" name="categoria" placeholder="Seleziona o scrivi..." required>
+                <input type="text"  id="editCategoria" maxlength="25" name="categoria" placeholder="Seleziona o inserisci una categoria..." required>
                 <div class="categorie-cards" id="categorieCardsEdit"></div>
             </div>
             <div class="input-group row">
@@ -107,7 +107,7 @@
                 <input class="importoOverlay" type="number" step="0.01" id="editImporto" placeholder="Importo (€)" required>
             </div>
             <div class="input-group">
-                <input type="text" id="editDescrizione" placeholder="Descrizione">
+                <input type="text" id="editDescrizione" maxlength="35" placeholder="Descrizione">
             </div>
             <div class="button-group row">
                 <button class="overlayButton"  type="submit">Salva</button>
@@ -129,15 +129,18 @@
                         <h2>Importa Excel</h2>
                         <div id="zero-rows"></div>
                         <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
-                        <select id="nomeBanca" required>
-                            <option value="" disabled selected>-- Nome della tua banca --</option>
-                            <option value="ingDirect">IngDirect</option>
-                        </select>
+
                         <div class="input-group row">
                             <input type="date" id="startDate" name="startDate">
                             <input type="date" id="endDate" name="endDate">
                         </div>
-                        <button id="invioBtn" type="button">Invia</button>
+                        <div class="input-group row">
+                            <select id="nomeBanca" required>
+                                <option value="" disabled selected> seleziona banca </option>
+                                <option value="ingDirect">IngDirect</option>
+                            </select>
+                            <button id="invioBtn" type="button">Invia</button>
+                        </div>
                         <div id="lista-spese-excel-totale"></div>
                     </div>
 
