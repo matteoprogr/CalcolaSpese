@@ -1,5 +1,5 @@
 import { saveSpesa } from './queryDexie.js';
-import { querySpese } from './queryDexie.js';
+import { queryTrns } from './queryDexie.js';
 import { deleteSpese } from './queryDexie.js';
 import { deleteCategorie } from './queryDexie.js';
 import { creaSpesaComponent } from './card.js';
@@ -10,6 +10,7 @@ import { categoriaComponent } from './card.js';
 import { getCategorie } from './queryDexie.js';
 import { overlayRicerca } from './card.js';
 import { overlayEdit } from './card.js';
+import { recuperaTab } from './card.js';
 
 
 
@@ -81,8 +82,8 @@ document.querySelectorAll('nav a').forEach(link => {
         if (navToggle) {
             navToggle.checked = false;
         }
-        // Sezione specifica "traccia-spesa"
-        if (targetId === 'traccia-spesa') {
+        // Sezione specifica "movimenti"
+        if (targetId === 'movimenti') {
             setDateRange();
         }
         if (targetId === 'categorie-section') {
@@ -103,18 +104,90 @@ document.querySelectorAll('nav a').forEach(link => {
 
 // DOM CONTENT LOADED ///////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
-     overlayAddSpesa();
-     overlayRicerca();
-     setDateRange();
-//event.target.closest('#mobile-nav')
-     document.addEventListener('click', (event) => {
-         if (event.target.tagName === 'SPAN' || event.target.closest('#nav-toggle')) return;
-           const navToggle = document.getElementById('nav-toggle');
-               if (navToggle) {
-                   navToggle.checked = false;
-               }
-       });
+    overlayAddSpesa();
+    overlayRicerca();
+    setDateRange();
+    let container = document.querySelector('.movimenti-container');
+    let tabs = document.querySelectorAll('.movimenti-tabs .tab');
+    if (!container || !tabs.length) return;
+    let startX = 0, startY = 0, currentX = 0, currentY = 0;
+    let currentIndex = 0;
+    const maxIndex = tabs.length - 1;
+    const THRESHOLD = 50;       // pixel min per riconoscere swipe
+    const ANGLE_RATIO = 0.5;
+
+ document.addEventListener('click', (event) => {
+     if (event.target.tagName === 'SPAN' || event.target.closest('#nav-toggle')) return;
+       const navToggle = document.getElementById('nav-toggle');
+           if (navToggle) {
+               navToggle.checked = false;
+           }
+   });
+
+//swipe
+   container.addEventListener('touchstart', e => {
+       const t = e.touches[0];
+       startX = currentX = t.clientX;
+       startY = currentY = t.clientY;
+        createCriteri();
+     }, { passive: true });
+
+   container.addEventListener('touchmove', e => {
+       const t = e.touches[0];
+       currentX = t.clientX;
+       currentY = t.clientY;
+       // se vuoi bloccare lo scroll verticale quando è chiaramente orizzontale:
+       const dx = Math.abs(currentX - startX);
+       const dy = Math.abs(currentY - startY);
+       if (dx > THRESHOLD && dy <= dx * ANGLE_RATIO) {
+         //e.preventDefault(); // serve {passive:false} se lo vuoi davvero bloccare
+       }
+        createCriteri();
+     }, { passive: false });
+
+     container.addEventListener('touchend', () => {
+       const diffX = startX - currentX;
+       const diffY = startY - currentY;
+
+       // Riconosciamo swipe orizzontale “pulito”
+       if (Math.abs(diffX) < THRESHOLD || Math.abs(diffY) > Math.abs(diffX) * ANGLE_RATIO) return;
+
+       if (diffX > 0 && currentIndex < maxIndex) currentIndex++;
+       else if (diffX < 0 && currentIndex > 0)  currentIndex--;
+
+       const targetLeft = currentIndex * container.clientWidth;
+
+       // più compatibile
+       try {
+         container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+       } catch {
+         container.scrollLeft = targetLeft;
+       }
+       setActiveTab(currentIndex);
+        createCriteri();
      });
+
+
+   // click sul tab → vai alla slide
+    tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => {
+      currentIndex = i;
+      const targetLeft = i * container.clientWidth;
+      try {
+        container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+      } catch {
+        container.scrollLeft = targetLeft;
+      }
+      setActiveTab(i);
+       createCriteri();
+    });
+    });
+
+    function setActiveTab(index){
+        tabs.forEach(t => t.classList.remove('active'));
+        if (tabs[index]) tabs[index].classList.add('active');
+    }
+});
 
 //  FUNZIONI //////////////////////////////////
 
@@ -187,33 +260,59 @@ export function setDateRange(range = "#date-range") {
   createCriteri();
 }
 
+function getElementiTrns(tabActive){
+    if(!tabActive){
+        const trns = {
+        lista: "lista-spese",
+        tot: "lista-spese-totale",
+        zero: "zero-spese",
+        tipo: "spesa"
+        }
+        return trns;
+    }
+    if(tabActive){
+        const trns = {
+        lista: "lista-entrate",
+        tot: "lista-entrate-totale",
+        zero: "zero-entrate",
+        tipo: "entrata"
+        }
+        return trns;
+    }
+
+
+}
+
 
 async function tracciaSpeseClick(criteri) {
     try {
-        const spese = await querySpese(criteri);
-        spese.sort((a, b) => new Date(a.dataSpesa).getTime() - new Date(b.dataSpesa).getTime());
-        const listaSpese = document.getElementById("lista-spese");
-        const listaSpeseTotale = document.getElementById("lista-spese-totale");
-        const zeroSpese = document.getElementById("zero-spese");
-        listaSpese.innerHTML = "";
-        spese.forEach(spesa => {
-          const nodo = creaSpesaComponent(spesa);
-          listaSpese.appendChild(nodo);
+        const tabActive = recuperaTab();
+        let transazioni;
+        transazioni = await queryTrns(criteri,tabActive);
+        const trns = getElementiTrns(tabActive);
+        transazioni.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+        const listaTransazioni = document.getElementById(trns.lista);
+        const listaTransazioniTotale = document.getElementById(trns.tot);
+        const zeroTransazioni = document.getElementById(trns.zero);
+        listaTransazioni.innerHTML = "";
+        transazioni.forEach(trns => {
+          const nodo = creaSpesaComponent(trns,tabActive);
+          listaTransazioni.appendChild(nodo);
         });
 
-        const totale = creaComponentTotale(spese);
-        listaSpeseTotale.innerHTML = "";
-        zeroSpese.innerHTML = "";
+        const totale = creaComponentTotale(transazioni,tabActive);
+        listaTransazioniTotale.innerHTML = "";
+        zeroTransazioni.innerHTML = "";
         const totaleText = totale.innerText.trim();
         if(totaleText !== "0.00 €") {
-            listaSpeseTotale.appendChild(totale);
+            listaTransazioniTotale.appendChild(totale);
         }else {
-        const nodo = nessunaElementoComponent("spesa")
-        zeroSpese.appendChild(nodo);
+        const nodo = nessunaElementoComponent(trns.tipo)
+        zeroTransazioni.appendChild(nodo);
         }
 
     } catch (err) {
-        console.error("Errore nel recupero spese:", err);
+        showErrorToast("Errore nel recupero delle transazioni:", "error");
     }
 }
 
@@ -253,13 +352,13 @@ async function excelCardCreator(dati) {
         const valore = dati.valore;
 
         const spese = dataValuta.map((data, i) => ({
-          dataSpesa: data,
+          data: data,
           categoria: categoria[i],
           descrizione: descrizione[i],
           importo: valore[i]
         }));
 
-        spese.sort((a, b) => new Date(a.dataSpesa) - new Date(b.dataSpesa));
+        spese.sort((a, b) => new Date(a.data) - new Date(b.data));
         const  totaleExcel = document.getElementById("lista-spese-excel-totale");
         const  zeroExcel = document.getElementById("zero-rows");
         const listaSpese = document.getElementById("lista-spese-excel");
@@ -368,7 +467,7 @@ export async function createCriteri() {
     criteri.dataInizio = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataInizio));
     criteri.dataFine = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataFine));
 
-     await tracciaSpeseClick(criteri);;
+     await tracciaSpeseClick(criteri);
 }
 
 

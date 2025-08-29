@@ -9,10 +9,11 @@ initDB();// variabile globale per il database
 
 export function initDB() {
   if (!db) {
-    db = new Dexie('TieniIlContoDB');
+    db = new Dexie('MoneyLogDB');
     db.version(1).stores({
-      spese: '++id, *categoria, importo, dataSpesa, [importo+dataSpesa]',
-      categorie: '&categoria'
+      spese: '++id, *categoria, importo, data, [importo+data]',
+      categorie: '&categoria',
+      entrate: '++id, *categoria, importo, data, [importo+data]',
     });
   }
   return db;
@@ -23,13 +24,14 @@ export async function saveSpesa(spesa) {
   try {
 
     initDB();
-    const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
+    const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
 
     const data = {
-      ...spesa,
+      descrizione: spesa.descrizione,
+      importo: -Math.abs(spesa.importo),
       categoria: capitalizeFirstLetter(spesa.categoria),
       dataInserimento: new Date().toISOString(),
-      dataSpesa: fomattedISO
+      data: fomattedISO
     };
 
     await saveCategoria(spesa.categoria);
@@ -39,6 +41,32 @@ export async function saveSpesa(spesa) {
     return { success: true, id };
   } catch (error) {
     console.error("Errore nel salvataggio spesa:", error);
+    return { success: false, error };
+  }
+}
+
+// Salvataggio di una entrata
+export async function saveEntrata(entrata) {
+  try {
+
+    initDB();
+    const fomattedISO = new Date(entrata.data).toISOString().split('T')[0];
+
+    const data = {
+      descrizione: entrata.descrizione,
+      importo: entrata.importo,
+      categoria: capitalizeFirstLetter(entrata.categoria),
+      dataInserimento: new Date().toISOString(),
+      data: fomattedISO
+    };
+
+    await saveCategoria(entrata.categoria);
+    const id = await db.entrate.add(data);
+    showToast("entrata aggiunta con successo", "success");
+
+    return { success: true, id };
+  } catch (error) {
+    console.error("Errore nel salvataggio entrata:", error);
     return { success: false, error };
   }
 }
@@ -69,12 +97,12 @@ export async function updateSpesa(spesa) {
       throw new Error("ID spesa mancante per la sostituzione");
     }
 
-    const fomattedISO = new Date(spesa.dataSpesa).toISOString().split('T')[0];
+    const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
     const data = {
       ...spesa,
       dataInserimento: spesa.dataInserimento,
       categoria: capitalizeFirstLetter(spesa.categoria),
-      dataSpesa: fomattedISO,
+      data: fomattedISO,
       dataModifica: new Date().toISOString()
     };
 
@@ -96,10 +124,15 @@ export async function updateSpesa(spesa) {
 
 
 //// Ricerca spese con più criteri combinati
-export async function querySpese(criteri = {}) {
+export async function queryTrns(criteri = {}, tabActive) {
   initDB();
+  let collezione;
+  if(!tabActive){
+    collezione = db.spese;
+  }else if(tabActive){
+    collezione = db.entrate;
+  }
 
-  let collezione = db.spese;
   let usaFiltri = false;
 
   // Se abbiamo solo categoria, usa l'indice multiEntry
@@ -116,7 +149,7 @@ export async function querySpese(criteri = {}) {
   else if ((criteri.dataInizio || criteri.dataFine) && !criteri.categoria && !criteri.importoMin && !criteri.importoMax) {
     const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
     const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-    collezione = collezione.where('dataSpesa').between(start, end, true, true);
+    collezione = collezione.where('data').between(start, end, true, true);
   }
   // Se abbiamo importo + data (senza categoria), usa l'indice composto
   else if ((criteri.importoMin != null || criteri.importoMax != null) && (criteri.dataInizio || criteri.dataFine) && !criteri.categoria) {
@@ -125,7 +158,7 @@ export async function querySpese(criteri = {}) {
     const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
     const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
     collezione = collezione
-      .where('[importo+dataSpesa]')
+      .where('[importo+data]')
       .between([min, start], [max, end], true, true);
   }
   // Per tutti gli altri casi (categoria + altri criteri), usa filtri
@@ -156,8 +189,8 @@ export async function querySpese(criteri = {}) {
       if (criteri.importoMax != null && spesa.importo > criteri.importoMax) return false;
 
       // Filtra per data
-      if (criteri.dataInizio && spesa.dataSpesa < criteri.dataInizio) return false;
-      if (criteri.dataFine && spesa.dataSpesa > criteri.dataFine) return false;
+      if (criteri.dataInizio && spesa.data < criteri.dataInizio) return false;
+      if (criteri.dataFine && spesa.data > criteri.dataFine) return false;
 
       return true;
     });
@@ -205,7 +238,7 @@ async function PulisciDatabase() {
 
         await db.delete();
         db = null;
-        const esiste = await Dexie.exists("TieniIlContoDB");
+        const esiste = await Dexie.exists("MoneyLogDB");
 
         if (!esiste) {
           showToast("Database eliminato con successo!");
@@ -237,7 +270,7 @@ async function esportaDatabase() {
 
   spese.forEach(item => {
           result.id.push(item.id);
-          result.dataValuta.push(item.dataSpesa);   // mappo su dataValuta
+          result.dataValuta.push(item.data);   // mappo su dataValuta
           result.categoria.push(item.categoria);
           result.descrizione.push(item.descrizione || "");
           result.valore.push(item.importo);
@@ -303,7 +336,7 @@ async function importaDatabase(file) {
       for (let i = 0; i < dataTabella.categoria.length; i++) {
         spese.push({
           id: dataTabella.id[i],
-          dataSpesa: dataTabella.dataValuta[i],
+          data: dataTabella.dataValuta[i],
           categoria: dataTabella.categoria[i],
           descrizione: dataTabella.descrizione[i],
           importo: dataTabella.valore[i]

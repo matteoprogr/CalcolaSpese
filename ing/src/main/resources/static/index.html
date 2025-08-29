@@ -29,7 +29,7 @@
         <span></span>
     </label>
     <div class="nav-links">
-        <a href="#" data-target="traccia-spesa">Traccia Spese</a>
+        <a href="#" data-target="movimenti">Movimenti</a>
         <a href="#" data-target="elabora-excel">Elabora Excel</a>
         <a href="#" data-target="gestisci-dati">Gestione Dati</a>
         <a href="#" data-target="categorie-section">Categorie</a>
@@ -38,25 +38,36 @@
 </nav>
 
 <!-- Pagina Traccia Spese //////////////////////////////////////////////////////////////-->
-<section id="traccia-spesa" class="page-section active">
-    <div class="main-content">
+<section id="movimenti" class="page-section active">
+    <div class="movimenti-tabs">
+        <span class="tab active" data-target="traccia-spesa-slide">Spese</span>
+        <span class="tab" data-target="traccia-entrate-slide">Entrate</span>
+    </div>
 
-        <div class="excel-container">
+    <div class="movimenti-container">
+        <div class="movimento-slide" id="traccia-spesa-slide">
             <div class="sticky-bar">
-                <h2>Traccia Spese</h2>
                 <div id="lista-spese-totale"></div>
                 <div id="zero-spese"></div>
             </div>
-
             <div id="lista-spese"></div>
+        </div>
 
-            <div class="fullscreenBtnContainer">
-                <button class="fullscreenBtn" id="addSpesaBtn">➕ </button>
-                <button class="fullscreenBtn" id="getSpesaBtn">🔍 </button>
-                <button class="fullscreenBtn" id="deleteSpesaBtn">🗑️</button>
+        <div class="movimento-slide" id="traccia-entrate-slide">
+            <div class="sticky-bar">
+                <div id="lista-entrate-totale"></div>
+                <div id="zero-entrate"></div>
             </div>
+            <div id="lista-entrate"></div>
+        </div>
+
+        <div class="fullscreenBtnContainer">
+            <button class="fullscreenBtn" id="addSpesaBtn">➕ </button>
+            <button class="fullscreenBtn" id="getSpesaBtn">🔍 </button>
+            <button class="fullscreenBtn" id="deleteSpesaBtn">🗑️</button>
         </div>
     </div>
+
 
 
     <!-- OVERLAY INSERT -->

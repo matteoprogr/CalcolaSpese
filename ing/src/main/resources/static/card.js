@@ -1,21 +1,36 @@
 import { saveSpesa } from './queryDexie.js';
 import { updateSpesa } from './queryDexie.js';
+import { saveEntrata } from './queryDexie.js';
 import { createCriteri } from './main.js';
 import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
 
-export function creaSpesaComponent(spesa) {
+export function creaSpesaComponent(spesa,tabActive) {
+
+         let cardClass = "";
+         let bodyClass = "";
+         let btnClass = "";
+        if(!tabActive){
+            cardClass = "spesaColor";
+            bodyClass = "spesaBodyColor";
+            btnClass = "btnSpesaColor";
+        }else if(tabActive){
+            cardClass = "entrataColor";
+            bodyClass = "entrataBodyColor";
+            btnClass = "btnEntrataColor";
+        }
        const container = document.createElement("div");
        container.classList.add("spesa");
+       container.classList.add(cardClass);
        container.setAttribute("datains", spesa.dataInserimento);
        container.setAttribute("id", spesa.id);
 
        container.innerHTML = `
          <div class="spesa-header">
-           <small class="data">${formatDate(spesa.dataSpesa)}</small>
-           <button class="spesa-btn" type="button">✏️</button>
+           <small class="data">${formatDate(spesa.data)}</small>
+           <button class="spesa-btn ${btnClass}" type="button">✏️</button>
          </div>
-         <div class="spesa-body">
+         <div class="spesa-body ${bodyClass}">
            <span class="descrizione">${spesa.descrizione}</span>
            <span class="importo">${spesa.importo.toFixed(2)} €</span>
          </div>
@@ -45,7 +60,14 @@ function formatDate(dateStr) {
 }
 
 
-export function creaComponentTotale(spese) {
+export function creaComponentTotale(spese, tabActive) {
+         let cardClass = "";
+         let bodyClass = "";
+        if(!tabActive){
+            cardClass = "spesaTotColor";
+        }else if(tabActive){
+            cardClass = "entrataTotColor";
+        }
 
     let totale = 0;
     spese.forEach(spesa => {
@@ -53,6 +75,7 @@ export function creaComponentTotale(spese) {
     });
     const container = document.createElement("div");
        container.classList.add("spesa-totale");
+       container.classList.add(cardClass);
        container.innerHTML = `
          <div>
            <span class="importo-totale">${totale.toFixed(2)} €</span>
@@ -101,6 +124,7 @@ const importo = document.getElementById('importo');
 const descrizione = document.getElementById('descrizione');
 const data = document.getElementById('data');
 
+
 openBtn.addEventListener('click', async (e) => {
         if (overlay.classList.contains('showOverlay')) {
             overlay.classList.remove('showOverlay');
@@ -128,17 +152,23 @@ openBtn.addEventListener('click', async (e) => {
     });
 
     form.addEventListener('submit', async (e) => {
+      const tab = recuperaTab();
       e.preventDefault();
-      const spesa = {
+      const transazione = {
         categoria: categoriaInput.value.trim(),
-        dataSpesa: data.value,
-        importo: -Math.abs(parseFloat(importo.value)),
+        data: data.value,
+        importo: parseFloat(importo.value),
         descrizione: descrizione.value
       };
 
 
       try {
-        await saveSpesa(spesa);
+        if(!tab){
+        await saveSpesa(transazione);
+        }else if(tab){
+        await saveEntrata(transazione);
+        }
+
         overlay.classList.remove('showOverlay');
         createCriteri();
         form.reset();
@@ -146,6 +176,19 @@ openBtn.addEventListener('click', async (e) => {
         showErrorToast("Errore durante il salvataggio", "error");
       }
     });
+}
+
+export function recuperaTab(){
+    const tabs = document.querySelectorAll('.tab.active');
+    const tab = tabs[0].innerText;
+    if( tab === "Spese"){
+        return false;
+    }else if(tab === "Entrate"){
+        return true;
+    }else{
+        showErrorToast("Errore nell'esecuzione della transazione","error");
+        return;
+    }
 }
 
 export async function overlayRicerca() {
@@ -216,7 +259,7 @@ export async function overlayEdit(spesa) {
     document.getElementById('editSpesaId').value = spesa.id;
     const categoriaElement = document.getElementById('editCategoria');
     categoriaElement.value = spesa.categoria.trim();
-    document.getElementById('editData').value = spesa.dataSpesa;
+    document.getElementById('editData').value = spesa.data;
     document.getElementById('editImporto').value = Math.abs(spesa.importo); // Rimuovi il segno negativo per visualizzazione
     document.getElementById('editDescrizione').value = spesa.descrizione;
 
@@ -247,7 +290,7 @@ export async function overlayEdit(spesa) {
         id: parseInt(document.getElementById('editSpesaId').value),
         categoria: categoriaElement.value,
         dataInserimento: dataInserimento,
-        dataSpesa: document.getElementById('editData').value,
+        data: document.getElementById('editData').value,
         importo: -Math.abs(parseFloat(document.getElementById('editImporto').value)),
         descrizione: document.getElementById('editDescrizione').value
      };
