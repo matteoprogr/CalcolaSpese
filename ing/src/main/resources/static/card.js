@@ -1,11 +1,12 @@
 import { saveSpesa } from './queryDexie.js';
 import { updateSpesa } from './queryDexie.js';
 import { saveEntrata } from './queryDexie.js';
+import { updateEntrata } from './queryDexie.js';
 import { createCriteri } from './main.js';
 import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
 
-export function creaSpesaComponent(spesa,tabActive) {
+export function creaSpesaComponent(trsn,tabActive) {
 
          let cardClass = "";
          let bodyClass = "";
@@ -22,32 +23,33 @@ export function creaSpesaComponent(spesa,tabActive) {
        const container = document.createElement("div");
        container.classList.add("spesa");
        container.classList.add(cardClass);
-       container.setAttribute("datains", spesa.dataInserimento);
-       container.setAttribute("id", spesa.id);
+       container.setAttribute("datains", trsn.dataInserimento);
+       container.setAttribute("id", trsn.id);
 
        container.innerHTML = `
          <div class="spesa-header">
-           <small class="data">${formatDate(spesa.data)}</small>
+           <small class="data">${formatDate(trsn.data)}</small>
            <button class="spesa-btn ${btnClass}" type="button">✏️</button>
          </div>
          <div class="spesa-body ${bodyClass}">
-           <span class="descrizione">${spesa.descrizione}</span>
-           <span class="importo">${spesa.importo.toFixed(2)} €</span>
+           <span class="descrizione">${trsn.descrizione}</span>
+           <span class="importo">${trsn.importo.toFixed(2)} €</span>
          </div>
          <div class="spesa-footer">
-           <small class="categoria">${spesa.categoria}</small>
+           <small class="categoria">${trsn.categoria}</small>
          </div>
        `;
 
          // Aggiungi l'evento di clic per alternare la classe 'selected'
-         container.addEventListener("click", () => {
+         container.addEventListener("click", (e) => {
+           e.stopPropagation();
            container.classList.toggle("selected");
          });
 
          const editBtn = container.querySelector('.spesa-btn');
          editBtn.addEventListener("click", (e) => {
              e.stopPropagation();
-             overlayEdit(spesa);
+             overlayEdit(trsn);
          });
 
        return container;
@@ -60,7 +62,7 @@ function formatDate(dateStr) {
 }
 
 
-export function creaComponentTotale(spese, tabActive) {
+export function creaComponentTotale(trsni, tabActive) {
          let cardClass = "";
          let bodyClass = "";
         if(!tabActive){
@@ -70,8 +72,8 @@ export function creaComponentTotale(spese, tabActive) {
         }
 
     let totale = 0;
-    spese.forEach(spesa => {
-        totale += parseFloat(spesa.importo);
+    trsni.forEach(trns => {
+        totale += parseFloat(trns.importo);
     });
     const container = document.createElement("div");
        container.classList.add("spesa-totale");
@@ -284,9 +286,10 @@ export async function overlayEdit(spesa) {
 
 
     form.addEventListener('submit', async (e) => {
+    const tab = recuperaTab();
     e.preventDefault();
 
-    const spesa = {
+    const transazione = {
         id: parseInt(document.getElementById('editSpesaId').value),
         categoria: categoriaElement.value,
         dataInserimento: dataInserimento,
@@ -295,7 +298,11 @@ export async function overlayEdit(spesa) {
         descrizione: document.getElementById('editDescrizione').value
      };
        try {
-         await updateSpesa(spesa);
+        if(!tab){
+        await updateSpesa(transazione);
+        }else if(tab){
+        await updateEntrata(transazione);
+        }
          overlay.classList.remove('showOverlay');
          createCriteri();
        } catch (err) {

@@ -41,12 +41,13 @@ document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
 
 
 
+
+
 //  VARIABILI GLOBALI //////////////////////////////////
 
 const manualForm = document.getElementById('manualForm');
 let targetId;
 let picker;
-
 
 
 // SUBMIT FORM  e SECTIONS //////////////////////////////////////////
@@ -85,6 +86,7 @@ document.querySelectorAll('nav a').forEach(link => {
         // Sezione specifica "movimenti"
         if (targetId === 'movimenti') {
             setDateRange();
+
         }
         if (targetId === 'categorie-section') {
             categorieCreateComponent()
@@ -104,6 +106,7 @@ document.querySelectorAll('nav a').forEach(link => {
 
 // DOM CONTENT LOADED ///////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
+    targetId = "movimenti";
     overlayAddSpesa();
     overlayRicerca();
     setDateRange();
@@ -113,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let startX = 0, startY = 0, currentX = 0, currentY = 0;
     let currentIndex = 0;
     const maxIndex = tabs.length - 1;
-    const THRESHOLD = 50;       // pixel min per riconoscere swipe
+    const THRESHOLD = 15;       // pixel min per riconoscere swipe
     const ANGLE_RATIO = 0.5;
 
  document.addEventListener('click', (event) => {
@@ -125,46 +128,70 @@ document.addEventListener("DOMContentLoaded", () => {
    });
 
 //swipe
+
+  const observer = new IntersectionObserver((entries) => {
+  if( targetId === "movimenti"){
+    entries.forEach(entry => {
+    let tab;
+      const targetId = entry.target.id;
+      if(targetId === 'lista-spese-totale'){
+           tab = document.querySelector('[data-target="traccia-spesa-slide"]');
+      }
+      if(targetId === 'lista-entrate-totale'){
+            tab = document.querySelector('[data-target="traccia-entrate-slide"]');
+      }
+
+      if (entry.isIntersecting) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+      createCriteri();
+    });
+    }
+  }, {
+    root: null,
+    threshold: 0.1
+  });
+
+  const speseElement = document.querySelector('#lista-spese-totale');
+  const entrateElement = document.querySelector('#lista-entrate-totale');
+
+  if (speseElement) observer.observe(speseElement);
+  if (entrateElement) observer.observe(entrateElement);
+
+
+
    container.addEventListener('touchstart', e => {
-       const t = e.touches[0];
-       startX = currentX = t.clientX;
-       startY = currentY = t.clientY;
-        createCriteri();
+    if(e.target.closest(".movimento-slide")){
+        const t = e.touches[0];
+        startX = currentX = t.clientX;
+        startY = currentY = t.clientY;
+    }
+
      }, { passive: true });
 
    container.addEventListener('touchmove', e => {
        const t = e.touches[0];
        currentX = t.clientX;
        currentY = t.clientY;
-       // se vuoi bloccare lo scroll verticale quando è chiaramente orizzontale:
        const dx = Math.abs(currentX - startX);
        const dy = Math.abs(currentY - startY);
        if (dx > THRESHOLD && dy <= dx * ANGLE_RATIO) {
-         //e.preventDefault(); // serve {passive:false} se lo vuoi davvero bloccare
+        {passive:false}
        }
-        createCriteri();
      }, { passive: false });
 
      container.addEventListener('touchend', () => {
        const diffX = startX - currentX;
        const diffY = startY - currentY;
-
-       // Riconosciamo swipe orizzontale “pulito”
        if (Math.abs(diffX) < THRESHOLD || Math.abs(diffY) > Math.abs(diffX) * ANGLE_RATIO) return;
 
        if (diffX > 0 && currentIndex < maxIndex) currentIndex++;
        else if (diffX < 0 && currentIndex > 0)  currentIndex--;
 
        const targetLeft = currentIndex * container.clientWidth;
-
-       // più compatibile
-       try {
-         container.scrollTo({ left: targetLeft, behavior: 'smooth' });
-       } catch {
-         container.scrollLeft = targetLeft;
-       }
-       setActiveTab(currentIndex);
-        createCriteri();
+       //setActiveTab(currentIndex);
      });
 
 
@@ -179,15 +206,19 @@ document.addEventListener("DOMContentLoaded", () => {
         container.scrollLeft = targetLeft;
       }
       setActiveTab(i);
-       createCriteri();
     });
     });
 
     function setActiveTab(index){
         tabs.forEach(t => t.classList.remove('active'));
         if (tabs[index]) tabs[index].classList.add('active');
+        createCriteri();
     }
+
+
 });
+
+
 
 //  FUNZIONI //////////////////////////////////
 
@@ -521,7 +552,14 @@ function convertDDMMYYYYtoYYYYMMDD(str) {
 
 async function deleteSpesaBtn() {
     // Trova tutte le righe selezionate
-    const selectedCards = document.querySelectorAll('.spesa.selected');
+    const tab = recuperaTab();
+    let selectedCards;
+    if(!tab){
+        selectedCards = document.querySelectorAll('.spesa.spesaColor.selected');
+    }else if(tab){
+        selectedCards = document.querySelectorAll('.spesa.entrataColor.selected');
+    }
+
 
     if (selectedCards.length === 0) {
         showErrorToast("Seleziona almeno una riga da eliminare.","error");
@@ -542,7 +580,7 @@ async function deleteSpesaBtn() {
         return;
     }
 
-    await deleteSpese(criteri);
+    await deleteSpese(criteri, tab);
 
     if(criteri.length === 1){
         showToast("Spesa eliminata con successo", "success");

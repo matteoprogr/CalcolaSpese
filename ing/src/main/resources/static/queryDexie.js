@@ -99,8 +99,9 @@ export async function updateSpesa(spesa) {
 
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
     const data = {
-      ...spesa,
-      dataInserimento: spesa.dataInserimento,
+      id: spesa.id,
+      descrizione: spesa.descrizione,
+      importo: -Math.abs(spesa.importo),
       categoria: capitalizeFirstLetter(spesa.categoria),
       data: fomattedISO,
       dataModifica: new Date().toISOString()
@@ -117,6 +118,38 @@ export async function updateSpesa(spesa) {
   } catch (error) {
     console.error("Errore nella sostituzione spesa:", error);
     showToast("Errore durante la sostituzione della spesa", "error");
+    return { success: false, error };
+  }
+}
+
+export async function updateEntrata(entrata) {
+  try {
+    initDB();
+
+    if (!entrata.id) {
+      throw new Error("ID spesa mancante per la sostituzione");
+    }
+
+    const fomattedISO = new Date(entrata.data).toISOString().split('T')[0];
+    const data = {
+      id: entrata.id,
+      descrizione: entrata.descrizione,
+      importo: entrata.importo,
+      categoria: capitalizeFirstLetter(entrata.categoria),
+      data: fomattedISO,
+      dataModifica: new Date().toISOString()
+    };
+
+    await saveCategoria(entrata.categoria);
+
+    // put sostituisce completamente il record
+    const id = await db.entrate.put(data);
+
+    showToast("Entrata sostituita con successo", "success");
+    return { success: true, id };
+
+  } catch (error) {
+    showToast("Errore durante la sostituzione della entrata", "error");
     return { success: false, error };
   }
 }
@@ -200,12 +233,17 @@ export async function queryTrns(criteri = {}, tabActive) {
 }
 
 
-export async function deleteSpese(criteri = {}) {
+export async function deleteSpese(criteri = {}, tabActive) {
+
+    let collezione;
+    if(!tabActive){
+        collezione = db.spese.toCollection();
+    }else if(tabActive){
+        collezione = db.entrate.toCollection();
+    }
+
     if (Array.isArray(criteri) && criteri.length > 0) {
-        await db.spese
-            .toCollection()
-            .filter(spesa => criteri.includes(spesa.dataInserimento))
-            .delete();
+        await  collezione.filter(trns => criteri.includes(trns.dataInserimento)).delete();
         return;
     }
 }
