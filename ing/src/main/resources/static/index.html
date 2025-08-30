@@ -188,6 +188,17 @@
         <button id="btnDeleteData">Cancella tutto</button>
     </div>
 
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Conferma Eliminazione</h2>
+            <p>Sei sicuro di voler eliminare TUTTO il database? Questa operazione non può essere annullata.</p>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn-danger">Elimina</button>
+                <button id="confirmNo" class="btn-secondary">Annulla</button>
+            </div>
+        </div>
+    </div>
+
 </section>
 
 
@@ -196,6 +207,7 @@
 <section id="categorie-section" class="page-section">
     <div class="sticky-bar">
         <h2>Le tue categorie</h2>
+        <input  type="text" id="ricerca-categorie" placeholder="Cerca fra le tue categorie">
     </div>
     <div class="excel-container">
         <div id="gestione-categorie"></div>
@@ -220,7 +232,7 @@
         <li><strong>Traccia Spese:</strong> registra le tue uscite in pochi secondi e cerca tra i movimenti che hai registrato, organizza meglio le tue spese ed elimina quelle che non ti servono più.</li>
         <li><strong>Elabora Excel:</strong> importa il file delle spese bancarie in formato Excel e ottieni subito una lettura chiara dei dati.</li>
         <li><strong>Gestione Dati:</strong> i dati restano disponibili solo finché la cronologia non viene cancellata. Una volta eliminata, tutte le informazioni andranno perse.</li>
-        <li><strong>Categorie:</strong> gestisci le categorie inserite</li>
+        <li><strong>Categorie:</strong> gestisci le tue categorie</li>
 
     </ul>
 </section>

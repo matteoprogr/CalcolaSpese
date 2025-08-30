@@ -5,6 +5,7 @@ import { updateEntrata } from './queryDexie.js';
 import { createCriteri } from './main.js';
 import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
+import { updateCategoria } from './queryDexie.js';
 
 export function creaSpesaComponent(trsn,tabActive) {
 
@@ -99,21 +100,75 @@ export function nessunaElementoComponent(tipo) {
                return container;
 }
 
+
 export function categoriaComponent(categoria) {
-        const container = document.createElement("div");
-        container.classList.add("cat");
-           container.innerHTML = `
-             <div>
-               <span> ${categoria} </span>
-             </div>
-           `;
+    const container = document.createElement("div");
+    container.classList.add("cat");
 
-            container.addEventListener("click", () => {
-              container.classList.toggle("selected");
-            });
+    if(categoria === "Altro"){
+        container.innerHTML = `
+          <div class="cat-header">
+            <span class="cat-name">${categoria}</span>
+          </div>
+        `;
+    }else {
 
-        return container;
+    container.innerHTML = `
+      <div class="cat-header">
+        <span class="cat-name">${categoria}</span>
+        <button class="catEdit-btn" type="button">✏️</button>
+      </div>
+    `;
+
+
+    // selezione
+    container.addEventListener("click", () => {
+        container.classList.toggle("selected");
+    });
+
+    const editBtn = container.querySelector('.catEdit-btn');
+    const span = container.querySelector('.cat-name');
+
+    editBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        // creo un input con valore attuale
+        const input = document.createElement("input");
+        input.type = "text";
+        const oldValue = span.textContent.trim();
+         input.value = oldValue
+        input.classList.add("cat-input");
+
+        // sostituisco lo span con l’input
+        span.replaceWith(input);
+        input.focus();
+
+        // gestisco la conferma (invio o blur)
+        const confirm = async () => {
+            const newValue = input.value.trim() || categoria;
+            span.textContent = newValue;
+            try{ input.replaceWith(span); }catch{}
+
+
+            if (oldValue !== newValue) {
+                await updateCategoria(oldValue, newValue);
+            }
+
+        };
+
+        input.addEventListener("blur", confirm, { once: true });
+        input.addEventListener("keydown", (ev) => {
+            if (ev.key === "Enter") {
+                confirm();
+            }
+        });
+      });
+    }
+
+    return container;
 }
+
+
 
 export async function overlayAddSpesa() {
 const openBtn = document.getElementById('addSpesaBtn');
@@ -294,7 +349,7 @@ export async function overlayEdit(spesa) {
         categoria: categoriaElement.value,
         dataInserimento: dataInserimento,
         data: document.getElementById('editData').value,
-        importo: -Math.abs(parseFloat(document.getElementById('editImporto').value)),
+        importo: parseFloat(document.getElementById('editImporto').value),
         descrizione: document.getElementById('editDescrizione').value
      };
        try {

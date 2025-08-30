@@ -38,6 +38,8 @@ document.getElementById("importoMinEntrata").addEventListener("input", createCri
 document.getElementById("importoMaxEntrata").addEventListener("input", createCriteri);
 document.getElementById("invioBtn").addEventListener("click", uploadExcel);
 document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
+document.getElementById("ricerca-categorie").addEventListener("input", categorieCreateComponent);
+
 
 
 
@@ -437,7 +439,8 @@ async function fetchUpload(formData) {
 }
 
 export async function categorieCreateComponent() {
-    const categorie = await getCategorie();
+    const catInput = document.getElementById("ricerca-categorie").value;
+    const categorie = await getCategorie(catInput);
     const categorieList = document.getElementById("gestione-categorie");
     const zeroCategorie = document.getElementById("zero-categorie");
     zeroCategorie.innerHTML = "";
@@ -461,7 +464,9 @@ function isValid(value) {
 export async function createCriteri() {
 
     let criteri = {};
-
+    const tab = recuperaTab();
+    let min = 0;
+    let max = 0;
     const selectedCards = document.querySelectorAll('.card.selected');
     if (selectedCards.length > 0) {
      criteri = { categoria: [] };
@@ -469,13 +474,18 @@ export async function createCriteri() {
         criteri.categoria.push(card.innerText.trim());
       });
     }
+    if(!tab){
+        min = -Math.abs(document.getElementById("importoMaxEntrata").value);
+        max = -Math.abs(document.getElementById("importoMinEntrata").value);
+    }else if(tab){
+        max = document.getElementById("importoMaxEntrata").value;
+        min = document.getElementById("importoMinEntrata").value;
+    }
 
-    const min = -Math.abs(document.getElementById("importoMaxEntrata").value);
-    const max = -Math.abs(document.getElementById("importoMinEntrata").value);
-    if (isValid(min) && min !== -0) {
+    if (isValid(min) && min !== -0 && min !== 0) {
         criteri.importoMin = parseFloat(min);
     }
-    if (isValid(max) && max !== -0) {
+    if (isValid(max) && max !== -0 && max !== 0) {
         criteri.importoMax = parseFloat(max);
     }
 
@@ -658,7 +668,10 @@ function estraiImporto(str) {
 
 async function deleteCategoriaBtn() {
     // Trova tutte le righe selezionate
-    const selectedCards = document.querySelectorAll('.cat.selected');
+    const selectedComponents = document.querySelectorAll('.cat.selected');
+    const selectedCards = Array.from(selectedComponents).map(card =>
+        card.querySelector('.cat-name').textContent.trim()
+    );
 
     if (selectedCards.length === 0) {
         showErrorToast("Seleziona almeno una riga da eliminare.","error");
@@ -668,7 +681,7 @@ async function deleteCategoriaBtn() {
     const criteri = [];
     if (selectedCards.length > 0) {
          selectedCards.forEach(card => {
-            criteri.push(card.innerText.trim());
+            criteri.push(card.trim());
     });
     }
 

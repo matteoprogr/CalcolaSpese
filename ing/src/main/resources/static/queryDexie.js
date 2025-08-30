@@ -7,6 +7,8 @@
 let db;
 initDB();// variabile globale per il database
 
+
+/////// INIZIALIZZAZIONE DB ///////////////////
 export function initDB() {
   if (!db) {
     db = new Dexie('MoneyLogDB');
@@ -14,12 +16,29 @@ export function initDB() {
       spese: '++id, *categoria, importo, data, [importo+data]',
       categorie: '&categoria',
       entrate: '++id, *categoria, importo, data, [importo+data]',
+      defaultCat: 'inizializato'
     });
+
+    initCategorie();
   }
   return db;
 }
 
-// Salvataggio di una spesa
+
+async function initCategorie(){
+    const catList = ["Altro","Tempo libero", "Casa e utenze","Trasporti","Salute e benessere","Shopping" ];
+
+    const isInit = await db.defaultCat.get("init");
+    if(!isInit){
+        for (const cat of catList) {
+            await saveCategoria(cat);
+        }
+    }
+
+    await db.defaultCat.put({ inizializato: "init", done: true });
+}
+
+/////////////////   SALVATAGGIO TRANSAZIONI   ///////////////////////////
 export async function saveSpesa(spesa) {
   try {
 
@@ -45,7 +64,7 @@ export async function saveSpesa(spesa) {
   }
 }
 
-// Salvataggio di una entrata
+
 export async function saveEntrata(entrata) {
   try {
 
@@ -71,11 +90,9 @@ export async function saveEntrata(entrata) {
   }
 }
 
-function capitalizeFirstLetter(str) {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
 
+
+/////////// SALVATAGGIO CATEGORIE //////////////////////
 async function saveCategoria(categoria) {
   const categoriaLower = categoria.toLowerCase().trim();
   const categoriaCapitalized = capitalizeFirstLetter(categoriaLower);
@@ -88,7 +105,13 @@ async function saveCategoria(categoria) {
   }
 }
 
-// UPDATE
+function capitalizeFirstLetter(str) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+
+////////// UPDATE TRANSAZIONI ///////////////////
 export async function updateSpesa(spesa) {
   try {
     initDB();
@@ -156,7 +179,7 @@ export async function updateEntrata(entrata) {
 
 
 
-//// Ricerca spese con più criteri combinati
+/////////////////  RICERCA ///////////////////////
 export async function queryTrns(criteri = {}, tabActive) {
   initDB();
   let collezione;
@@ -232,7 +255,7 @@ export async function queryTrns(criteri = {}, tabActive) {
   return collezione.toArray();
 }
 
-
+////////////////    ELIMINAZIONE TRANSAZIONI ////////////////////////////////
 export async function deleteSpese(criteri = {}, tabActive) {
 
     let collezione;
@@ -247,42 +270,111 @@ export async function deleteSpese(criteri = {}, tabActive) {
         return;
     }
 }
-
+//////////// DELETE CATEGORIE /////////////////
 export async function deleteCategorie(criteri = []) {
     if (Array.isArray(criteri) && criteri.length > 0) {
         await db.categorie
             .where('categoria')
             .anyOfIgnoreCase(criteri)  // Confronto case-insensitive
             .delete();
-        return;
     }
+    for(const categoria of criteri){
+        updateCatInTrns(categoria, "Altro");
+    }
+    return;
 }
 
-
-export async function getCategorie() {
+//////////// GET CATEGORIE /////////////////
+export async function getCategorie(criterio) {
     initDB();
-    return await db.categorie.toArray();
+
+    if (!criterio || criterio.trim() === "") {
+        return await db.categorie.toArray();
+    }
+
+    return await db.categorie
+        .where("categoria")
+        .startsWithIgnoreCase(criterio)
+        .toArray();
+}
+
+//////////// UPDATE CATEGORIE /////////////////
+export async function updateCategoria(oldCat, nweCat) {
+    try{
+        initDB();
+        if (oldCat === nweCat) return;
+        const record = await db.categorie.get(oldCat);
+        if (!record) return;
+        await db.categorie.delete(oldCat);
+        await db.categorie.put({ ...record, categoria: nweCat });
+        updateCatInTrns(oldCat, nweCat);
+        showToast("Categoria modificata con succecco!");
+    }catch(err){
+        showErrorToast("Errore durante l'update","error")
+    }
+
+}
+
+//////////////   UPDATE CATEGORIE IN TRANSAZIONI ////////////////////////
+async function updateCatInTrns(oldCat, newCat){
+    const criteri = {categoria: [oldCat]}
+    const catSpese = await queryTrns(criteri, false);
+    const catEntrate = await queryTrns(criteri, true);
+    if(catSpese.length !== 0){
+        for(const spesa of catSpese){
+            spesa.categoria = newCat;
+            await updateSpesa(spesa);
+        }
+    }
+    if(catEntrate.length !== 0){
+        for(const entrata of catEntrate){
+            entrata.categoria = newCat;
+            await updateEntrata(entrata);
+        }
+    }
+
 }
 
 
-document.getElementById('btnDeleteData').addEventListener('click', PulisciDatabase);
+document.getElementById('btnDeleteData').addEventListener('click', () => {
+  apriConferma();
+});
+
+function apriConferma() {
+  const modal = document.getElementById('confirmModal');
+  modal.classList.remove('hidden');
+
+  const yesBtn = document.getElementById('confirmYes');
+  const noBtn = document.getElementById('confirmNo');
+
+  // pulisco eventuali vecchi listener
+  yesBtn.replaceWith(yesBtn.cloneNode(true));
+  noBtn.replaceWith(noBtn.cloneNode(true));
+
+  // riestraggo i bottoni aggiornati
+  const newYesBtn = document.getElementById('confirmYes');
+  const newNoBtn = document.getElementById('confirmNo');
+
+  newYesBtn.addEventListener('click', async () => {
+    modal.classList.add('hidden');
+    await PulisciDatabase();
+  });
+
+  newNoBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+}
+
 async function PulisciDatabase() {
   try {
-  //TODO da migliorare
-    const conferma = window.confirm(
-      "Sei sicuro di voler eliminare TUTTO il database? Questa operazione non può essere annullata."
-    );
-    if (conferma) {
+    await db.delete();
+    db = null;
+    const esiste = await Dexie.exists("MoneyLogDB");
 
-        await db.delete();
-        db = null;
-        const esiste = await Dexie.exists("MoneyLogDB");
-
-        if (!esiste) {
-          showToast("Database eliminato con successo!");
-        } else {
-         showErrorToast("Attenzione: il database non è stato eliminato correttamente!", "error");
-        }
+    if (!esiste) {
+      showToast("Database eliminato con successo!");
+    } else {
+      showErrorToast("Attenzione: il database non è stato eliminato correttamente!", "error");
     }
   } catch (error) {
     showErrorToast("Errore durante l'eliminazione del database", "error");
@@ -291,11 +383,13 @@ async function PulisciDatabase() {
 
 
 
+////////////////  EXPORT DATABASE ////////////////////////
 document.getElementById('btnExportJSON').addEventListener('click', esportaDatabase);
 async function esportaDatabase() {
 
   try {
-  const spese = await querySpese();
+  const spese = await queryTrns({},false);
+  const entrate = await queryTrns({},true);
 
   const result = {
           id: [],
@@ -313,6 +407,14 @@ async function esportaDatabase() {
           result.descrizione.push(item.descrizione || "");
           result.valore.push(item.importo);
       });
+
+    entrate.forEach(item => {
+            result.id.push(item.id);
+            result.dataValuta.push(item.data);   // mappo su dataValuta
+            result.categoria.push(item.categoria);
+            result.descrizione.push(item.descrizione || "");
+            result.valore.push(item.importo);
+        });
 
   fetchDownload(result);
 
@@ -337,8 +439,7 @@ btnImport.addEventListener('click', () => {
   }
 });
 
-
-
+/////////////////////////  IMPORT  ////////////////////////////////////////
 async function importaDatabase(file) {
       try {
         const formData = new FormData();
@@ -355,10 +456,14 @@ async function importaDatabase(file) {
 
         const result = await response.json();
 
-        const spese = parseDataTabella(result);
+        const transazioni = parseDataTabella(result);
 
-        for (const spesa of spese) {
-          await saveSpesa(spesa);
+        for (const trns of transazioni) {
+            if(trns.importo < 0){
+                await saveSpesa(trns);
+            }else if(trns.importo > 0){
+                await saveEntrata(trns);
+            }
         }
 
         showToast("Importazione completata!", "success");
@@ -369,10 +474,10 @@ async function importaDatabase(file) {
 }
 
  function parseDataTabella(dataTabella) {
-      const spese = [];
+      const transazioni = [];
 
       for (let i = 0; i < dataTabella.categoria.length; i++) {
-        spese.push({
+        transazioni.push({
           id: dataTabella.id[i],
           data: dataTabella.dataValuta[i],
           categoria: dataTabella.categoria[i],
@@ -381,7 +486,7 @@ async function importaDatabase(file) {
         });
       }
 
-      return spese;
+      return transazioni;
     }
 
 
