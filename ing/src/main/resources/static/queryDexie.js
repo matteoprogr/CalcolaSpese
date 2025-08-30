@@ -97,13 +97,23 @@ async function saveCategoria(categoria) {
   const categoriaLower = categoria.toLowerCase().trim();
   const categoriaCapitalized = capitalizeFirstLetter(categoriaLower);
   try {
-    await db.categorie.add({ categoria: categoriaCapitalized });
-  } catch (error) {
-    if (error.name !== 'ConstraintError') {
-      console.error('Errore durante l\'aggiunta della categoria:', error);
+
+    const cat = await db.categorie.get(categoriaCapitalized);
+    if(!cat){
+    await db.categorie.add({
+        categoria: categoriaCapitalized,
+        richieste: 1
+         });
+    }else{
+        updateCategoria(categoria, null, true);
     }
+
+  } catch (error) {
+      showErrorToast('Errore durante l\'aggiunta della categoria:', "error");
   }
 }
+
+
 
 function capitalizeFirstLetter(str) {
   if (!str) return str;
@@ -288,26 +298,37 @@ export async function deleteCategorie(criteri = []) {
 export async function getCategorie(criterio) {
     initDB();
 
+    let categorie;
     if (!criterio || criterio.trim() === "") {
-        return await db.categorie.toArray();
+        categorie = await db.categorie.toArray();
+    } else {
+        categorie = await db.categorie
+            .where("categoria")
+            .startsWithIgnoreCase(criterio)
+            .toArray();
     }
 
-    return await db.categorie
-        .where("categoria")
-        .startsWithIgnoreCase(criterio)
-        .toArray();
+    // ordino in ordine decrescente per richieste
+    return categorie.sort((a, b) => b.richieste - a.richieste);
 }
 
+
 //////////// UPDATE CATEGORIE /////////////////
-export async function updateCategoria(oldCat, nweCat) {
+export async function updateCategoria(oldCat, nweCat, richiesta) {
     try{
-        initDB();
-        if (oldCat === nweCat) return;
+        //initDB();
         const record = await db.categorie.get(oldCat);
-        if (!record) return;
-        await db.categorie.delete(oldCat);
-        await db.categorie.put({ ...record, categoria: nweCat });
-        updateCatInTrns(oldCat, nweCat);
+        if(richiesta === false){
+            if (oldCat === nweCat) return;
+            if (!record) return;
+            await db.categorie.delete(oldCat);
+            await db.categorie.put({ ...record, categoria: nweCat });
+            updateCatInTrns(oldCat, nweCat);
+        }else if(richiesta === true){
+            const count = record.richieste +1;
+            await db.categorie.update(oldCat, { richieste: count });
+        }
+
         showToast("Categoria modificata con succecco!");
     }catch(err){
         showErrorToast("Errore durante l'update","error")
