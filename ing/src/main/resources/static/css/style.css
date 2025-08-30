@@ -341,6 +341,7 @@ button:hover {
 #lista-spese {
   width: 100%;
   max-width: 100vw;
+  height: 100vh;
   overflow: hidden;
   box-sizing: border-box;
   margin: 0 auto;
@@ -352,6 +353,7 @@ button:hover {
 #lista-entrate {
   width: 100%;
   max-width: 100vw;
+  height: 100vh;
   overflow: hidden;
   box-sizing: border-box;
   margin: 0 auto;
@@ -372,12 +374,25 @@ button:hover {
 }
 
 #lista-spese-totale {
-  width: auto;
+  width: 100%;
   max-width: 100vw;
   box-sizing: border-box;
+  border radius: 0.5rem;
   margin: 0 auto;
+  padding: 0 1rem;
   position: sticky;
-  bottom: 0;
+  top: 0;
+  z-index: 10;
+}
+#lista-entrate-totale {
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  border radius: 0.5rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  position: sticky;
+  top: 0;
   z-index: 10;
 }
 
@@ -680,7 +695,6 @@ button:hover {
     top: 0;
     z-index: 10;
     backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 #date-range {
@@ -933,13 +947,17 @@ button:hover {
 
 .movimento-slide {
     flex: 0 0 100%;
-      scroll-snap-align:start;
-      min-height:100vh;
+    scroll-snap-align:start;
+    min-height:100vh;
 }
 .movimenti-tabs {
     display: flex;
     justify-content: center;
     margin-bottom: 10px;
+    position:sticky;
+    z-index: 10;
+    top: 0;
+    backdrop-filter: blur(10px);
 }
 
 .movimenti-tabs .tab {

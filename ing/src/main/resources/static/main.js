@@ -135,11 +135,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if( targetId === "movimenti"){
     entries.forEach(entry => {
     let tab;
-      const targetId = entry.target.id;
-      if(targetId === 'lista-spese-totale'){
+      const target = entry.target.id;
+      if(target === 'lista-spese'){
            tab = document.querySelector('[data-target="traccia-spesa-slide"]');
       }
-      if(targetId === 'lista-entrate-totale'){
+      if(target === 'lista-entrate'){
             tab = document.querySelector('[data-target="traccia-entrate-slide"]');
       }
 
@@ -156,8 +156,8 @@ document.addEventListener("DOMContentLoaded", () => {
     threshold: 0.1
   });
 
-  const speseElement = document.querySelector('#lista-spese-totale');
-  const entrateElement = document.querySelector('#lista-entrate-totale');
+  const speseElement = document.querySelector('#lista-spese');
+  const entrateElement = document.querySelector('#lista-entrate');
 
   if (speseElement) observer.observe(speseElement);
   if (entrateElement) observer.observe(entrateElement);
@@ -193,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
        else if (diffX < 0 && currentIndex > 0)  currentIndex--;
 
        const targetLeft = currentIndex * container.clientWidth;
-       //setActiveTab(currentIndex);
      });
 
 

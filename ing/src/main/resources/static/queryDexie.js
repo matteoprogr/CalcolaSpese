@@ -46,7 +46,7 @@ export async function saveSpesa(spesa) {
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
 
     const data = {
-      descrizione: spesa.descrizione,
+      descrizione: await setDescrizione(spesa.descrizione),
       importo: -Math.abs(spesa.importo),
       categoria: capitalizeFirstLetter(spesa.categoria),
       dataInserimento: new Date().toISOString(),
@@ -72,7 +72,7 @@ export async function saveEntrata(entrata) {
     const fomattedISO = new Date(entrata.data).toISOString().split('T')[0];
 
     const data = {
-      descrizione: entrata.descrizione,
+      descrizione: await setDescrizione(entrata.descrizione),
       importo: entrata.importo,
       categoria: capitalizeFirstLetter(entrata.categoria),
       dataInserimento: new Date().toISOString(),
@@ -88,6 +88,13 @@ export async function saveEntrata(entrata) {
     console.error("Errore nel salvataggio entrata:", error);
     return { success: false, error };
   }
+}
+
+async function setDescrizione(descrizione){
+     if(descrizione === ""){
+        return "Nessuna descrizione";
+     }
+     return descrizione;
 }
 
 
@@ -133,7 +140,7 @@ export async function updateSpesa(spesa) {
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
     const data = {
       id: spesa.id,
-      descrizione: spesa.descrizione,
+      descrizione: await setDescrizione(spesa.descrizione),
       importo: -Math.abs(spesa.importo),
       categoria: capitalizeFirstLetter(spesa.categoria),
       data: fomattedISO,
@@ -166,7 +173,7 @@ export async function updateEntrata(entrata) {
     const fomattedISO = new Date(entrata.data).toISOString().split('T')[0];
     const data = {
       id: entrata.id,
-      descrizione: entrata.descrizione,
+      descrizione: await setDescrizione(entrata.descrizione),
       importo: entrata.importo,
       categoria: capitalizeFirstLetter(entrata.categoria),
       data: fomattedISO,
