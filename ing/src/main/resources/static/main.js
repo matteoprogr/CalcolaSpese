@@ -118,8 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let startX = 0, startY = 0, currentX = 0, currentY = 0;
     let currentIndex = 0;
     const maxIndex = tabs.length - 1;
-    const THRESHOLD = 15;       // pixel min per riconoscere swipe
-    const ANGLE_RATIO = 0.5;
 
  document.addEventListener('click', (event) => {
      if (event.target.tagName === 'SPAN' || event.target.closest('#nav-toggle')) return;
@@ -163,39 +161,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (entrateElement) observer.observe(entrateElement);
 
 
-
-   container.addEventListener('touchstart', e => {
-    if(e.target.closest(".movimento-slide")){
-        const t = e.touches[0];
-        startX = currentX = t.clientX;
-        startY = currentY = t.clientY;
-    }
-
-     }, { passive: true });
-
-   container.addEventListener('touchmove', e => {
-       const t = e.touches[0];
-       currentX = t.clientX;
-       currentY = t.clientY;
-       const dx = Math.abs(currentX - startX);
-       const dy = Math.abs(currentY - startY);
-       if (dx > THRESHOLD && dy <= dx * ANGLE_RATIO) {
-        {passive:false}
-       }
-     }, { passive: false });
-
-     container.addEventListener('touchend', () => {
-       const diffX = startX - currentX;
-       const diffY = startY - currentY;
-       if (Math.abs(diffX) < THRESHOLD || Math.abs(diffY) > Math.abs(diffX) * ANGLE_RATIO) return;
-
-       if (diffX > 0 && currentIndex < maxIndex) currentIndex++;
-       else if (diffX < 0 && currentIndex > 0)  currentIndex--;
-
-       const targetLeft = currentIndex * container.clientWidth;
-     });
-
-
    // click sul tab → vai alla slide
     tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => {
@@ -213,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function setActiveTab(index){
         tabs.forEach(t => t.classList.remove('active'));
         if (tabs[index]) tabs[index].classList.add('active');
-        createCriteri();
     }
 
 
@@ -289,7 +253,7 @@ export function setDateRange(range = "#date-range") {
     }
   });
 
-  createCriteri();
+
 }
 
 function getElementiTrns(tabActive){
@@ -323,9 +287,11 @@ async function tracciaSpeseClick(criteri) {
         transazioni = await queryTrns(criteri,tabActive);
         const trns = getElementiTrns(tabActive);
         transazioni.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
         const listaTransazioni = document.getElementById(trns.lista);
         const listaTransazioniTotale = document.getElementById(trns.tot);
         const zeroTransazioni = document.getElementById(trns.zero);
+
         listaTransazioni.innerHTML = "";
         transazioni.forEach(trns => {
           const nodo = creaSpesaComponent(trns,tabActive);
