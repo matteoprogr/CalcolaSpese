@@ -422,8 +422,8 @@ export async function categorieCreateComponent() {
 }
 
 
-function isValid(value) {
-    return value != null && !Number.isNaN(value) && value !== "";
+export function isValid(value) {
+    return value != null && !Number.isNaN(value) && value !== "" && value != undefined;
 }
 
 export async function createCriteri() {

@@ -2,6 +2,7 @@
   import { fetchDownload } from './main.js';
   import { showToast } from './main.js';
   import { showErrorToast } from './main.js';
+  import { isValid } from './main.js';
 
 
 let db;
@@ -129,7 +130,7 @@ function capitalizeFirstLetter(str) {
 
 
 ////////// UPDATE TRANSAZIONI ///////////////////
-export async function updateSpesa(spesa, isNew) {
+export async function updateSpesa( spesa, isNew) {
   try {
     initDB();
 
@@ -141,6 +142,7 @@ export async function updateSpesa(spesa, isNew) {
     const data = {
       id: spesa.id,
       descrizione: await setDescrizione(spesa.descrizione),
+      dataInserimento: isValid(spesa.dataInserimento) ? spesa.dataInserimento : fomattedISO,
       importo: -Math.abs(spesa.importo),
       categoria: capitalizeFirstLetter(spesa.categoria),
       data: fomattedISO,
@@ -164,7 +166,7 @@ export async function updateSpesa(spesa, isNew) {
   }
 }
 
-export async function updateEntrata(entrata,isNew) {
+export async function updateEntrata(entrata, isNew) {
   try {
     initDB();
 
@@ -179,6 +181,7 @@ export async function updateEntrata(entrata,isNew) {
       importo: entrata.importo,
       categoria: capitalizeFirstLetter(entrata.categoria),
       data: fomattedISO,
+      dataInserimento: isValid(entrata.dataInserimento) !== null ? spesa.dataInserimento : fomattedISO,
       dataModifica: new Date().toISOString()
     };
 
