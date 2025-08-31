@@ -151,7 +151,7 @@ export function categoriaComponent(categoria) {
 
 
             if (oldValue !== newValue) {
-                await updateCategoria(oldValue, newValue);
+                await updateCategoria(oldValue, newValue,false);
             }
 
         };
@@ -354,9 +354,9 @@ export async function overlayEdit(spesa) {
      };
        try {
         if(!tab){
-        await updateSpesa(transazione);
+        await updateSpesa(transazione,true);
         }else if(tab){
-        await updateEntrata(transazione);
+        await updateEntrata(transazione,true);
         }
          overlay.classList.remove('showOverlay');
          createCriteri();

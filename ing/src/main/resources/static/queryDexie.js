@@ -129,7 +129,7 @@ function capitalizeFirstLetter(str) {
 
 
 ////////// UPDATE TRANSAZIONI ///////////////////
-export async function updateSpesa(spesa) {
+export async function updateSpesa(spesa, isNew) {
   try {
     initDB();
 
@@ -146,8 +146,10 @@ export async function updateSpesa(spesa) {
       data: fomattedISO,
       dataModifica: new Date().toISOString()
     };
+    if(isNew){
+        await saveCategoria(spesa.categoria);
+    }
 
-    await saveCategoria(spesa.categoria);
 
     // put sostituisce completamente il record
     const id = await db.spese.put(data);
@@ -162,7 +164,7 @@ export async function updateSpesa(spesa) {
   }
 }
 
-export async function updateEntrata(entrata) {
+export async function updateEntrata(entrata,isNew) {
   try {
     initDB();
 
@@ -180,7 +182,10 @@ export async function updateEntrata(entrata) {
       dataModifica: new Date().toISOString()
     };
 
-    await saveCategoria(entrata.categoria);
+    if(isNew){
+        await saveCategoria(entrata.categoria);
+    }
+
 
     // put sostituisce completamente il record
     const id = await db.entrate.put(data);
@@ -321,22 +326,21 @@ export async function getCategorie(criterio) {
 
 
 //////////// UPDATE CATEGORIE /////////////////
-export async function updateCategoria(oldCat, nweCat, richiesta) {
+export async function updateCategoria(oldCat, newCat, richiesta) {
     try{
         //initDB();
         const record = await db.categorie.get(oldCat);
+        newCat = capitalizeFirstLetter(newCat)
         if(richiesta === false){
-            if (oldCat === nweCat) return;
+            if (oldCat === newCat) return;
             if (!record) return;
             await db.categorie.delete(oldCat);
-            await db.categorie.put({ ...record, categoria: nweCat });
-            updateCatInTrns(oldCat, nweCat);
+            await db.categorie.put({ ...record, categoria: newCat });
+            updateCatInTrns(oldCat, newCat);
         }else if(richiesta === true){
             const count = record.richieste +1;
             await db.categorie.update(oldCat, { richieste: count });
         }
-
-        showToast("Categoria modificata con succecco!");
     }catch(err){
         showErrorToast("Errore durante l'update","error")
     }
@@ -351,13 +355,13 @@ async function updateCatInTrns(oldCat, newCat){
     if(catSpese.length !== 0){
         for(const spesa of catSpese){
             spesa.categoria = newCat;
-            await updateSpesa(spesa);
+            await updateSpesa(spesa,false);
         }
     }
     if(catEntrate.length !== 0){
         for(const entrata of catEntrate){
             entrata.categoria = newCat;
-            await updateEntrata(entrata);
+            await updateEntrata(entrata, false);
         }
     }
 
