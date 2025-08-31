@@ -45,11 +45,11 @@ export async function saveSpesa(spesa) {
 
     initDB();
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
-
+    const categoria = capitalizeFirstLetter(spesa.categoria);
     const data = {
-      descrizione: await setDescrizione(spesa.descrizione),
+      descrizione: await setDescrizione(spesa.descrizione,categoria),
       importo: -Math.abs(spesa.importo),
-      categoria: capitalizeFirstLetter(spesa.categoria),
+      categoria: categoria,
       dataInserimento: new Date().toISOString(),
       data: fomattedISO
     };
@@ -71,11 +71,12 @@ export async function saveEntrata(entrata) {
 
     initDB();
     const fomattedISO = new Date(entrata.data).toISOString().split('T')[0];
+    const categoria = capitalizeFirstLetter(entrata.categoria);
 
     const data = {
-      descrizione: await setDescrizione(entrata.descrizione),
+      descrizione: await setDescrizione(entrata.descrizione,categoria),
       importo: entrata.importo,
-      categoria: capitalizeFirstLetter(entrata.categoria),
+      categoria: categoria,
       dataInserimento: new Date().toISOString(),
       data: fomattedISO
     };
@@ -91,9 +92,9 @@ export async function saveEntrata(entrata) {
   }
 }
 
-async function setDescrizione(descrizione){
+async function setDescrizione(descrizione, categoria){
      if(descrizione === ""){
-        return "Nessuna descrizione";
+        return categoria;
      }
      return descrizione;
 }
@@ -139,12 +140,13 @@ export async function updateSpesa( spesa, isNew) {
     }
 
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
+    const categoria = capitalizeFirstLetter(spesa.categoria);
     const data = {
       id: spesa.id,
-      descrizione: await setDescrizione(spesa.descrizione),
+      descrizione: await setDescrizione(spesa.descrizione,categoria),
       dataInserimento: isValid(spesa.dataInserimento) ? spesa.dataInserimento : fomattedISO,
       importo: -Math.abs(spesa.importo),
-      categoria: capitalizeFirstLetter(spesa.categoria),
+      categoria: categoria,
       data: fomattedISO,
       dataModifica: new Date().toISOString()
     };
@@ -152,8 +154,6 @@ export async function updateSpesa( spesa, isNew) {
         await saveCategoria(spesa.categoria);
     }
 
-
-    // put sostituisce completamente il record
     const id = await db.spese.put(data);
 
     showToast("Spesa sostituita con successo", "success");
@@ -171,17 +171,18 @@ export async function updateEntrata(entrata, isNew) {
     initDB();
 
     if (!entrata.id) {
-      throw new Error("ID spesa mancante per la sostituzione");
+      throw new Error("ID entrata mancante per la sostituzione");
     }
 
     const fomattedISO = new Date(entrata.data).toISOString().split('T')[0];
+    const categoria = capitalizeFirstLetter(entrata.categoria);
     const data = {
       id: entrata.id,
-      descrizione: await setDescrizione(entrata.descrizione),
+      descrizione: await setDescrizione(entrata.descrizione,categoria),
       importo: entrata.importo,
-      categoria: capitalizeFirstLetter(entrata.categoria),
+      categoria: categoria,
       data: fomattedISO,
-      dataInserimento: isValid(entrata.dataInserimento) !== null ? spesa.dataInserimento : fomattedISO,
+      dataInserimento: isValid(entrata.dataInserimento) !== null ? entrata.dataInserimento : fomattedISO,
       dataModifica: new Date().toISOString()
     };
 
