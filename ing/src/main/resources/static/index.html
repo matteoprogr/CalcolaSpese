@@ -130,34 +130,33 @@
 <!-- Pagina Elabora Excel //////////////////////////////////////////////////////////////-->
 <section id="elabora-excel" class="page-section">
 
-            <div class="main-content">
-                <div class="excel-container">
-                    <div class="sticky-bar">
-                        <h2>Importa Excel</h2>
-                        <div id="zero-rows"></div>
-                        <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
 
-                        <div class="input-group-excel row">
-                            <input type="date" id="startDate" name="startDate">
-                            <input type="date" id="endDate" name="endDate">
-                        </div>
+            <div class="excel-container">
+                <div class="sticky-bar">
+                    <h2>Importa Excel</h2>
+                    <div id="zero-rows"></div>
+                    <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
 
-                            <select id="nomeBanca" required>
-                                <option value="" disabled selected> seleziona banca </option>
-                                <option value="ingDirect">IngDirect</option>
-                            </select>
-                            <button id="invioBtn" type="button">Invia</button>
-
-                        <div id="lista-spese-excel-totale"></div>
+                    <div class="input-group-excel row">
+                        <input type="date" id="startDate" name="startDate">
+                        <input type="date" id="endDate" name="endDate">
                     </div>
 
-                    <div id="lista-spese-excel"></div>
+                        <select id="nomeBanca" required>
+                            <option value="" disabled selected> seleziona banca </option>
+                            <option value="ingDirect">IngDirect</option>
+                        </select>
+                        <button id="invioBtn" type="button">Invia</button>
 
-                    <div class="fullscreenBtnContainer">
+                    <div id="lista-spese-excel-totale"></div>
+                </div>
+
+                <div id="lista-spese-excel"></div>
+
+                <div class="fullscreenBtnContainer">
 <!--                        <button class="fullscreenBtn" id="addExcelSpesaBtn">➕ </button>-->
-                        <button class="fullscreenBtn" id="deleteExcelSpesaBtn">🗑️</button>
-                        <button class="fullscreenBtn" id="downloadBtn">⬇</button>
-                    </div>
+                    <button class="fullscreenBtn" id="deleteExcelSpesaBtn">🗑️</button>
+                    <button class="fullscreenBtn" id="downloadBtn">⬇</button>
                 </div>
             </div>
 
