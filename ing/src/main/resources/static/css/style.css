@@ -148,13 +148,18 @@ button:hover {
   transform: scale(1.02);
 }
 
-.overlayButton{
+.frecciaBtn{
+    width:10%;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-bottom: auto;
+    font-weight: 600;
+}
 
+.overlayButton{
     margin-left: 0.1rem;
     margin-right: 0.1rem;
 }
-
-
 
 .btn {
     flex: 1 1 0;
@@ -718,7 +723,6 @@ button:hover {
     font-weight: 500;
 }
 #date-range.flatpickr-input {
-  width: 60%;
   border: 1px solid #ccc;
   border-radius: 0.425rem;
   margin-top:0.3rem;
@@ -780,6 +784,7 @@ button:hover {
   position: relative;
   margin: 1rem 0.5rem;
 }
+
 .input-group-excel {
   position: relative;
   margin-top: 0.2rem;

@@ -39,6 +39,8 @@ document.getElementById("importoMaxEntrata").addEventListener("input", createCri
 document.getElementById("invioBtn").addEventListener("click", uploadExcel);
 document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
 document.getElementById("ricerca-categorie").addEventListener("input", categorieCreateComponent);
+document.getElementById("indietro").addEventListener("click",setDirezioneData);
+document.getElementById("avanti").addEventListener("click",setDirezioneData);
 
 
 
@@ -187,6 +189,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 //  FUNZIONI //////////////////////////////////
 
+
+function setDirezioneData(event){
+    const clickedId = event.target.id;
+    const dataPartenza = document.getElementById("date-range")._flatpickr;
+    const mesePartenza = dataPartenza.currentMonth;
+    const annoPartenza = dataPartenza.currentYear;
+    const direzione = clickedId;
+    let anno = annoPartenza;
+    let mese = mesePartenza
+    if(direzione === "avanti"){
+        mese = mesePartenza + 1;
+        if(mesePartenza == 12){
+            anno = annoPartenza + 1;
+            mese = 1;
+        }
+        setDateRange("#date-range", mese, anno);
+    }
+
+    if(direzione === "indietro"){
+        mese = mesePartenza - 1;
+        if(mesePartenza == 1){
+            anno = annoPartenza - 1;
+            mese = 12;
+        }
+        setDateRange("#date-range", mese, anno);
+    }
+}
+
+
 function setDataExcel(){
     const start = document.getElementById('startDate');
     const end = document.getElementById('endDate');
@@ -197,24 +228,28 @@ function setDataExcel(){
     end.value = endOfMonth.toISOString().split("T")[0];
 }
 
-export function setDateRange(range = "#date-range") {
-  const today = new Date();
+
+export function setDateRange(range = "#date-range", mese, anno) {
+  let today = new Date();
+  if(isValid(mese) && isValid(anno)){
+  today = new Date(anno, mese, 1);
+  }
 
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1, 2, 0, 0);
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 1, 59, 0);
-  const lastDay = endOfMonth.getDate();
+  let lastDay = endOfMonth.getDate();
 
-  function formatDMY(date) {
-    const d = String(date.getDate()).padStart(2, "0");
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const y = date.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
+    function formatDMY(date) {
+      const d = String(date.getDate()).padStart(2, "0");
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
 
 
-  function getMonthYearName(date) {
-    return date.toLocaleString("it-IT", { month: "long", year: "numeric" });
-  }
+    function getMonthYearName(date) {
+      return date.toLocaleString("it-IT", { month: "long", year: "numeric" });
+    }
 
   const picker = flatpickr(range, {
     mode: "range",
@@ -223,7 +258,7 @@ export function setDateRange(range = "#date-range") {
     locale: "it",
     minDate: "2020-01-01",
     maxDate: "2035-12-31",
-    defaultDate: [startOfMonth, endOfMonth],  // Passa direttamente Date objects
+    defaultDate: [startOfMonth, endOfMonth],
     formatDate: function(date, format, locale) {
       return formatDMY(date);
     },
@@ -238,6 +273,10 @@ export function setDateRange(range = "#date-range") {
       }
     },
     onChange: function(selectedDates, dateStr, instance) {
+    const year = selectedDates[0].getFullYear();
+    const month = selectedDates[0].getMonth();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
       if (
         selectedDates.length === 2 &&
         selectedDates[0].getDate() === 1 &&
@@ -253,7 +292,7 @@ export function setDateRange(range = "#date-range") {
     }
   });
 
-
+    createCriteri();
 }
 
 function getElementiTrns(tabActive){
