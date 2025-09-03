@@ -40,7 +40,7 @@ async function initCategorie(){
 }
 
 /////////////////   SALVATAGGIO TRANSAZIONI   ///////////////////////////
-export async function saveSpesa(spesa) {
+export async function saveSpesa(spesa, excel) {
   try {
 
     initDB();
@@ -56,7 +56,10 @@ export async function saveSpesa(spesa) {
 
     await saveCategoria(spesa.categoria);
     const id = await db.spese.add(data);
-    showToast("Spesa aggiunta con successo", "success");
+    if(!excel){
+        showToast("Spesa aggiunta con successo", "success");
+    }
+
 
     return { success: true, id };
   } catch (error) {
@@ -124,7 +127,7 @@ async function saveCategoria(categoria) {
 
 
 
-function capitalizeFirstLetter(str) {
+export function capitalizeFirstLetter(str) {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }

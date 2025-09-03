@@ -11,6 +11,7 @@ import { getCategorie } from './queryDexie.js';
 import { overlayRicerca } from './card.js';
 import { overlayEdit } from './card.js';
 import { recuperaTab } from './card.js';
+import { capitalizeFirstLetter } from './queryDexie.js';
 
 
 
@@ -41,6 +42,7 @@ document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
 document.getElementById("ricerca-categorie").addEventListener("input", categorieCreateComponent);
 document.getElementById("indietro").addEventListener("click",setDirezioneData);
 document.getElementById("avanti").addEventListener("click",setDirezioneData);
+document.getElementById("addSpeseExcelBtn").addEventListener("click", saveSpeseExcel)
 
 
 
@@ -162,7 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (speseElement) observer.observe(speseElement);
   if (entrateElement) observer.observe(entrateElement);
 
-
    // click sul tab → vai alla slide
     tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => {
@@ -181,7 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tabs.forEach(t => t.classList.remove('active'));
         if (tabs[index]) tabs[index].classList.add('active');
     }
-
 
 });
 
@@ -314,8 +314,6 @@ function getElementiTrns(tabActive){
         }
         return trns;
     }
-
-
 }
 
 
@@ -333,7 +331,7 @@ async function tracciaSpeseClick(criteri) {
 
         listaTransazioni.innerHTML = "";
         transazioni.forEach(trns => {
-          const nodo = creaSpesaComponent(trns,tabActive);
+          const nodo = creaSpesaComponent(trns,tabActive,false);
           listaTransazioni.appendChild(nodo);
         });
 
@@ -401,7 +399,7 @@ async function excelCardCreator(dati) {
         const listaSpese = document.getElementById("lista-spese-excel");
         listaSpese.innerHTML = "";
         spese.forEach(spesa => {
-          const nodo = creaSpesaComponent(spesa);
+          const nodo = creaSpesaComponent(spesa,false,true);
           listaSpese.appendChild(nodo);
         });
 
@@ -419,6 +417,43 @@ async function excelCardCreator(dati) {
     } catch (err) {
         showErrorToast("Errore nel recupero spese:", "error");
     }
+
+}
+
+async function saveSpeseExcel(){
+    const speseExcel = document.querySelectorAll(".excelSpesa.spesa.spesaColor");
+    const totale = document.getElementById("lista-spese-excel-totale");
+    const listaSpese = document.getElementById("lista-spese-excel");
+    const spese = [];
+
+    try{
+        for(const comp of speseExcel){
+        let data = comp.querySelector(".spesa-header").children[0].textContent;
+        const [giorno, mese, anno] = data.split("/");
+        data = `${anno}-${mese}-${giorno}`;
+        const descrizione = comp.querySelector(".spesa-body.spesaBodyColor").children[0].textContent;
+        let importo = comp.querySelector(".spesa-body.spesaBodyColor").children[1].textContent;
+        importo = parseFloat(importo.replace(/[^\d.-]/g, ""));
+        let categoria = comp.querySelector(".spesa-footer").children[0].textContent;
+        categoria = capitalizeFirstLetter(categoria);
+        spese.push({
+          data,
+          descrizione,
+          importo,
+          categoria
+        });
+        }
+        for(const spesa of spese){
+            await saveSpesa(spesa, true);
+        }
+        showToast("Spese aggiunte con successo", "success");
+    }catch(err){
+        showErrorToast("Errore durante l'aggiunta delle spese","error");
+        return;
+    }
+
+    totale.innerHTML = "";
+    listaSpese.innerHTML = "";
 
 }
 
@@ -651,9 +686,8 @@ async function deleteSpesaBtnExcel() {
     let totaleExcel = -Math.abs(parseFloat(totaleHTML.innerText));
     let valuesSelected = 0;
     selectedCards.forEach(card => {
-         valuesSelected += Math.abs(estraiImporto(card.querySelector('.spesa-body .importo').innerText));
-        card.style.display = 'none';
-        card.classList.remove("selected");
+        valuesSelected += Math.abs(estraiImporto(card.querySelector('.spesa-body .importo').innerText));
+        card.remove();
     });
 
     let totCell = totaleHTML.querySelector(".importo-totale");

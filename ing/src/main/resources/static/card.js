@@ -7,7 +7,7 @@ import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
 import { updateCategoria } from './queryDexie.js';
 
-export function creaSpesaComponent(trsn,tabActive) {
+export function creaSpesaComponent(trsn,tabActive,excel) {
 
          let cardClass = "";
          let bodyClass = "";
@@ -21,7 +21,10 @@ export function creaSpesaComponent(trsn,tabActive) {
             bodyClass = "entrataBodyColor";
             btnClass = "btnEntrataColor";
         }
-       const container = document.createElement("div");
+
+        const container = document.createElement("div");
+        if(excel){ container.classList.add("excelSpesa"); }
+
        container.classList.add("spesa");
        container.classList.add(cardClass);
        container.setAttribute("datains", trsn.dataInserimento);
@@ -29,7 +32,7 @@ export function creaSpesaComponent(trsn,tabActive) {
 
        container.innerHTML = `
          <div class="spesa-header">
-           <small class="data">${formatDate(trsn.data)}</small>
+           <small class="data">${formatDate(trsn.data,excel)}</small>
            <button class="spesa-btn ${btnClass}" type="button">✏️</button>
          </div>
          <div class="spesa-body ${bodyClass}">
@@ -57,7 +60,10 @@ export function creaSpesaComponent(trsn,tabActive) {
      }
 
 
-function formatDate(dateStr) {
+function formatDate(dateStr,excel) {
+    if(excel){
+        return dateStr;
+    }
   const date = new Date(dateStr);
   return date.toLocaleDateString("it-IT");
 }
