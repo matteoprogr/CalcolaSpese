@@ -15,22 +15,6 @@ import { capitalizeFirstLetter } from './queryDexie.js';
 
 
 
-
-// SERVICE WORKER //////////////////////////////////
-//if ('serviceWorker' in navigator) {
-//  window.addEventListener('load', () => {
-//    navigator.serviceWorker.register('/service-worker.js')
-//      .then((registration) => {
-//        console.log('Service Worker registrato con successo:', registration);
-//      })
-//      .catch((error) => {
-//        console.log('Registrazione del Service Worker fallita:', error);
-//      });
-//  });
-//}
-
-
-
 //  EVENT LISTENER //////////////////////////////////
 document.getElementById("deleteSpesaBtn").addEventListener("click", deleteSpesaBtn);
 document.getElementById("deleteCategoriaBtn").addEventListener("click", deleteCategoriaBtn);
@@ -43,8 +27,6 @@ document.getElementById("ricerca-categorie").addEventListener("input", categorie
 document.getElementById("indietro").addEventListener("click",setDirezioneData);
 document.getElementById("avanti").addEventListener("click",setDirezioneData);
 document.getElementById("addSpeseExcelBtn").addEventListener("click", saveSpeseExcel)
-
-
 
 
 

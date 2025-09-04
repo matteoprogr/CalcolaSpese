@@ -111,7 +111,7 @@ async function saveCategoria(categoria) {
   try {
 
     const cat = await db.categorie.get(categoriaCapitalized);
-    if(!cat){
+    if(!isValid(cat)){
     await db.categorie.add({
         categoria: categoriaCapitalized,
         richieste: 1
@@ -121,7 +121,7 @@ async function saveCategoria(categoria) {
     }
 
   } catch (error) {
-      showErrorToast('Errore durante l\'aggiunta della categoria:', "error");
+      showErrorToast('Errore durante l\'aggiunta della categoria', "error");
   }
 }
 
