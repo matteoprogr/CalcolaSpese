@@ -642,20 +642,15 @@ button:hover {
   font-size: 1.25rem; /* Testo più grande per descrizione */
   font-weight: 500; /* Grassetto leggero */
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
 }
-
 .importo {
   flex-basis: 25%;
-  text-align: right;
-  font-size: 1.125rem; /* Testo più grande per importo */
-  font-weight: 550;
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #1a2e40;
+  font-size: 1.25rem; /* Testo più grande per descrizione */
+  font-weight: 500; /* Grassetto leggero */
+  white-space: nowrap;
+  overflow-x: auto;
+  margin-left: 0.2rem;
 }
 
 .fullscreenBtnContainer {
