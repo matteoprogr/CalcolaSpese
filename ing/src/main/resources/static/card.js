@@ -155,7 +155,6 @@ export function categoriaComponent(categoria) {
             span.textContent = newValue;
             try{ input.replaceWith(span); }catch{}
 
-
             if (oldValue !== newValue) {
                 await updateCategoria(oldValue, newValue,false);
             }
@@ -197,7 +196,7 @@ openBtn.addEventListener('click', async (e) => {
             overlay.classList.toggle("showOverlay");
             const categorie = await getCategorie();
             categorie.forEach(cat => {
-            const card = catOverlay(cat.categoria, "addSpesa");
+            const card = catOverlay(cat.categoria, "addSpesa", null);
             catRow.appendChild(card);
             data.value = new Date().toISOString().split("T")[0];
             });
@@ -264,11 +263,12 @@ export async function overlayRicerca() {
         if (overlay.classList.contains('showOverlay')) {
             overlay.classList.remove('showOverlay');
         } else {
+            const selectedCards = document.querySelectorAll(".card.selected")
             catRow.innerHTML = "";
             overlay.classList.toggle("showOverlay");
             const categorie = await getCategorie();
             categorie.forEach(cat => {
-            const card = catOverlay(cat.categoria, "getSpese");
+            const card = catOverlay(cat.categoria, "getSpese",selectedCards);
             catRow.appendChild(card);
             });
         }
@@ -280,9 +280,18 @@ export async function overlayRicerca() {
     });
   }
 
-function catOverlay(categoria, sezione) {
+function catOverlay(categoria, sezione, selectedCards) {
         const container = document.createElement("div");
         container.classList.add("card");
+        if(selectedCards != null){
+            for(const card of selectedCards){
+                if(card.innerText.trim() === categoria){
+                    container.classList.add("selected");
+                    }
+            }
+        }
+
+
            container.innerHTML = `
              <div>
                <span> ${categoria} </span>
@@ -336,7 +345,7 @@ export async function overlayEdit(spesa) {
     overlay.classList.add("showOverlay");
     const categorie = await getCategorie();
     categorie.forEach(cat => {
-    const card = catOverlay(cat.categoria, "editSpesa");
+    const card = catOverlay(cat.categoria, "editSpesa", null);
     catRow.appendChild(card);
     });
     document.addEventListener('click', (event) => {
