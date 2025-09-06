@@ -233,7 +233,10 @@ const sumE = sommaPerMese(entrate);
 
 const option = {
   tooltip: {
-    trigger: 'axis'
+    trigger: 'axis',
+    valueFormatter: function (val) {
+        return val.toFixed(2);
+      }
   },
   legend: {},
   dataset: {
@@ -278,8 +281,8 @@ chart.setOption(option);
 
 const canvas = document.querySelector('#chart canvas');
 canvas.style.margin = '0.5rem';
-
 }
+
 async function creaGraficoTorta(criteri){
     const echarts = window.echarts;
     const chartSpese = echarts.init(document.getElementById('chartCakeSpese'));
@@ -287,15 +290,15 @@ async function creaGraficoTorta(criteri){
 
     const spese = await queryTrns(criteri,false);
     const entrate = await queryTrns(criteri,true);
-    const optionSpese = await createOption(spese);
-    const optionEntrate = await createOption(entrate);
+    const optionSpese = await createOption(spese,'Spesa');
+    const optionEntrate = await createOption(entrate,'Entrata');
 
     chartSpese.setOption(optionSpese);
     chartEntrate.setOption(optionEntrate);
 
 }
 
-async function createOption(trns){
+async function createOption(trns, trnsType){
 
   const aggregato = {};
 
@@ -310,21 +313,27 @@ async function createOption(trns){
 
   const data = Object.entries(aggregato).map(([name, value]) => ({ name, value }));
 
-
     const option = {
       tooltip: {
-        trigger: 'item'
+        trigger: 'item',
+        formatter: function (params) {
+              return `${params.name}: ${Number(params.value).toFixed(2)}`;
+            }
       },
       legend: {
-        top: '5%',
-        left: 'center'
+        type: 'scroll',
+        orient: 'vertical',
+        top: '10%',
+        left: 'left',
+        width: '10%',
+        height: '80%'
       },
       series: [
         {
-          name: 'Access From',
+          name: trnsType,
           type: 'pie',
           radius: ['40%', '70%'],
-          center: ['50%', '60%'],
+          center: ['65%', '45%'],
           avoidLabelOverlap: false,
           itemStyle: {
             borderRadius: 10,
@@ -338,7 +347,7 @@ async function createOption(trns){
           emphasis: {
             label: {
               show: true,
-              fontSize: 40,
+              fontSize: 20,
               fontWeight: 'bold'
             }
           },
@@ -625,6 +634,7 @@ async function uploadExcel() {
 
 async function explainButton(){
     const  zeroExcel = document.getElementById("lista-spese-excel");
+    zeroExcel.innerHTML = "";
     const explainComponent = explainButtonComponent();
     zeroExcel.appendChild(explainComponent);
 }
@@ -681,7 +691,7 @@ async function saveSpeseExcel(){
         data = `${anno}-${mese}-${giorno}`;
         const descrizione = comp.querySelector(".spesa-body.spesaBodyColor").children[0].textContent;
         let importo = comp.querySelector(".spesa-body.spesaBodyColor").children[1].textContent;
-        importo = parseFloat(importo.replace(/[^\d.-]/g, ""));
+        importo = parseFloat(importo.replace(/[^\d.-]/g, "")).toFixed(2);
         let categoria = comp.querySelector(".spesa-footer").children[0].textContent;
         categoria = capitalizeFirstLetter(categoria);
         spese.push({

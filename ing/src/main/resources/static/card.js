@@ -29,11 +29,12 @@ export function creaSpesaComponent(trsn,tabActive,excel) {
        container.classList.add(cardClass);
        container.setAttribute("datains", trsn.dataInserimento);
        container.setAttribute("id", trsn.id);
+       const editButtonHTML = !excel ? `<button class="spesa-btn ${btnClass}" type="button">✏️</button>` : '';
 
        container.innerHTML = `
          <div class="spesa-header">
            <small class="data">${formatDate(trsn.data,excel)}</small>
-           <button class="spesa-btn ${btnClass}" type="button">✏️</button>
+            ${editButtonHTML}
          </div>
          <div class="spesa-body ${bodyClass}">
            <span class="descrizione">${trsn.descrizione}</span>
@@ -50,11 +51,14 @@ export function creaSpesaComponent(trsn,tabActive,excel) {
            container.classList.toggle("selected");
          });
 
-         const editBtn = container.querySelector('.spesa-btn');
-         editBtn.addEventListener("click", (e) => {
-             e.stopPropagation();
-             overlayEdit(trsn);
-         });
+         if(!excel){
+                 const editBtn = container.querySelector('.spesa-btn');
+                 editBtn.addEventListener("click", (e) => {
+                     e.stopPropagation();
+                     overlayEdit(trsn);
+                 });
+             }
+
 
        return container;
      }
