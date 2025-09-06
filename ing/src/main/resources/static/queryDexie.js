@@ -335,12 +335,11 @@ export async function getCategorie(criterio) {
 //////////// UPDATE CATEGORIE /////////////////
 export async function updateCategoria(oldCat, newCat, richiesta) {
     try{
-        //initDB();
         const record = await db.categorie.get(oldCat);
         newCat = capitalizeFirstLetter(newCat)
         if(richiesta === false){
             if (oldCat === newCat) return;
-            if (!record) return;
+            if (!isValid(record)) return;
             await db.categorie.delete(oldCat);
             await db.categorie.put({ ...record, categoria: newCat });
             updateCatInTrns(oldCat, newCat);
@@ -425,8 +424,9 @@ async function PulisciDatabase() {
 ////////////////  EXPORT DATABASE ////////////////////////
 document.getElementById('btnExportJSON').addEventListener('click', esportaDatabase);
 async function esportaDatabase() {
-
+    const overlaySpinner = document.getElementById('spinnerOverlay');
   try {
+  overlaySpinner.style.display = 'flex';
   const spese = await queryTrns({},false);
   const entrate = await queryTrns({},true);
 
@@ -459,6 +459,8 @@ async function esportaDatabase() {
 
   }catch (error) {
     console.error('Errore durante l\'esportazione dei dati:', error);
+  }finally{
+    overlaySpinner.style.display = 'none';
   }
 
 }
@@ -475,12 +477,15 @@ btnImport.addEventListener('click', () => {
   const file = fileInput.files[0]; // <-- prendi il primo file
   if (file) {
     importaDatabase(file);
+    fileInput.value = "";
   }
 });
 
 /////////////////////////  IMPORT  ////////////////////////////////////////
 async function importaDatabase(file) {
+        const overlaySpinner = document.getElementById('spinnerOverlay');
       try {
+        overlaySpinner.style.display = 'flex';
         const formData = new FormData();
         formData.append("file", file);
         const response = await fetch("/api/excel/import", {
@@ -507,8 +512,9 @@ async function importaDatabase(file) {
 
         showToast("Importazione completata!", "success");
       } catch (error) {
-
         showErrorToast("Errore durante l'importazione", "error");
+      }finally{
+        overlaySpinner.style.display = 'none';
       }
 }
 

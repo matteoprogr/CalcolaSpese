@@ -125,36 +125,46 @@ document.addEventListener("DOMContentLoaded", () => {
 //swipe
 
   const observer = new IntersectionObserver((entries) => {
-  if( targetId === "movimenti" || targetId === "grafici"){
-    entries.forEach(entry => {
-    let tab;
-      const target = entry.target.id;
-    if(target === 'lista-spese'){
-       tab = document.querySelector('[data-target="traccia-spesa-slide"]');
-    }
-    if(target === 'lista-entrate'){
-        tab = document.querySelector('[data-target="traccia-entrate-slide"]');
-    }
-    if(target === 'chartCakeSpese'){
-        tab = document.querySelector('[data-target="graph-spesa-slide"]');
-    }
-    if(target === 'chartCakeEntrate'){
-        tab = document.querySelector('[data-target="graph-entrate-slide"]');
-    }
+      if( targetId === "movimenti"){
+        entries.forEach(entry => {
+        let tab;
+        const target = entry.target.id;
+        if(target === 'lista-spese'){
+            tab = document.querySelector('[data-target="traccia-spesa-slide"]');
+        }
+        if(target === 'lista-entrate'){
+            tab = document.querySelector('[data-target="traccia-entrate-slide"]');
+        }
 
-      if (entry.isIntersecting) {
-        tab.classList.add('active');
-      } else {
-        tab.classList.remove('active');
-      }
-      if(target === "chartCakeSpese" || target === "chartCakeEntrate"){
-        criteriGraph();
-      }else{
+        if (entry.isIntersecting) {
+            tab.classList.add('active');
+        } else if(isValid(tab)) {
+            tab.classList.remove('active');
+        }
+
         createCriteri();
-      }
+        });
+        }
+      if( targetId === "grafici"){
+        entries.forEach(entry => {
+        let tab;
+        const target = entry.target.id;
+        if(target === 'chartCakeSpese'){
+            tab = document.querySelector('[data-target="graph-spesa-slide"]');
+        }
+        if(target === 'chartCakeEntrate'){
+            tab = document.querySelector('[data-target="graph-entrate-slide"]');
+        }
 
-    });
-    }
+        if (entry.isIntersecting) {
+            tab.classList.add('active');
+        } else if(isValid(tab)) {
+            tab.classList.remove('active');
+        }
+
+        criteriGraph();
+        });
+      }
   }, {
     root: null,
     threshold: 0.1
@@ -295,7 +305,8 @@ const option = {
 chart.setOption(option);
 
 const canvas = document.querySelector('#chart canvas');
-canvas.style.margin = '0.5rem';
+canvas.style.margin = '1rem';
+
 }
 
 async function creaGraficoTorta(criteri){
@@ -833,7 +844,6 @@ export async function createCriteri() {
 export async function criteriGraph() {
 
     let criteri = {};
-    const tab = recuperaTab();
     const inputRange = document.getElementById("date-range-graph").value.trim();
 
     let dataInizio, dataFine;
@@ -894,10 +904,14 @@ function convertDDMMYYYYtoDate(str) {
 }
 
 function formatDDMMYYYY(date) {
+if(isValid(date)){
   const d = String(date.getDate()).padStart(2, '0');
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const y = date.getFullYear();
   return `${d}/${m}/${y}`;
+}
+return;
+
 }
 
 function convertDDMMYYYYtoYYYYMMDD(str) {
@@ -911,7 +925,6 @@ function convertDDMMYYYYtoYYYYMMDD(str) {
 
 
 async function deleteSpesaBtn() {
-    // Trova tutte le righe selezionate
     const tab = recuperaTab();
     let selectedCards;
     if(!tab){

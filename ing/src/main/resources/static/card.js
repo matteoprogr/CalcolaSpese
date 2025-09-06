@@ -276,7 +276,13 @@ openBtn.addEventListener('click', async (e) => {
 
 export function recuperaTab(){
     const tabs = document.querySelectorAll('.tab.active');
-    const tab = tabs[0].innerText;
+     let tab;
+    if(tabs.length !== 0) {
+        tab = tabs[0].innerText;
+    }else{
+        return;
+    }
+
     if( tab === "Spese"){
         return false;
     }else if(tab === "Entrate"){
