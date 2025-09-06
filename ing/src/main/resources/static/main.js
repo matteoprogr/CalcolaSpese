@@ -321,6 +321,7 @@ async function createOption(trns, trnsType){
   });
 
   const data = Object.entries(aggregato).map(([name, value]) => ({ name, value }));
+  const totale = data.reduce((acc, item) => acc + item.value, 0);
 
     const option = {
       tooltip: {
@@ -349,15 +350,12 @@ async function createOption(trns, trnsType){
             borderWidth: 2
           },
           label: {
-            show: false,
-            position: 'center'
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: 20,
-              fontWeight: 'bold'
-            }
+            show: true,
+            position: 'center',
+            formatter: () => `${totale.toFixed(2)}`,
+            fontSize: 18,
+            fontWeight: 'bold',
+            lineHeight: 22
           },
           labelLine: {
             show: false
