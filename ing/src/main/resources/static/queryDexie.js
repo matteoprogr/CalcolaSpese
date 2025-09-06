@@ -105,7 +105,7 @@ async function setDescrizione(descrizione, categoria){
 
 
 /////////// SALVATAGGIO CATEGORIE //////////////////////
-async function saveCategoria(categoria) {
+export async function saveCategoria(categoria) {
   const categoriaLower = categoria.toLowerCase().trim();
   const categoriaCapitalized = capitalizeFirstLetter(categoriaLower);
   try {

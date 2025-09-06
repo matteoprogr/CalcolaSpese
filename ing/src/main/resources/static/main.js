@@ -6,6 +6,7 @@ import { creaSpesaComponent } from './card.js';
 import { creaComponentTotale } from './card.js';
 import { overlayAddSpesa } from './card.js';
 import { nessunaElementoComponent } from './card.js';
+import { nessunaCategoriaComponent } from './card.js';
 import { categoriaComponent } from './card.js';
 import { getCategorie } from './queryDexie.js';
 import { overlayRicerca } from './card.js';
@@ -13,6 +14,7 @@ import { overlayEdit } from './card.js';
 import { recuperaTab } from './card.js';
 import { capitalizeFirstLetter } from './queryDexie.js';
 import { explainButtonComponent } from './card.js';
+import { saveCategoria } from './queryDexie.js';
 
 
 
@@ -30,6 +32,7 @@ document.getElementById("avanti").addEventListener("click", function(event) { se
 document.getElementById("addSpeseExcelBtn").addEventListener("click", saveSpeseExcel);
 document.getElementById("indietroGraph").addEventListener("click", function(event) { setDirezioneData(event, true); });
 document.getElementById("avantiGraph").addEventListener("click", function(event) { setDirezioneData(event, true); });
+document.getElementById("addCategoriaBtn").addEventListener("click", saveNewCategoria);
 
 
 
@@ -198,6 +201,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 //  FUNZIONI //////////////////////////////////
+
+
+async function saveNewCategoria(){
+    const inputCategoria = document.getElementById('ricerca-categorie');
+    const saveBtn = document.getElementById('addCategoriaBtn');
+    const newCategoria = inputCategoria.value;
+    await saveCategoria(newCategoria);
+    inputCategoria.value = "";
+    categorieCreateComponent();
+
+}
+
 function formatDate(date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, '0'); // mese da 0 a 11
@@ -258,7 +273,8 @@ const option = {
   },
   xAxis: {
     type: 'category',
-    axisLabel: { rotate: 30 }
+    axisLabel: { rotate: 30 , interval: 0},
+    axisTick: { alignWithLabel: true }
   },
   yAxis: {
     type: 'value'
@@ -325,7 +341,6 @@ async function createOption(trns, trnsType){
         orient: 'vertical',
         top: '10%',
         left: 'left',
-        width: '10%',
         height: '80%'
       },
       series: [
@@ -738,13 +753,20 @@ async function fetchUpload(formData) {
 
 export async function categorieCreateComponent() {
     const catInput = document.getElementById("ricerca-categorie").value;
+    const saveBtn = document.getElementById('addCategoriaBtn');
+    if(catInput.length > 0){
+        saveBtn.classList.remove('addCategoria');
+    }else{
+        saveBtn.classList.add('addCategoria');
+    }
+
     const categorie = await getCategorie(catInput);
     const categorieList = document.getElementById("gestione-categorie");
     const zeroCategorie = document.getElementById("zero-categorie");
     zeroCategorie.innerHTML = "";
     categorieList.innerHTML = "";
     if (!categorie || categorie.length === 0) {
-        const nodo = nessunaElementoComponent("categoria")
+        const nodo = nessunaCategoriaComponent("categoria")
         zeroCategorie.appendChild(nodo);
     }else{
         categorie.forEach(cat => {

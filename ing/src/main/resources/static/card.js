@@ -114,6 +114,20 @@ export function nessunaElementoComponent(tipo) {
                return container;
 }
 
+export function nessunaCategoriaComponent(tipo) {
+        const container = document.createElement("div");
+        container.classList.add("nessuna-spesa");
+           container.innerHTML = `
+             <div>
+                <span class="rowExplain">😢   Nessuna ${tipo} disponibile</span>
+                <span class="rowExplain">🗑️   Elimina ${tipo} selezionata</span>
+                <span class="rowExplain">✏️   Modifica ${tipo} </span>
+             </div>
+           `;
+
+               return container;
+}
+
 export function explainButtonComponent() {
         const container = document.createElement("div");
         container.classList.add("explainButtonContainer");
@@ -122,7 +136,6 @@ export function explainButtonComponent() {
                   <span class="rowExplain">➕   Salva tutte le spese caricate</span>
                   <span class="rowExplain">🗑️   Elimina le spese selezionate</span>
                   <span class="rowExplain">📥   Esporta spese in Excel</span>
-                  <span class="rowExplain">✏️   Modifica spesa (non disponibile) </span>
                 </div>
 
            `;
@@ -162,18 +175,15 @@ export function categoriaComponent(categoria) {
     editBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
 
-        // creo un input con valore attuale
         const input = document.createElement("input");
         input.type = "text";
         const oldValue = span.textContent.trim();
          input.value = oldValue
         input.classList.add("cat-input");
 
-        // sostituisco lo span con l’input
         span.replaceWith(input);
         input.focus();
 
-        // gestisco la conferma (invio o blur)
         const confirm = async () => {
             const newValue = input.value.trim() || categoria;
             span.textContent = newValue;
