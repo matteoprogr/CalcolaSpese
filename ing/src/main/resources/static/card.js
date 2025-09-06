@@ -99,8 +99,28 @@ export function nessunaElementoComponent(tipo) {
         container.classList.add("nessuna-spesa");
            container.innerHTML = `
              <div>
-               <span>Nessuna ${tipo} disponibile</span>
+                <span class="rowExplain">😢   Nessuna ${tipo} disponibile</span>
+                <span class="rowExplain">➕   Crea una nuova ${tipo}</span>
+                <span class="rowExplain">🔍   Ricerca ${tipo}</span>
+                <span class="rowExplain">🗑️   Elimina ${tipo} selezionata</span>
+                <span class="rowExplain">✏️   Modifica ${tipo} </span>
              </div>
+           `;
+
+               return container;
+}
+
+export function explainButtonComponent() {
+        const container = document.createElement("div");
+        container.classList.add("explainButtonContainer");
+           container.innerHTML = `
+                <div>
+                  <span class="rowExplain">➕   Salva tutte le spese caricate</span>
+                  <span class="rowExplain">🗑️   Elimina le spese selezionate</span>
+                  <span class="rowExplain">📥   Esporta spese in Excel</span>
+                  <span class="rowExplain">✏️   Modifica spesa (non disponibile) </span>
+                </div>
+
            `;
 
                return container;

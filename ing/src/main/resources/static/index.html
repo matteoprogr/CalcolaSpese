@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#333333">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -30,6 +31,7 @@
     </label>
     <div class="nav-links">
         <a href="#" data-target="movimenti">Movimenti</a>
+        <a href="#" data-target="grafici">Grafici</a>
         <a href="#" data-target="elabora-excel">Elabora Excel</a>
         <a href="#" data-target="gestisci-dati">Gestione Dati</a>
         <a href="#" data-target="categorie-section">Categorie</a>
@@ -37,7 +39,7 @@
     </div>
 </nav>
 
-<!-- Pagina Traccia Spese //////////////////////////////////////////////////////////////-->
+<!-- Pagina Movimenti //////////////////////////////////////////////////////////////-->
 <section id="movimenti" class="page-section active">
     <div class="movimenti-tabs">
         <span class="tab active" data-target="traccia-spesa-slide">Spese</span>
@@ -130,6 +132,44 @@
 </section>
 
 
+<!-- Pagina Grafici //////////////////////////////////////////////////////////////-->
+<section id="grafici" class="page-section">
+    <div class="sticky-bar">
+        <h2>Grafici</h2>
+    </div>
+    <div class="chart-wrapper">
+        <div id="chart"></div>
+    </div>
+
+    <div class="movimenti-tabs">
+        <span class="tab active" data-target="graph-spesa-slide">Spese</span>
+        <span class="tab" data-target="graph-entrate-slide">Entrate</span>
+    </div>
+
+    <div class="movimenti-container graph">
+        <div class="movimento-slide-graph" id="graph-spesa-slide">
+            <div class="chart-wrapper">
+                <div id="chartCakeSpese"></div>
+            </div>
+        </div>
+
+        <div class="movimento-slide-graph" id="graph-entrate-slide">
+            <div class="chart-wrapper">
+                <div id="chartCakeEntrate"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-group row">
+        <button class="frecciaBtn" type="button" id="indietroGraph"> < </button>
+        <input type="text" id="date-range-graph">
+        <button class="frecciaBtn" type="button" id="avantiGraph"> > </button>
+    </div>
+
+
+
+</section>
+
 
 <!-- Pagina Elabora Excel //////////////////////////////////////////////////////////////-->
 <section id="elabora-excel" class="page-section">
@@ -137,7 +177,6 @@
             <div class="excel-container">
                 <div class="sticky-bar">
                     <h2>Importa Excel</h2>
-                    <div id="zero-rows"></div>
                     <input type="file" id="fileInput" name="file" accept=".xls,.xlsx" required/>
 
                     <div class="input-group-excel row">
@@ -157,9 +196,9 @@
                 <div id="lista-spese-excel"></div>
 
                 <div class="fullscreenBtnContainer">
-                    <button class="fullscreenBtn" id="addSpeseExcelBtn">➕ </button>
+                    <button class="fullscreenBtn" id="addSpeseExcelBtn">➕</button>
                     <button class="fullscreenBtn" id="deleteExcelSpesaBtn">🗑️</button>
-                    <button class="fullscreenBtn" id="downloadBtn">⬇</button>
+                    <button class="fullscreenBtn" id="downloadBtn">📥</button>
                 </div>
             </div>
 

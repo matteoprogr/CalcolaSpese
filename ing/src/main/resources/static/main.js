@@ -12,6 +12,7 @@ import { overlayRicerca } from './card.js';
 import { overlayEdit } from './card.js';
 import { recuperaTab } from './card.js';
 import { capitalizeFirstLetter } from './queryDexie.js';
+import { explainButtonComponent } from './card.js';
 
 
 
@@ -24,9 +25,11 @@ document.getElementById("importoMaxEntrata").addEventListener("input", createCri
 document.getElementById("invioBtn").addEventListener("click", uploadExcel);
 document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
 document.getElementById("ricerca-categorie").addEventListener("input", categorieCreateComponent);
-document.getElementById("indietro").addEventListener("click",setDirezioneData);
-document.getElementById("avanti").addEventListener("click",setDirezioneData);
-document.getElementById("addSpeseExcelBtn").addEventListener("click", saveSpeseExcel)
+document.getElementById("indietro").addEventListener("click", function(event) {  setDirezioneData(event, false); });
+document.getElementById("avanti").addEventListener("click", function(event) { setDirezioneData(event, false); });
+document.getElementById("addSpeseExcelBtn").addEventListener("click", saveSpeseExcel);
+document.getElementById("indietroGraph").addEventListener("click", function(event) { setDirezioneData(event, true); });
+document.getElementById("avantiGraph").addEventListener("click", function(event) { setDirezioneData(event, true); });
 
 
 
@@ -36,7 +39,6 @@ document.getElementById("addSpeseExcelBtn").addEventListener("click", saveSpeseE
 const manualForm = document.getElementById('manualForm');
 let targetId;
 let picker;
-
 
 // SUBMIT FORM  e SECTIONS //////////////////////////////////////////
 
@@ -74,7 +76,6 @@ document.querySelectorAll('nav a').forEach(link => {
         // Sezione specifica "movimenti"
         if (targetId === 'movimenti') {
             setDateRange();
-
         }
         if (targetId === 'categorie-section') {
             categorieCreateComponent()
@@ -83,6 +84,11 @@ document.querySelectorAll('nav a').forEach(link => {
             const listTraccia = document.getElementById("lista-spese");
             listTraccia.innerHTML = "";
             setDataExcel();
+            explainButton();
+        }
+        if(targetId === "grafici"){
+            setDateRangeGraph();
+            creaGraficoBar();
         }
 
         const selectedCards = document.querySelectorAll('.selected');
@@ -99,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     overlayRicerca();
     setDateRange();
     let container = document.querySelector('.movimenti-container');
+    let containerGraph = document.querySelector('.movimenti-container.graph');
     let tabs = document.querySelectorAll('.movimenti-tabs .tab');
     if (!container || !tabs.length) return;
     let startX = 0, startY = 0, currentX = 0, currentY = 0;
@@ -116,23 +123,34 @@ document.addEventListener("DOMContentLoaded", () => {
 //swipe
 
   const observer = new IntersectionObserver((entries) => {
-  if( targetId === "movimenti"){
+  if( targetId === "movimenti" || targetId === "grafici"){
     entries.forEach(entry => {
     let tab;
       const target = entry.target.id;
-      if(target === 'lista-spese'){
-           tab = document.querySelector('[data-target="traccia-spesa-slide"]');
-      }
-      if(target === 'lista-entrate'){
-            tab = document.querySelector('[data-target="traccia-entrate-slide"]');
-      }
+    if(target === 'lista-spese'){
+       tab = document.querySelector('[data-target="traccia-spesa-slide"]');
+    }
+    if(target === 'lista-entrate'){
+        tab = document.querySelector('[data-target="traccia-entrate-slide"]');
+    }
+    if(target === 'chartCakeSpese'){
+        tab = document.querySelector('[data-target="graph-spesa-slide"]');
+    }
+    if(target === 'chartCakeEntrate'){
+        tab = document.querySelector('[data-target="graph-entrate-slide"]');
+    }
 
       if (entry.isIntersecting) {
         tab.classList.add('active');
       } else {
         tab.classList.remove('active');
       }
-      createCriteri();
+      if(target === "chartCakeSpese" || target === "chartCakeEntrate"){
+        criteriGraph();
+      }else{
+        createCriteri();
+      }
+
     });
     }
   }, {
@@ -142,23 +160,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const speseElement = document.querySelector('#lista-spese');
   const entrateElement = document.querySelector('#lista-entrate');
+  const speseCake = document.querySelector('#chartCakeSpese');
+  const entrateCake = document.querySelector('#chartCakeEntrate');
 
-  if (speseElement) observer.observe(speseElement);
-  if (entrateElement) observer.observe(entrateElement);
+    if (speseElement) observer.observe(speseElement);
+    if (entrateElement) observer.observe(entrateElement);
+    if (speseCake) observer.observe(speseCake);
+    if (entrateCake) observer.observe(entrateCake);
 
    // click sul tab → vai alla slide
     tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => {
       currentIndex = i;
+      if(currentIndex === 2) currentIndex = 0;
+      if(currentIndex === 3) currentIndex = 1;
       const targetLeft = i * container.clientWidth;
+      const targetLeftGraph = currentIndex * containerGraph.clientWidth;
       try {
         container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+        containerGraph.scrollTo({ left: targetLeftGraph, behavior: 'smooth' });
       } catch {
         container.scrollLeft = targetLeft;
+        containerGraph.scrollLeft = targetLeftGraph;
       }
       setActiveTab(i);
     });
     });
+
 
     function setActiveTab(index){
         tabs.forEach(t => t.classList.remove('active'));
@@ -170,32 +198,201 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 //  FUNZIONI //////////////////////////////////
+function formatDate(date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0'); // mese da 0 a 11
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function sommaPerMese(transazioni) {
+  const somme = Array(12).fill(0); // Gennaio = 0, Febbraio = 1, ...
+
+  transazioni.forEach(item => {
+    const data = new Date(item.data);
+    const mese = data.getMonth(); // 0-11
+    somme[mese] += Math.abs(Number(item.importo)) || 0;
+  });
+
+  return somme;
+}
+
+async function creaGraficoBar(){
+const echarts = window.echarts;
+const chart = echarts.init(document.getElementById('chart'));
+const annoCorrente = new Date().getFullYear();
+const criteri = {
+  dataInizio: formatDate(new Date(annoCorrente, 0, 1)),   // 1 gennaio
+  dataFine: formatDate(new Date(annoCorrente, 11, 31))     // 31 dicembre
+};
+const spese = await queryTrns(criteri,false);
+const entrate = await queryTrns(criteri,true);
+
+const sumS = sommaPerMese(spese);
+const sumE = sommaPerMese(entrate);
+
+const option = {
+  tooltip: {
+    trigger: 'axis'
+  },
+  legend: {},
+  dataset: {
+    source: [
+      ['gennaio', sumS[0], sumE[0] ],
+      ['febbraio', sumS[1], sumE[1] ],
+      ['marzo', sumS[2], sumE[2] ],
+      ['aprile', sumS[3], sumE[3] ],
+      ['maggio', sumS[4], sumE[4] ],
+      ['giugno', sumS[5], sumE[5] ],
+      ['luglio', sumS[6], sumE[6] ],
+      ['agosto', sumS[7], sumE[7] ],
+      ['settembre', sumS[8], sumE[8] ],
+      ['ottobre', sumS[9], sumE[9] ],
+      ['novembre', sumS[10], sumE[10] ],
+      ['dicembre', sumS[11], sumE[11] ]
+    ],
+    dimensions: ['Mese','Spese','Entrate']
+  },
+  xAxis: {
+    type: 'category',
+    axisLabel: { rotate: 30 }
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series: [
+    {
+      type: 'bar',
+      name: 'Entrate',
+      encode: { x: 'Mese', y: 'Entrate' }
+    },
+    {
+      type: 'bar',
+      name: 'Spese',
+      encode: { x: 'Mese', y: 'Spese' }
+    }
+  ]
+};
+
+chart.setOption(option);
+
+const canvas = document.querySelector('#chart canvas');
+canvas.style.margin = '0.5rem';
+
+}
+async function creaGraficoTorta(criteri){
+    const echarts = window.echarts;
+    const chartSpese = echarts.init(document.getElementById('chartCakeSpese'));
+    const chartEntrate = echarts.init(document.getElementById('chartCakeEntrate'));
+
+    const spese = await queryTrns(criteri,false);
+    const entrate = await queryTrns(criteri,true);
+    const optionSpese = await createOption(spese);
+    const optionEntrate = await createOption(entrate);
+
+    chartSpese.setOption(optionSpese);
+    chartEntrate.setOption(optionEntrate);
+
+}
+
+async function createOption(trns){
+
+  const aggregato = {};
+
+  trns.forEach(item => {
+    const categoria = item.categoria;
+    const importo = Number(item.importo) || 0;
+    if (!aggregato[categoria]) {
+      aggregato[categoria] = 0;
+    }
+    aggregato[categoria] += Math.abs(importo);
+  });
+
+  const data = Object.entries(aggregato).map(([name, value]) => ({ name, value }));
 
 
-function setDirezioneData(event){
+    const option = {
+      tooltip: {
+        trigger: 'item'
+      },
+      legend: {
+        top: '5%',
+        left: 'center'
+      },
+      series: [
+        {
+          name: 'Access From',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['50%', '60%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: false,
+            position: 'center'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 40,
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: {
+            show: false
+          },
+          data: data
+        }
+      ]
+    };
+
+    return option;
+}
+
+
+function setDirezioneData(event,graph){
     const clickedId = event.target.id;
-    const dataPartenza = document.getElementById("date-range")._flatpickr;
+    let dataPartenza;
+    if(graph){
+        dataPartenza = document.getElementById("date-range-graph")._flatpickr;
+    }else{
+        dataPartenza = document.getElementById("date-range")._flatpickr;
+    }
+
     const mesePartenza = dataPartenza.currentMonth;
     const annoPartenza = dataPartenza.currentYear;
     const direzione = clickedId;
     let anno = annoPartenza;
     let mese = mesePartenza
-    if(direzione === "avanti"){
+    if(direzione === "avanti" || direzione === "avantiGraph"){
         mese = mesePartenza + 1;
         if(mesePartenza == 12){
             anno = annoPartenza + 1;
             mese = 1;
         }
-        setDateRange("#date-range", mese, anno);
+        if(graph){
+            setDateRangeGraph("#date-range-graph", mese, anno);
+        }else {
+            setDateRange("#date-range", mese, anno);
+        }
+
     }
 
-    if(direzione === "indietro"){
+    if(direzione === "indietro" || direzione === "indietroGraph"){
         mese = mesePartenza - 1;
         if(mesePartenza == 1){
             anno = annoPartenza - 1;
             mese = 12;
         }
-        setDateRange("#date-range", mese, anno);
+        if(graph){
+            setDateRangeGraph("#date-range-graph", mese, anno);
+        }else {
+            setDateRange("#date-range", mese, anno);
+        }
     }
 }
 
@@ -275,6 +472,72 @@ export function setDateRange(range = "#date-range", mese, anno) {
   });
 
     createCriteri();
+}
+
+export function setDateRangeGraph(range = "#date-range-graph", mese, anno) {
+  let today = new Date();
+  if(isValid(mese) && isValid(anno)){
+  today = new Date(anno, mese, 1);
+  }
+
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1, 2, 0, 0);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 1, 59, 0);
+  let lastDay = endOfMonth.getDate();
+
+    function formatDMY(date) {
+      const d = String(date.getDate()).padStart(2, "0");
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+
+
+    function getMonthYearName(date) {
+      return date.toLocaleString("it-IT", { month: "long", year: "numeric" });
+    }
+
+  const picker = flatpickr(range, {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    altInput: false,
+    locale: "it",
+    minDate: "2020-01-01",
+    maxDate: "2035-12-31",
+    defaultDate: [startOfMonth, endOfMonth],
+    formatDate: function(date, format, locale) {
+      return formatDMY(date);
+    },
+    onReady: function(selectedDates, dateStr, instance) {
+      if (
+        selectedDates.length === 2 &&
+        selectedDates[0].getDate() === 1 &&
+        selectedDates[1].getDate() === lastDay &&
+        selectedDates[0].getMonth() === selectedDates[1].getMonth()
+      ) {
+        instance.input.value = getMonthYearName(selectedDates[0]).toUpperCase();
+      }
+    },
+    onChange: function(selectedDates, dateStr, instance) {
+    const year = selectedDates[0].getFullYear();
+    const month = selectedDates[0].getMonth();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
+      if (
+        selectedDates.length === 2 &&
+        selectedDates[0].getDate() === 1 &&
+        selectedDates[1].getDate() === lastDay &&
+        selectedDates[0].getMonth() === selectedDates[1].getMonth()
+      ) {
+        instance.input.value = getMonthYearName(selectedDates[0]).toUpperCase();
+      } else {
+        instance.input.value = `${formatDMY(selectedDates[0])} – ${formatDMY(selectedDates[1])}`;
+      }
+
+      criteriGraph();
+    }
+  });
+
+     criteriGraph();
 }
 
 function getElementiTrns(tabActive){
@@ -360,9 +623,17 @@ async function uploadExcel() {
         }
 }
 
+async function explainButton(){
+    const  zeroExcel = document.getElementById("lista-spese-excel");
+    const explainComponent = explainButtonComponent();
+    zeroExcel.appendChild(explainComponent);
+}
+
 async function excelCardCreator(dati) {
 
     try {
+        const listaSpese = document.getElementById("lista-spese-excel");
+        listaSpese.innerHTML = "";
         const dataValuta = dati.dataValuta;
         const categoria = dati.categoria;
         const descrizione = dati.descrizione;
@@ -377,9 +648,7 @@ async function excelCardCreator(dati) {
 
         spese.sort((a, b) => new Date(a.data) - new Date(b.data));
         const  totaleExcel = document.getElementById("lista-spese-excel-totale");
-        const  zeroExcel = document.getElementById("zero-rows");
-        const listaSpese = document.getElementById("lista-spese-excel");
-        listaSpese.innerHTML = "";
+
         spese.forEach(spesa => {
           const nodo = creaSpesaComponent(spesa,false,true);
           listaSpese.appendChild(nodo);
@@ -387,13 +656,10 @@ async function excelCardCreator(dati) {
 
         const totale = creaComponentTotale(spese);
         totaleExcel.innerHTML = "";
-        zeroExcel.innerHTML = "";
+
         const totaleText = totale.innerText.trim();
         if(totaleText !== "0.00 €") {
             totaleExcel.appendChild(totale);
-        }else {
-        const nodo = nessunaElementoComponent("spesa")
-        zeroSpese.appendChild(nodo);
         }
 
     } catch (err) {
@@ -436,6 +702,7 @@ async function saveSpeseExcel(){
 
     totale.innerHTML = "";
     listaSpese.innerHTML = "";
+    explainButton();
 
 }
 
@@ -532,6 +799,30 @@ export async function createCriteri() {
      await tracciaSpeseClick(criteri);
 }
 
+export async function criteriGraph() {
+
+    let criteri = {};
+    const tab = recuperaTab();
+    const inputRange = document.getElementById("date-range-graph").value.trim();
+
+    let dataInizio, dataFine;
+    if (inputRange.match(/^[a-z]+\s+\d{4}$/i)) {
+        const { startDate, endDate } = getMonthDateRange(inputRange);
+        dataInizio = startDate;
+        dataFine = endDate;
+    } else {
+        const { dataInizio: ds, dataFine: df } = parseDateRange(inputRange);
+        dataInizio = convertDDMMYYYYtoDate(ds);
+        dataFine = convertDDMMYYYYtoDate(df);
+    }
+
+    criteri.dataInizio = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataInizio));
+    criteri.dataFine = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataFine));
+
+    creaGraficoTorta(criteri);
+}
+
+
 
 function getMonthDateRange(monthNameYear) {
   const monthNames = [
@@ -564,8 +855,11 @@ function parseDateRange(str) {
 }
 
 function convertDDMMYYYYtoDate(str) {
+ if(isValid(str)){
   const [d, m, y] = str.split('/');
   return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+  }
+  return;
 }
 
 function formatDDMMYYYY(date) {
@@ -576,8 +870,12 @@ function formatDDMMYYYY(date) {
 }
 
 function convertDDMMYYYYtoYYYYMMDD(str) {
-  const [d, m, y] = str.split('/');
-  return `${y}-${m}-${d}`;
+    if(isValid(str)){
+        const [d, m, y] = str.split('/');
+        return `${y}-${m}-${d}`;
+    }
+  return;
+
 }
 
 
