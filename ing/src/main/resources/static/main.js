@@ -39,7 +39,6 @@ document.getElementById("addCategoriaBtn").addEventListener("click", saveNewCate
 
 //  VARIABILI GLOBALI //////////////////////////////////
 
-const manualForm = document.getElementById('manualForm');
 let targetId;
 let picker;
 
