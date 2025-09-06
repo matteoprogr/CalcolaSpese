@@ -247,6 +247,16 @@ openBtn.addEventListener('click', async (e) => {
         form.reset();
     });
 
+    categoriaInput.addEventListener("input",async (event) =>{
+        catRow.innerHTML = "";
+        const categorie = await getCategorie(categoriaInput.value);
+        categorie.forEach(cat => {
+           const card = catOverlay(cat.categoria, "addSpesa", null);
+           catRow.appendChild(card);
+           data.value = new Date().toISOString().split("T")[0];
+        });
+    });
+
     form.addEventListener('submit', async (e) => {
       const tab = recuperaTab();
       e.preventDefault();
@@ -392,6 +402,15 @@ export async function overlayEdit(spesa) {
         if (!overlay.classList.contains('showOverlay')) return;
         if (event.target.closest('#editSpesaFormOverlay')) return;
           overlay.classList.remove('showOverlay');
+      });
+
+      categoriaElement.addEventListener("input",async (event) =>{
+          catRow.innerHTML = "";
+          const categorie = await getCategorie(categoriaElement.value);
+          categorie.forEach(cat => {
+              const card = catOverlay(cat.categoria, "editSpesa", null);
+              catRow.appendChild(card);
+          });
       });
 
 
