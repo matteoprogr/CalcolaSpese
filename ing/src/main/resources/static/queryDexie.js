@@ -318,12 +318,13 @@ export async function getCategorie(criterio) {
 export async function updateCategoria(oldCat, newCat, richiesta) {
     try{
         const record = await db.categorie.get(oldCat);
+        const recordNew = await db.categorie.get(newCat);
         newCat = capitalizeFirstLetter(newCat)
         if(richiesta === false){
             if (oldCat === newCat) return;
             if (!isValid(record)) return;
             await db.categorie.delete(oldCat);
-            await db.categorie.put({ ...record, categoria: newCat });
+            if (!isValid(recordNew)) await db.categorie.put({ ...record, categoria: newCat });
             updateCatInTrns(oldCat, newCat);
         }else if(richiesta === true){
             const count = record.richieste +1;

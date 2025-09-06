@@ -6,6 +6,7 @@ import { createCriteri } from './main.js';
 import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
 import { updateCategoria } from './queryDexie.js';
+import { categorieCreateComponent } from './main.js';
 
 export function creaSpesaComponent(trsn,tabActive,excel) {
 
@@ -173,7 +174,7 @@ export function categoriaComponent(categoria) {
         const input = document.createElement("input");
         input.type = "text";
         const oldValue = span.textContent.trim();
-         input.value = oldValue
+        input.value = oldValue
         input.classList.add("cat-input");
 
         span.replaceWith(input);
@@ -183,14 +184,19 @@ export function categoriaComponent(categoria) {
             const newValue = input.value.trim() || categoria;
             span.textContent = newValue;
             try{ input.replaceWith(span); }catch{}
-
             if (oldValue !== newValue) {
                 await updateCategoria(oldValue, newValue,false);
             }
+            categorieCreateComponent();
 
         };
 
-        input.addEventListener("blur", confirm, { once: true });
+        const notConfirm = async () => {
+            span.textContent = oldValue;
+            try{ input.replaceWith(span); }catch{}
+        };
+
+        input.addEventListener("blur", notConfirm, { once: true });
         input.addEventListener("keydown", (ev) => {
             if (ev.key === "Enter") {
                 confirm();
@@ -246,7 +252,7 @@ openBtn.addEventListener('click', async (e) => {
       const categorie = await getCategorie(categoriaInput.value);
       const fragment = document.createDocumentFragment();
       categorie.forEach((cat, i) => {
-        const card = catOverlay(cat.categoria, "editSpesa", null);
+        const card = catOverlay(cat.categoria, "addSpesa", null);
         card.classList.add("cardTr");
         card.style.animationDelay = `${i * 0.1}s`;
         fragment.appendChild(card);
