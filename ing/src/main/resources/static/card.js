@@ -45,7 +45,6 @@ export function creaSpesaComponent(trsn,tabActive,excel) {
          </div>
        `;
 
-         // Aggiungi l'evento di clic per alternare la classe 'selected'
          container.addEventListener("click", (e) => {
            e.stopPropagation();
            container.classList.toggle("selected");
@@ -57,9 +56,7 @@ export function creaSpesaComponent(trsn,tabActive,excel) {
                      e.stopPropagation();
                      overlayEdit(trsn);
                  });
-             }
-
-
+         }
        return container;
      }
 
@@ -163,8 +160,6 @@ export function categoriaComponent(categoria) {
       </div>
     `;
 
-
-    // selezione
     container.addEventListener("click", () => {
         container.classList.toggle("selected");
     });
@@ -215,6 +210,7 @@ const overlay = document.getElementById('spesaFormOverlay');
 const form = document.getElementById('spesaForm');
 const categoriaInput = document.getElementById('categoria');
 const catRow = document.getElementById('categorieCardsAdd');
+catRow.classList.add("hide")
 const closeBtn = document.getElementById('closeFormBtn');
 const importo = document.getElementById('importo');
 const descrizione = document.getElementById('descrizione');
@@ -250,6 +246,7 @@ openBtn.addEventListener('click', async (e) => {
     categoriaInput.addEventListener("input",async (event) =>{
         catRow.innerHTML = "";
         const categorie = await getCategorie(categoriaInput.value);
+        if(categorie.length === 0){ catRow.classList.remove("hide"); }
         categorie.forEach(cat => {
            const card = catOverlay(cat.categoria, "addSpesa", null);
            catRow.appendChild(card);
@@ -304,7 +301,6 @@ export function recuperaTab(){
 }
 
 export async function overlayRicerca() {
-
     const openBtn = document.getElementById('getSpesaBtn');
     const overlay = document.getElementById('overlayRicerca');
     const catRow = document.getElementById('categorieCardsEntrata');
@@ -341,7 +337,6 @@ function catOverlay(categoria, sezione, selectedCards) {
             }
         }
 
-
            container.innerHTML = `
              <div>
                <span> ${categoria} </span>
@@ -371,25 +366,22 @@ function catOverlay(categoria, sezione, selectedCards) {
 export async function overlayEdit(spesa) {
     const overlay = document.getElementById('editSpesaFormOverlay');
     const catRow = document.getElementById('categorieCardsEdit');
+    catRow.classList.add("hide");
     const editBtn = document.getElementById('editBtn');
     const closeBtn = document.getElementById('closeEditFormBtn');
     const dataInserimento = spesa.dataInserimento;
     const form = document.getElementById('editForm');
 
-
-    // Popola i campi del form con i dati della spesa
     document.getElementById('editSpesaId').value = spesa.id;
     const categoriaElement = document.getElementById('editCategoria');
     categoriaElement.value = spesa.categoria.trim();
     document.getElementById('editData').value = spesa.data;
-    document.getElementById('editImporto').value = Math.abs(spesa.importo); // Rimuovi il segno negativo per visualizzazione
+    document.getElementById('editImporto').value = Math.abs(spesa.importo);
     document.getElementById('editDescrizione').value = spesa.descrizione;
-
 
     closeBtn.addEventListener('click',async () =>{
         overlay.classList.remove('showOverlay');
     });
-
 
     catRow.innerHTML = "";
     overlay.classList.add("showOverlay");
@@ -407,10 +399,12 @@ export async function overlayEdit(spesa) {
       categoriaElement.addEventListener("input",async (event) =>{
           catRow.innerHTML = "";
           const categorie = await getCategorie(categoriaElement.value);
+          if(categorie.length === 0){ catRow.classList.remove("hide"); }
           categorie.forEach(cat => {
               const card = catOverlay(cat.categoria, "editSpesa", null);
               catRow.appendChild(card);
           });
+
       });
 
 

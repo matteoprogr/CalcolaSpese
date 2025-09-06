@@ -51,31 +51,21 @@ document.querySelectorAll('nav a').forEach(link => {
 
       link.addEventListener('touchend', function(e) {
         if (Date.now() - this.touchStartTime < 400) {
-          // Tocco breve: comportamento predefinito
           return;
         }
-        // Tocco lungo: impedisci il menu contestuale
         e.preventDefault();
       });
     link.addEventListener('click', () => {
         targetId = link.getAttribute('data-target');
-        // Rimuove classe active da tutti i link
         document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
         link.classList.add('active');
-
-        // Nasconde tutte le sezioni
         document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-
-        // Mostra la sezione target
         const targetSection = document.getElementById(targetId);
         targetSection.classList.add('active');
-
-        // Chiude il menu a scomparsa se aperto
         const navToggle = document.getElementById('nav-toggle');
         if (navToggle) {
             navToggle.checked = false;
         }
-        // Sezione specifica "movimenti"
         if (targetId === 'movimenti') {
             setDateRange();
         }
@@ -122,8 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
            }
    });
 
-//swipe
-
+//SWIPE
   const observer = new IntersectionObserver((entries) => {
       if( targetId === "movimenti"){
         entries.forEach(entry => {
@@ -180,7 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (speseCake) observer.observe(speseCake);
     if (entrateCake) observer.observe(entrateCake);
 
-   // click sul tab → vai alla slide
     tabs.forEach((tab, i) => {
     tab.addEventListener('click', () => {
       currentIndex = i;
@@ -199,7 +187,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     });
 
-
     function setActiveTab(index){
         tabs.forEach(t => t.classList.remove('active'));
         if (tabs[index]) tabs[index].classList.add('active');
@@ -211,7 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 //  FUNZIONI //////////////////////////////////
 
-
 async function saveNewCategoria(){
     const inputCategoria = document.getElementById('ricerca-categorie');
     const saveBtn = document.getElementById('addCategoriaBtn');
@@ -219,22 +205,20 @@ async function saveNewCategoria(){
     await saveCategoria(newCategoria);
     inputCategoria.value = "";
     categorieCreateComponent();
-
 }
 
 function formatDate(date) {
   const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0'); // mese da 0 a 11
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
 
 function sommaPerMese(transazioni) {
-  const somme = Array(12).fill(0); // Gennaio = 0, Febbraio = 1, ...
-
+  const somme = Array(12).fill(0);
   transazioni.forEach(item => {
     const data = new Date(item.data);
-    const mese = data.getMonth(); // 0-11
+    const mese = data.getMonth();
     somme[mese] += Math.abs(Number(item.importo)) || 0;
   });
 
@@ -246,8 +230,8 @@ const echarts = window.echarts;
 const chart = echarts.init(document.getElementById('chart'));
 const annoCorrente = new Date().getFullYear();
 const criteri = {
-  dataInizio: formatDate(new Date(annoCorrente, 0, 1)),   // 1 gennaio
-  dataFine: formatDate(new Date(annoCorrente, 11, 31))     // 31 dicembre
+  dataInizio: formatDate(new Date(annoCorrente, 0, 1)),
+  dataFine: formatDate(new Date(annoCorrente, 11, 31))
 };
 const spese = await queryTrns(criteri,false);
 const entrate = await queryTrns(criteri,true);
@@ -303,7 +287,6 @@ const option = {
 };
 
 chart.setOption(option);
-
 const canvas = document.querySelector('#chart canvas');
 canvas.style.margin = '1rem';
 
@@ -525,7 +508,6 @@ export function setDateRangeGraph(range = "#date-range-graph", mese, anno) {
       return `${d}/${m}/${y}`;
     }
 
-
     function getMonthYearName(date) {
       return date.toLocaleString("it-IT", { month: "long", year: "numeric" });
     }
@@ -665,7 +647,6 @@ async function explainButton(){
 }
 
 async function excelCardCreator(dati) {
-
     try {
         const listaSpese = document.getElementById("lista-spese-excel");
         listaSpese.innerHTML = "";
@@ -700,7 +681,6 @@ async function excelCardCreator(dati) {
     } catch (err) {
         showErrorToast("Errore nel recupero spese:", "error");
     }
-
 }
 
 async function saveSpeseExcel(){
@@ -738,7 +718,6 @@ async function saveSpeseExcel(){
     totale.innerHTML = "";
     listaSpese.innerHTML = "";
     explainButton();
-
 }
 
 async function fetchUpload(formData) {
@@ -758,7 +737,6 @@ async function fetchUpload(formData) {
         .catch(error => {
             showErrorToast("Errore durante l'upload", "error");
         });
-
 }
 
 export async function categorieCreateComponent() {
@@ -792,7 +770,6 @@ export function isValid(value) {
 }
 
 export async function createCriteri() {
-
     let criteri = {};
     const tab = recuperaTab();
     let min = 0;
@@ -819,17 +796,13 @@ export async function createCriteri() {
         criteri.importoMax = parseFloat(max);
     }
 
-
     const inputRange = document.getElementById("date-range").value.trim();
-
     let dataInizio, dataFine;
     if (inputRange.match(/^[a-z]+\s+\d{4}$/i)) {
-        // Se assume il formato "mese anno"
         const { startDate, endDate } = getMonthDateRange(inputRange);
         dataInizio = startDate;
         dataFine = endDate;
     } else {
-        // Se è un range come "01/08/2025 – 31/08/2025"
         const { dataInizio: ds, dataFine: df } = parseDateRange(inputRange);
         dataInizio = convertDDMMYYYYtoDate(ds);
         dataFine = convertDDMMYYYYtoDate(df);
@@ -859,7 +832,6 @@ export async function criteriGraph() {
 
     criteri.dataInizio = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataInizio));
     criteri.dataFine = convertDDMMYYYYtoYYYYMMDD(formatDDMMYYYY(dataFine));
-
     creaGraficoTorta(criteri);
 }
 
@@ -920,7 +892,6 @@ function convertDDMMYYYYtoYYYYMMDD(str) {
         return `${y}-${m}-${d}`;
     }
   return;
-
 }
 
 
@@ -932,7 +903,6 @@ async function deleteSpesaBtn() {
     }else if(tab){
         selectedCards = document.querySelectorAll('.spesa.entrataColor.selected');
     }
-
 
     if (selectedCards.length === 0) {
         showErrorToast("Seleziona almeno una riga da eliminare.","error");
@@ -995,11 +965,9 @@ async function downloadExcel(){
     });
 
     fetchDownload(dati);
-
 }
 
 async function deleteSpesaBtnExcel() {
-    // Trova tutte le righe selezionate
     const selectedCards = document.querySelectorAll('.spesa.selected');
     if (selectedCards.length === 0) {
         showErrorToast("Seleziona almeno una riga da eliminare.","error");
@@ -1018,7 +986,6 @@ async function deleteSpesaBtnExcel() {
     const totValue = estraiImporto(totCell.innerText);
     const newTot = (totValue + valuesSelected).toFixed(2);
     totCell.textContent = newTot + " €";
-
 }
 
 function estraiImporto(str) {
@@ -1029,7 +996,6 @@ function estraiImporto(str) {
 
 
 async function deleteCategoriaBtn() {
-    // Trova tutte le righe selezionate
     const selectedComponents = document.querySelectorAll('.cat.selected');
     const selectedCards = Array.from(selectedComponents).map(card =>
         card.querySelector('.cat-name').textContent.trim()
@@ -1064,7 +1030,6 @@ async function deleteCategoriaBtn() {
 }
 
 export async function fetchDownload(dati) {
-    // Invio al backend
         fetch("/api/excel/download", {
             method: "POST",
             headers: {
@@ -1086,18 +1051,13 @@ export async function fetchDownload(dati) {
         .catch(err => console.error(err));
 }
 
-
-
-// Mostra un toast
 export function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
 
-  setTimeout(() => toast.classList.add("show"), 100); // fade in
-
-  // rimuovi dopo 3 secondi
+  setTimeout(() => toast.classList.add("show"), 100);
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 400);
@@ -1110,9 +1070,7 @@ export function showErrorToast(message,type = "error") {
   toast.textContent = message;
   document.body.appendChild(toast);
 
-  setTimeout(() => toast.classList.add("show"), 100); // fade in
-
-  // rimuovi dopo 3 secondi
+  setTimeout(() => toast.classList.add("show"), 100);
   setTimeout(() => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 400);

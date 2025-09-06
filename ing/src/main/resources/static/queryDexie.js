@@ -6,7 +6,7 @@
 
 
 let db;
-initDB();// variabile globale per il database
+initDB();
 
 
 /////// INIZIALIZZAZIONE DB ///////////////////
@@ -28,7 +28,6 @@ export function initDB() {
 
 async function initCategorie(){
     const catList = ["Altro","Tempo libero", "Casa e utenze","Trasporti","Salute e benessere","Shopping" ];
-
     const isInit = await db.defaultCat.get("init");
     if(!isInit){
         for (const cat of catList) {
@@ -42,7 +41,6 @@ async function initCategorie(){
 /////////////////   SALVATAGGIO TRANSAZIONI   ///////////////////////////
 export async function saveSpesa(spesa, excel) {
   try {
-
     initDB();
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
     const categoria = capitalizeFirstLetter(spesa.categoria);
@@ -59,7 +57,6 @@ export async function saveSpesa(spesa, excel) {
     if(!excel){
         showToast("Spesa aggiunta con successo", "success");
     }
-
 
     return { success: true, id };
   } catch (error) {
@@ -193,10 +190,7 @@ export async function updateEntrata(entrata, isNew) {
         await saveCategoria(entrata.categoria);
     }
 
-
-    // put sostituisce completamente il record
     const id = await db.entrate.put(data);
-
     showToast("Entrata sostituita con successo", "success");
     return { success: true, id };
 
@@ -220,23 +214,19 @@ export async function queryTrns(criteri = {}, tabActive) {
 
   let usaFiltri = false;
 
-  // Se abbiamo solo categoria, usa l'indice multiEntry
   if (criteri.categoria && !criteri.importoMin && !criteri.importoMax && !criteri.dataInizio && !criteri.dataFine) {
     collezione = collezione.where('categoria').anyOf(criteri.categoria).distinct();
   }
-  // Se abbiamo solo importo, usa l'indice
   else if ((criteri.importoMin != null || criteri.importoMax != null) && !criteri.categoria && !criteri.dataInizio && !criteri.dataFine) {
     const min = criteri.importoMin ?? -Infinity;
     const max = criteri.importoMax ?? Infinity;
     collezione = collezione.where('importo').between(min, max, true, true);
   }
-  // Se abbiamo solo data, usa l'indice
   else if ((criteri.dataInizio || criteri.dataFine) && !criteri.categoria && !criteri.importoMin && !criteri.importoMax) {
     const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
     const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
     collezione = collezione.where('data').between(start, end, true, true);
   }
-  // Se abbiamo importo + data (senza categoria), usa l'indice composto
   else if ((criteri.importoMin != null || criteri.importoMax != null) && (criteri.dataInizio || criteri.dataFine) && !criteri.categoria) {
     const min = criteri.importoMin ?? -Infinity;
     const max = criteri.importoMax ?? Infinity;
@@ -246,22 +236,17 @@ export async function queryTrns(criteri = {}, tabActive) {
       .where('[importo+data]')
       .between([min, start], [max, end], true, true);
   }
-  // Per tutti gli altri casi (categoria + altri criteri), usa filtri
   else {
     usaFiltri = true;
-
-    // Se c'è categoria, inizia con quello per sfruttare l'indice multiEntry
     if (criteri.categoria) {
       collezione = collezione.where('categoria').anyOf(criteri.categoria);
     }
   }
 
-  // Applica filtri aggiuntivi se necessario
   if (usaFiltri ||
       (criteri.categoria && (criteri.importoMin != null || criteri.importoMax != null || criteri.dataInizio || criteri.dataFine))) {
 
     collezione = collezione.filter(spesa => {
-      // Filtra per categoria se specificata (controllo intersezione array)
       if (criteri.categoria) {
         const categorieSpesa = Array.isArray(spesa.categoria) ? spesa.categoria : [spesa.categoria];
         const criteriCategorie = Array.isArray(criteri.categoria) ? criteri.categoria : [criteri.categoria];
@@ -269,11 +254,9 @@ export async function queryTrns(criteri = {}, tabActive) {
         if (!hasCategoriaComune) return false;
       }
 
-      // Filtra per importo
       if (criteri.importoMin != null && spesa.importo < criteri.importoMin) return false;
       if (criteri.importoMax != null && spesa.importo > criteri.importoMax) return false;
 
-      // Filtra per data
       if (criteri.dataInizio && spesa.data < criteri.dataInizio) return false;
       if (criteri.dataFine && spesa.data > criteri.dataFine) return false;
 
@@ -327,7 +310,6 @@ export async function getCategorie(criterio) {
             .toArray();
     }
 
-    // ordino in ordine decrescente per richieste
     return categorie.sort((a, b) => b.richieste - a.richieste);
 }
 
@@ -373,7 +355,6 @@ async function updateCatInTrns(oldCat, newCat){
 
 }
 
-
 document.getElementById('btnDeleteData').addEventListener('click', () => {
   apriConferma();
 });
@@ -385,11 +366,9 @@ function apriConferma() {
   const yesBtn = document.getElementById('confirmYes');
   const noBtn = document.getElementById('confirmNo');
 
-  // pulisco eventuali vecchi listener
   yesBtn.replaceWith(yesBtn.cloneNode(true));
   noBtn.replaceWith(noBtn.cloneNode(true));
 
-  // riestraggo i bottoni aggiornati
   const newYesBtn = document.getElementById('confirmYes');
   const newNoBtn = document.getElementById('confirmNo');
 
@@ -441,7 +420,7 @@ async function esportaDatabase() {
 
   spese.forEach(item => {
           result.id.push(item.id);
-          result.dataValuta.push(item.data);   // mappo su dataValuta
+          result.dataValuta.push(item.data);
           result.categoria.push(item.categoria);
           result.descrizione.push(item.descrizione || "");
           result.valore.push(item.importo);
@@ -449,7 +428,7 @@ async function esportaDatabase() {
 
     entrate.forEach(item => {
             result.id.push(item.id);
-            result.dataValuta.push(item.data);   // mappo su dataValuta
+            result.dataValuta.push(item.data);
             result.categoria.push(item.categoria);
             result.descrizione.push(item.descrizione || "");
             result.valore.push(item.importo);
@@ -468,13 +447,12 @@ async function esportaDatabase() {
 const fileInput = document.getElementById('fileImport');
 const btnImport = document.getElementById('btnImport');
 
-// abilita il bottone solo quando c'è un file selezionato
 fileInput.addEventListener('change', () => {
   btnImport.disabled = fileInput.files.length === 0;
 });
 
 btnImport.addEventListener('click', () => {
-  const file = fileInput.files[0]; // <-- prendi il primo file
+  const file = fileInput.files[0];
   if (file) {
     importaDatabase(file);
     fileInput.value = "";
@@ -499,7 +477,6 @@ async function importaDatabase(file) {
         }
 
         const result = await response.json();
-
         const transazioni = parseDataTabella(result);
 
         for (const trns of transazioni) {
@@ -532,7 +509,7 @@ async function importaDatabase(file) {
       }
 
       return transazioni;
-    }
+ }
 
 
 
