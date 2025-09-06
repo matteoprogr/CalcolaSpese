@@ -846,8 +846,13 @@ display: none !important;
   justify-content: flex-start;
 }
 
-.hide {
-height: 3rem;
+.cardTr {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.cardTr.show {
+  opacity: 0;
 }
 
 #overlayRicerca {

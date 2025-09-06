@@ -210,7 +210,6 @@ const overlay = document.getElementById('spesaFormOverlay');
 const form = document.getElementById('spesaForm');
 const categoriaInput = document.getElementById('categoria');
 const catRow = document.getElementById('categorieCardsAdd');
-catRow.classList.add("hide")
 const closeBtn = document.getElementById('closeFormBtn');
 const importo = document.getElementById('importo');
 const descrizione = document.getElementById('descrizione');
@@ -244,14 +243,15 @@ openBtn.addEventListener('click', async (e) => {
     });
 
     categoriaInput.addEventListener("input",async (event) =>{
-        catRow.innerHTML = "";
-        const categorie = await getCategorie(categoriaInput.value);
-        if(categorie.length === 0){ catRow.classList.remove("hide"); }
-        categorie.forEach(cat => {
-           const card = catOverlay(cat.categoria, "addSpesa", null);
-           catRow.appendChild(card);
-           data.value = new Date().toISOString().split("T")[0];
-        });
+      const categorie = await getCategorie(categoriaInput.value);
+      const fragment = document.createDocumentFragment();
+      categorie.forEach((cat, i) => {
+        const card = catOverlay(cat.categoria, "editSpesa", null);
+        card.classList.add("cardTr");
+        card.style.animationDelay = `${i * 0.1}s`;
+        fragment.appendChild(card);
+      });
+      catRow.replaceChildren(fragment);
     });
 
     form.addEventListener('submit', async (e) => {
@@ -366,7 +366,6 @@ function catOverlay(categoria, sezione, selectedCards) {
 export async function overlayEdit(spesa) {
     const overlay = document.getElementById('editSpesaFormOverlay');
     const catRow = document.getElementById('categorieCardsEdit');
-    catRow.classList.add("hide");
     const editBtn = document.getElementById('editBtn');
     const closeBtn = document.getElementById('closeEditFormBtn');
     const dataInserimento = spesa.dataInserimento;
@@ -396,17 +395,17 @@ export async function overlayEdit(spesa) {
           overlay.classList.remove('showOverlay');
       });
 
-      categoriaElement.addEventListener("input",async (event) =>{
-          catRow.innerHTML = "";
+        categoriaElement.addEventListener("input", async (event) => {
           const categorie = await getCategorie(categoriaElement.value);
-          if(categorie.length === 0){ catRow.classList.remove("hide"); }
-          categorie.forEach(cat => {
-              const card = catOverlay(cat.categoria, "editSpesa", null);
-              catRow.appendChild(card);
+          const fragment = document.createDocumentFragment();
+          categorie.forEach((cat, i) => {
+            const card = catOverlay(cat.categoria, "editSpesa", null);
+            card.classList.add("cardTr");
+            card.style.animationDelay = `${i * 0.1}s`;
+            fragment.appendChild(card);
           });
-
-      });
-
+          catRow.replaceChildren(fragment);
+        });
 
     form.addEventListener('submit', async (e) => {
     const tab = recuperaTab();
