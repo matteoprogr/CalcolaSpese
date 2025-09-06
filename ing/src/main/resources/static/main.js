@@ -228,7 +228,8 @@ function sommaPerMese(transazioni) {
 async function creaGraficoBar(){
 const echarts = window.echarts;
 const chart = echarts.init(document.getElementById('chart'));
-const annoCorrente = new Date().getFullYear();
+const annoVisionato = document.getElementById("date-range-graph")._flatpickr;
+const annoCorrente = annoVisionato.currentYear;
 const criteri = {
   dataInizio: formatDate(new Date(annoCorrente, 0, 1)),
   dataFine: formatDate(new Date(annoCorrente, 11, 31))
@@ -391,6 +392,7 @@ function setDirezioneData(event,graph){
         }
         if(graph){
             setDateRangeGraph("#date-range-graph", mese, anno);
+            creaGraficoBar();
         }else {
             setDateRange("#date-range", mese, anno);
         }
@@ -405,6 +407,7 @@ function setDirezioneData(event,graph){
         }
         if(graph){
             setDateRangeGraph("#date-range-graph", mese, anno);
+            creaGraficoBar();
         }else {
             setDateRange("#date-range", mese, anno);
         }
