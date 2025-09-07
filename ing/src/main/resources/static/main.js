@@ -306,6 +306,20 @@ async function creaGraficoTorta(criteri){
     chartSpese.setOption(optionSpese);
     chartEntrate.setOption(optionEntrate);
 
+    attachLegendHandler(chartSpese);
+    attachLegendHandler(chartEntrate);
+
+}
+
+function attachLegendHandler(chart) {
+    chart.on('legendselectchanged', function (params) {
+        const option = chart.getOption();
+        const selected = params.selected;
+        const data = option.series[0].data;
+        const newTotal = data.reduce((acc, item) => { return selected[item.name] ? acc + item.value : acc; }, 0);
+        option.series[0].label.formatter = () => `${newTotal.toFixed(2)}`;
+        chart.setOption(option);
+    });
 }
 
 async function createOption(trns, trnsType){
@@ -396,7 +410,6 @@ function setDirezioneData(event,graph){
         }else {
             setDateRange("#date-range", mese, anno);
         }
-
     }
 
     if(direzione === "indietro" || direzione === "indietroGraph"){
