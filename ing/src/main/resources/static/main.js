@@ -350,7 +350,12 @@ async function createOption(trns, trnsType){
         orient: 'vertical',
         top: '10%',
         left: 'left',
-        height: '80%'
+        height: '80%',
+        pageFormatter: '',
+        pageIconSize: 16,
+        pageIconColor: '#555',
+        pageIconInactiveColor: '#ddd',
+        pageTextStyle: { color: 'transparent' }
       },
       series: [
         {
