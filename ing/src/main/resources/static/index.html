@@ -42,7 +42,7 @@
 <!-- Pagina Movimenti //////////////////////////////////////////////////////////////-->
 <section id="movimenti" class="page-section active">
     <div class="movimenti-tabs">
-        <span class="tab active" data-target="traccia-spesa-slide">Spese</span>
+        <span class="tab active" data-target="traccia-spesa-slide">Uscite</span>
         <span class="tab" data-target="traccia-entrate-slide">Entrate</span>
     </div>
 
@@ -97,7 +97,8 @@
             <input type="text" id="date-range">
             <button class="frecciaBtn" type="button" id="avanti"> > </button>
         </div>
-        <div class="input-group row">
+        <div class="input-group">
+            <input  type="text" id="ricerca-categorie-over" placeholder="Cerca fra le tue categorie">
             <div class="categorie-cards" id="categorieCardsEntrata"></div>
         </div>
         <div class="input-group row">
@@ -142,7 +143,7 @@
     </div>
 
     <div class="movimenti-tabs">
-        <span class="tab active" data-target="graph-spesa-slide">Spese</span>
+        <span class="tab active" data-target="graph-spesa-slide">Uscite</span>
         <span class="tab" data-target="graph-entrate-slide">Entrate</span>
     </div>
 
@@ -264,14 +265,14 @@
 <section id="info" class="page-section info-section">
         <h2>Informazioni</h2>
     <p>
-        Con <strong>MoneyLog</strong> puoi avere sempre sotto controllo le tue entrate e spese quotidiane, senza complicazioni e con la massima attenzione alla privacy.
+        Con <strong>MoneyLog</strong> puoi avere sempre sotto controllo le tue entrate e uscite quotidiane, senza complicazioni e con la massima attenzione alla privacy.
         L’app non salva alcun dato al di fuori del tuo dispositivo. Tutto rimane solo a te.
     </p>
 
     <ul class="info-list">
-        <li><strong>Movimenti:</strong> registra facilmente sia le entrate che le spese e consulta tutti i movimenti effettuati per organizzare meglio le tue finanze.</li>
+        <li><strong>Movimenti:</strong> registra facilmente sia le entrate che le uscite e consulta tutti i movimenti effettuati per organizzare meglio le tue finanze.</li>
         <li><strong>Grafici:</strong> visualizza in modo chiaro i movimenti avvenuti durante l’anno o di singoli mesi grazie a grafici intuitivi.</li>
-        <li><strong>Elabora Excel:</strong> importa il file delle spese bancarie in formato Excel e ottieni subito una lettura chiara dei dati.</li>
+        <li><strong>Elabora Excel:</strong> importa il file delle uscite bancarie in formato Excel e ottieni subito una lettura chiara dei dati.</li>
         <li><strong>Gestione Dati:</strong> i dati restano disponibili solo finché la cronologia non viene cancellata. Puoi inoltre caricare e scaricare i tuoi movimenti in modo sicuro. Una volta eliminata la cronologia, tutte le informazioni andranno perse.</li>
         <li><strong>Categorie:</strong> gestisci le categorie esistenti, aggiungile, modifica quelle esistenti, eliminale e cerca facilmente tra le categorie disponibili.</li>
     </ul>

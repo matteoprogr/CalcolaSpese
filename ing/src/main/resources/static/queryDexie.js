@@ -14,9 +14,9 @@ export function initDB() {
   if (!db) {
     db = new Dexie('MoneyLogDB');
     db.version(1).stores({
-      spese: '++id, *categoria, importo, data, [importo+data]',
+      spese: '++id, *categoria, importo, data, [importo+data], [data+importo]',
       categorie: '&categoria',
-      entrate: '++id, *categoria, importo, data, [importo+data]',
+      entrate: '++id, *categoria, importo, data, [importo+data], [data+importo]',
       defaultCat: 'inizializato'
     });
 
@@ -55,12 +55,12 @@ export async function saveSpesa(spesa, excel) {
     await saveCategoria(spesa.categoria);
     const id = await db.spese.add(data);
     if(!excel){
-        showToast("Spesa aggiunta con successo", "success");
+        showToast("Uscita aggiunta con successo", "success");
     }
 
     return { success: true, id };
   } catch (error) {
-    console.error("Errore nel salvataggio spesa:", error);
+    console.error("Errore nel salvataggio uscita:", error);
     return { success: false, error };
   }
 }
@@ -136,7 +136,7 @@ export async function updateSpesa( spesa, isNew) {
     initDB();
 
     if (!spesa.id) {
-      throw new Error("ID spesa mancante per la sostituzione");
+      throw new Error("ID uscita mancante per la sostituzione");
     }
 
     const fomattedISO = new Date(spesa.data).toISOString().split('T')[0];
@@ -156,12 +156,12 @@ export async function updateSpesa( spesa, isNew) {
 
     const id = await db.spese.put(data);
 
-    showToast("Spesa sostituita con successo", "success");
+    showToast("Uscita sostituita con successo", "success");
     return { success: true, id };
 
   } catch (error) {
-    console.error("Errore nella sostituzione spesa:", error);
-    showToast("Errore durante la sostituzione della spesa", "error");
+    console.error("Errore nella sostituzione uscita:", error);
+    showToast("Errore durante la sostituzione della uscita", "error");
     return { success: false, error };
   }
 }
@@ -205,67 +205,53 @@ export async function updateEntrata(entrata, isNew) {
 /////////////////  RICERCA ///////////////////////
 export async function queryTrns(criteri = {}, tabActive) {
   initDB();
-  let collezione;
-  if(!tabActive){
-    collezione = db.spese;
-  }else if(tabActive){
-    collezione = db.entrate;
+  const collezione = tabActive ? db.entrate : db.spese;
+
+  const minImporto = criteri.importoMin != null ? criteri.importoMin : -Infinity;
+  const maxImporto = criteri.importoMax != null ? criteri.importoMax : Infinity;
+  const startDate = criteri.dataInizio || Dexie.minKey;
+  const endDate = criteri.dataFine || Dexie.maxKey;
+
+  const categorieFiltro = criteri.categoria
+    ? (Array.isArray(criteri.categoria) ? criteri.categoria : [criteri.categoria])
+    : null;
+
+  let col = collezione;
+
+  // 1. Filtro iniziale con indice composto se entrambi i filtri esistono
+  if ((criteri.dataInizio || criteri.dataFine) && (criteri.importoMin != null || criteri.importoMax != null)) {
+    col = col.where('[data+importo]')
+             .between([startDate, minImporto], [endDate, maxImporto], true, true);
+
+  // 2. Solo filtro per data
+  } else if (criteri.dataInizio || criteri.dataFine) {
+    col = col.where('data').between(startDate, endDate, true, true);
+
+  // 3. Solo filtro per importo
+  } else if (criteri.importoMin != null || criteri.importoMax != null) {
+    col = col.where('importo').between(minImporto, maxImporto, true, true);
+
+  // 4. Solo categoria
+  } else if (categorieFiltro) {
+    col = col.where('categoria').anyOf(categorieFiltro).distinct();
   }
 
-  let usaFiltri = false;
-
-  if (criteri.categoria && !criteri.importoMin && !criteri.importoMax && !criteri.dataInizio && !criteri.dataFine) {
-    collezione = collezione.where('categoria').anyOf(criteri.categoria).distinct();
-  }
-  else if ((criteri.importoMin != null || criteri.importoMax != null) && !criteri.categoria && !criteri.dataInizio && !criteri.dataFine) {
-    const min = criteri.importoMin ?? -Infinity;
-    const max = criteri.importoMax ?? Infinity;
-    collezione = collezione.where('importo').between(min, max, true, true);
-  }
-  else if ((criteri.dataInizio || criteri.dataFine) && !criteri.categoria && !criteri.importoMin && !criteri.importoMax) {
-    const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
-    const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-    collezione = collezione.where('data').between(start, end, true, true);
-  }
-  else if ((criteri.importoMin != null || criteri.importoMax != null) && (criteri.dataInizio || criteri.dataFine) && !criteri.categoria) {
-    const min = criteri.importoMin ?? -Infinity;
-    const max = criteri.importoMax ?? Infinity;
-    const start = criteri.dataInizio ? criteri.dataInizio : Dexie.minKey;
-    const end = criteri.dataFine ? criteri.dataFine : Dexie.maxKey;
-    collezione = collezione
-      .where('[importo+data]')
-      .between([min, start], [max, end], true, true);
-  }
-  else {
-    usaFiltri = true;
-    if (criteri.categoria) {
-      collezione = collezione.where('categoria').anyOf(criteri.categoria);
+  // 5. Filtri aggiuntivi in memoria usando .and()
+  col = col.and(item => {
+    if (categorieFiltro) {
+      const cats = Array.isArray(item.categoria) ? item.categoria : [item.categoria];
+      if (!cats.some(c => categorieFiltro.includes(c))) return false;
     }
-  }
+    if (criteri.importoMin != null && item.importo < criteri.importoMin) return false;
+    if (criteri.importoMax != null && item.importo > criteri.importoMax) return false;
+    if (criteri.dataInizio && item.data < criteri.dataInizio) return false;
+    if (criteri.dataFine && item.data > criteri.dataFine) return false;
+    return true;
+  });
 
-  if (usaFiltri ||
-      (criteri.categoria && (criteri.importoMin != null || criteri.importoMax != null || criteri.dataInizio || criteri.dataFine))) {
-
-    collezione = collezione.filter(spesa => {
-      if (criteri.categoria) {
-        const categorieSpesa = Array.isArray(spesa.categoria) ? spesa.categoria : [spesa.categoria];
-        const criteriCategorie = Array.isArray(criteri.categoria) ? criteri.categoria : [criteri.categoria];
-        const hasCategoriaComune = categorieSpesa.some(cat => criteriCategorie.includes(cat));
-        if (!hasCategoriaComune) return false;
-      }
-
-      if (criteri.importoMin != null && spesa.importo < criteri.importoMin) return false;
-      if (criteri.importoMax != null && spesa.importo > criteri.importoMax) return false;
-
-      if (criteri.dataInizio && spesa.data < criteri.dataInizio) return false;
-      if (criteri.dataFine && spesa.data > criteri.dataFine) return false;
-
-      return true;
-    });
-  }
-
-  return collezione.toArray();
+  return col.toArray();
 }
+
 
 ////////////////    ELIMINAZIONE TRANSAZIONI ////////////////////////////////
 export async function deleteSpese(criteri = {}, tabActive) {
@@ -311,6 +297,39 @@ export async function getCategorie(criterio) {
     }
 
     return categorie.sort((a, b) => b.richieste - a.richieste);
+}
+
+export async function getCategorieArray(criteri) {
+  initDB();
+
+  let criteriArray = [];
+
+  if (!criteri || (Array.isArray(criteri) && criteri.length === 0) || (typeof criteri === 'string' && criteri.trim() === '')) {
+    return (await db.categorie.toArray()).sort((a, b) => b.richieste - a.richieste);
+  }
+
+  if (Array.isArray(criteri)) {
+    criteriArray = criteri;
+  } else {
+    criteriArray = [criteri];
+  }
+
+  // Rimuovi stringhe vuote
+  criteriArray = criteriArray.filter(c => typeof c === 'string' && c.trim() !== '');
+
+  let categorie;
+
+  if (criteriArray.length > 0) {
+    // Query Indicizzata con Dexie
+    categorie = await db.categorie
+      .where('categoria')
+      .startsWithAnyOfIgnoreCase(criteriArray)
+      .toArray();
+  } else {
+    categorie = await db.categorie.toArray();
+  }
+
+  return categorie.sort((a, b) => b.richieste - a.richieste);
 }
 
 

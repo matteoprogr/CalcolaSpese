@@ -600,14 +600,14 @@ display: none !important;
     font-size: 0.95rem;
     cursor: pointer;
     padding: 0.125rem 0.25rem;
-    border: 0.125rem solid #999;
     color: #666;
     transition: background-color 0.2s, color 0.2s;
-    width: 1.8rem;
+    width: 2.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0.7;
+    box-shadow: none;
 }
 .btnSpesaColor{
     background: linear-gradient(135deg, #ffb3b3, #ffcccc);
@@ -663,25 +663,20 @@ display: none !important;
     display: flex;
     gap: 1rem;
     z-index: 9999;
-    border: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1),
             0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .fullscreenBtn {
-    width: 3rem;
-    height: 3rem;
     background: linear-gradient(135deg, #C0DFF7, #E6EDF2);*/
     color: #2c3e50;
     border: none;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 1.2rem;
     transition: transform 0.2s ease, opacity 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
     opacity: 0.95;
 }
 

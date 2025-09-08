@@ -263,7 +263,7 @@ const option = {
       ['novembre', sumS[10], sumE[10] ],
       ['dicembre', sumS[11], sumE[11] ]
     ],
-    dimensions: ['Mese','Spese','Entrate']
+    dimensions: ['Mese','Uscite','Entrate']
   },
   xAxis: {
     type: 'category',
@@ -282,7 +282,7 @@ const option = {
     {
       type: 'bar',
       name: 'Spese',
-      encode: { x: 'Mese', y: 'Spese' }
+      encode: { x: 'Mese', y: 'Uscite' }
     }
   ]
 };
@@ -300,7 +300,7 @@ async function creaGraficoTorta(criteri){
 
     const spese = await queryTrns(criteri,false);
     const entrate = await queryTrns(criteri,true);
-    const optionSpese = await createOption(spese,'Spesa');
+    const optionSpese = await createOption(spese,'Uscita');
     const optionEntrate = await createOption(entrate,'Entrata');
 
     chartSpese.setOption(optionSpese);
@@ -659,8 +659,10 @@ async function uploadExcel() {
 }
 
 async function explainButton(){
-    const  zeroExcel = document.getElementById("lista-spese-excel");
+    const zeroExcel = document.getElementById("lista-spese-excel");
+    const zeroExcelTot = document.getElementById("lista-spese-excel-totale");
     zeroExcel.innerHTML = "";
+    zeroExcelTot.innerHTML = "";
     const explainComponent = explainButtonComponent();
     zeroExcel.appendChild(explainComponent);
 }

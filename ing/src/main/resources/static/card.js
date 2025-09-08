@@ -3,8 +3,10 @@ import { updateSpesa } from './queryDexie.js';
 import { saveEntrata } from './queryDexie.js';
 import { updateEntrata } from './queryDexie.js';
 import { createCriteri } from './main.js';
+import { isValid } from './main.js';
 import { showErrorToast } from './main.js';
 import { getCategorie } from './queryDexie.js';
+import { getCategorieArray } from './queryDexie.js';
 import { updateCategoria } from './queryDexie.js';
 import { categorieCreateComponent } from './main.js';
 
@@ -131,9 +133,9 @@ export function explainButtonComponent() {
         container.classList.add("explainButtonContainer");
            container.innerHTML = `
                 <div>
-                  <span class="rowExplain">➕   Salva tutte le spese caricate</span>
-                  <span class="rowExplain">🗑️   Elimina le spese selezionate</span>
-                  <span class="rowExplain">📥   Esporta spese in Excel</span>
+                  <span class="rowExplain">➕   Salva tutte le uscite caricate</span>
+                  <span class="rowExplain">🗑️   Elimina le uscite selezionate</span>
+                  <span class="rowExplain">📥   Esporta uscite in Excel</span>
                 </div>
 
            `;
@@ -296,7 +298,7 @@ export function recuperaTab(){
         return;
     }
 
-    if( tab === "Spese"){
+    if( tab === "Uscite"){
         return false;
     }else if(tab === "Entrate"){
         return true;
@@ -310,12 +312,14 @@ export async function overlayRicerca() {
     const openBtn = document.getElementById('getSpesaBtn');
     const overlay = document.getElementById('overlayRicerca');
     const catRow = document.getElementById('categorieCardsEntrata');
+    const categoriaInput = document.getElementById('ricerca-categorie-over');
+    let selectedCards = document.querySelectorAll(".card.selected");
 
     openBtn.addEventListener('click', async (e) => {
         if (overlay.classList.contains('showOverlay')) {
             overlay.classList.remove('showOverlay');
         } else {
-            const selectedCards = document.querySelectorAll(".card.selected")
+            selectedCards = document.querySelectorAll(".card.selected");
             catRow.innerHTML = "";
             overlay.classList.toggle("showOverlay");
             const categorie = await getCategorie();
@@ -330,6 +334,25 @@ export async function overlayRicerca() {
               overlay.classList.remove('showOverlay');
           });
     });
+     categoriaInput.addEventListener("input",async (event) =>{
+          selectedCards = document.querySelectorAll(".card.selected");
+          const criteri = [];
+          if(isValid(categoriaInput.value)){
+              criteri.push(categoriaInput.value);
+              for(const catSelected of selectedCards){
+                criteri.push(catSelected.innerText.trim());
+              }
+          }
+
+          const categorie = await getCategorieArray(criteri);
+          const fragment = document.createDocumentFragment();
+          categorie.forEach((cat, i) => {
+            const card = catOverlay(cat.categoria, "getSpese", selectedCards);
+            card.style.animationDelay = `${i * 0.1}s`;
+            fragment.appendChild(card);
+          });
+          catRow.replaceChildren(fragment);
+        });
   }
 
 function catOverlay(categoria, sezione, selectedCards) {
